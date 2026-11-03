@@ -10,7 +10,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 - An English, left-to-right interface with a single **Filters** menu for topics, language, channel, level, content type, duration, year, and sorting.
 - 20 categories with video counts, plus user-created playlists that can be managed and populated from the watch page.
 - Curated playlists from content creators, fetched and cleaned automatically and displayed on the Playlists page.
-- Full-catalog search with relevance ranking across titles, channels, topics, and metadata, including flexible word matching and synonyms.
+- Full-catalog search with relevance ranking across titles, channels, topics, and metadata, including synonyms, prefixes, typo tolerance, quality boosts, channel diversity, and exact duplicate collapsing.
 - A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate. The Hacker News page supports programming/all scope, recommendation status, content type, level, shelf life, area filters, and sorting.
 - A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
 - Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.
