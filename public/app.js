@@ -149,6 +149,11 @@ async function init() {
     }
   });
   $("#scrim").addEventListener("click", () => setSidebar(false));
+  $(".skip-link")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    view.focus();
+    view.scrollIntoView({ block: "start" });
+  });
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
   });
@@ -201,6 +206,7 @@ async function init() {
   }
 
   view.addEventListener("click", onViewClick);
+  view.addEventListener("keydown", onViewKeydown);
   view.addEventListener("change", onViewChange);
   view.addEventListener("submit", onViewSubmit);
 
@@ -295,6 +301,31 @@ function normalizeAr(input) {
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function textLang(value) {
+  const text = String(value || "");
+  const letters = text.match(/[A-Za-z\u0600-\u06FF]/g) || [];
+  if (!letters.length) return "";
+  const arabic = letters.filter((char) => /[\u0600-\u06FF]/.test(char)).length;
+  return arabic / letters.length >= 0.3 ? "ar" : "en";
+}
+
+function langAttrs(value) {
+  const lang = textLang(value);
+  return lang ? ` lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"` : "";
+}
+
+function applyTextLang(element, value) {
+  if (!element) return;
+  const lang = textLang(value);
+  if (lang) {
+    element.lang = lang;
+    element.dir = lang === "ar" ? "rtl" : "ltr";
+  } else {
+    element.removeAttribute("lang");
+    element.removeAttribute("dir");
+  }
 }
 
 function setPageMeta({ title, description = "", canonical = "", image = "", type = "website" }) {
@@ -527,9 +558,16 @@ function syncSidebar() {
     "#/categories": "categories", "#/playlists": "playlists", "#/settings": "settings",
     "#/channels": "channels",
   };
-  const active = map[hash] || (hash.startsWith("#/playlist/") ? "playlists" : hash.startsWith("#/hacker-news") || hash.startsWith("#/hn-watch") ? "hacker-news" : "");
+  const active = map[hash]
+    || (hash.startsWith("#/playlist/") ? "playlists"
+      : hash.startsWith("#/hacker-news") || hash.startsWith("#/hn-watch") ? "hacker-news"
+      : hash.startsWith("#/watch/") || hash.startsWith("#/search/") || hash.startsWith("#/channel/") ? "home"
+      : "");
   document.querySelectorAll(".side-link[data-nav]").forEach((a) => {
-    a.classList.toggle("active", a.dataset.nav === active);
+    const isActive = a.dataset.nav === active;
+    a.classList.toggle("active", isActive);
+    if (isActive) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
   });
   const counts = {
     home: state.meta.total,
@@ -844,19 +882,20 @@ function field(name, label, allLabel, options, current, group = "ui") {
   const isAll = cur === "" || (name === "sort" && cur === "best");
   const activeOption = options.find(([value]) => String(value) === cur);
   const shown = isAll || !activeOption ? allLabel : activeOption[1];
+  const menuId = `select-${group}-${name}`;
   const rows = [["", allLabel], ...options]
     .map(([value, text]) => {
       const on = value === "" ? isAll : String(value) === cur;
-      return `<button type="button" class="select-opt ${on ? "on" : ""}" role="option" aria-selected="${on}" data-select-opt="${name}" data-select-group="${group}" data-value="${esc(value)}">${esc(text)}${on ? icon("check") : ""}</button>`;
+      return `<button type="button" class="select-opt ${on ? "on" : ""}" role="option" tabindex="-1" aria-selected="${on}" data-select-opt="${name}" data-select-group="${group}" data-value="${esc(value)}">${esc(text)}${on ? icon("check") : ""}</button>`;
     })
     .join("");
   return `<div class="filter-field">
     <span class="filter-label">${esc(label)}</span>
     <div class="select">
-      <button type="button" class="select-btn" data-select-toggle="${name}" data-select-group="${group}" aria-haspopup="listbox" aria-expanded="false">
+      <button type="button" class="select-btn" data-select-toggle="${name}" data-select-group="${group}" aria-haspopup="listbox" aria-controls="${menuId}" aria-expanded="false">
         <span>${esc(shown)}</span>${icon("chevron")}
       </button>
-      <div class="select-menu" role="listbox" aria-label="${esc(label)}">${rows}</div>
+      <div class="select-menu" id="${menuId}" role="listbox" aria-label="${esc(label)}">${rows}</div>
     </div>
   </div>`;
 }
@@ -866,6 +905,63 @@ function closeSelects() {
     wrap.classList.remove("open");
     wrap.querySelector("[data-select-toggle]")?.setAttribute("aria-expanded", "false");
   });
+}
+
+function focusSelectOption(toggle, fromEnd = false) {
+  const wrap = toggle.closest(".select");
+  const options = [...(wrap?.querySelectorAll("[data-select-opt]") || [])];
+  if (!options.length) return;
+  const selected = options.find((option) => option.classList.contains("on"));
+  (selected || (fromEnd ? options[options.length - 1] : options[0])).focus();
+}
+
+function onViewKeydown(event) {
+  const option = event.target.closest("[data-select-opt]");
+  if (option) {
+    const menu = option.closest('[role="listbox"]');
+    const options = menu ? [...menu.querySelectorAll("[data-select-opt]")] : [];
+    const index = options.indexOf(option);
+    const toggle = option.closest(".select")?.querySelector("[data-select-toggle]");
+    if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault();
+      if (!options.length) return;
+      let next = index;
+      if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = options.length - 1;
+      else if (event.key === "ArrowDown") next = Math.min(options.length - 1, index + 1);
+      else next = Math.max(0, index - 1);
+      options[next]?.focus();
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeSelects();
+      toggle?.focus();
+    }
+    return;
+  }
+
+  const toggle = event.target.closest("[data-select-toggle]");
+  if (!toggle) return;
+  const wrap = toggle.closest(".select");
+  if (!wrap) return;
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    closeSelects();
+    wrap.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+    focusSelectOption(toggle, event.key === "ArrowUp");
+    return;
+  }
+  if (event.key === "Escape") {
+    closeSelects();
+    return;
+  }
+  if (event.key === "Enter" || event.key === " ") {
+    setTimeout(() => {
+      if (wrap.classList.contains("open")) focusSelectOption(toggle);
+    }, 0);
+  }
 }
 
 function thumbSrc(id) {
@@ -892,8 +988,8 @@ function card(v, opts = {}) {
   const topic = topicId ? ` · ${esc(state.topicLabels[topicId] || topicId)}` : "";
   const channel = v.channel || "Unknown channel";
   const channelHTML = v.channel_id
-    ? `<a class="card-sub" href="#/channel/${v.channel_id}">${esc(channel)}</a>`
-    : `<div class="card-sub">${esc(channel)}</div>`;
+    ? `<a class="card-sub" href="#/channel/${v.channel_id}"${langAttrs(channel)}>${esc(channel)}</a>`
+    : `<div class="card-sub"${langAttrs(channel)}>${esc(channel)}</div>`;
   const hnRecommenders = Number(hn?.hn?.recommenders || hn?.recommenders || 0);
   const hnScore = Number(hn?.score || 0);
   const hnMeta = hn
@@ -916,7 +1012,7 @@ function card(v, opts = {}) {
       <span class="dur"${badgeTitle ? ` title="${esc(badgeTitle)}"` : ""}>${badge}</span>
     </div>
     <div class="card-info">
-      <a class="card-title" href="${watchHref}">${esc(v.title)}</a>
+      <a class="card-title" href="${watchHref}"${langAttrs(v.title)}>${esc(v.title)}</a>
       ${channelHTML}
       <div class="card-sub">${hnMeta}</div>
     </div>
@@ -1018,11 +1114,11 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
       <div class="player">${playerMarkup}</div>
-      <h1 class="watch-title">${esc(v.title)}</h1>
+      <h1 class="watch-title"${langAttrs(v.title)}>${esc(v.title)}</h1>
       <div class="watch-bar">
         <a class="watch-channel" id="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
           <span class="avatar" id="watch-avatar">${esc(v.channel.trim().charAt(0))}</span>
-          <span class="watch-channel-text"><b id="watch-channel-name">${esc(v.channel)}</b><small id="watch-channel-count">${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
+          <span class="watch-channel-text"><b id="watch-channel-name"${langAttrs(v.channel)}>${esc(v.channel)}</b><small id="watch-channel-count">${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
         </a>
         ${watchActionsHTML(id)}
       </div>
@@ -1063,7 +1159,7 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   return `<iframe ${needsApi ? 'id="youtube-player"' : ""}
     src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
     title="${esc(title)}" loading="lazy" allowfullscreen
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 
@@ -1152,7 +1248,14 @@ function syncWatchVideo(id, playlistId) {
   if (channelCount) channelCount.textContent = channel ? `${videos(channel.count)} indexed` : "Channel";
 
   const title = $(".watch-title");
-  if (title) title.textContent = video.title;
+  if (title) {
+    title.textContent = video.title;
+    applyTextLang(title, video.title);
+  }
+  if (channelName) {
+    channelName.textContent = video.channel;
+    applyTextLang(channelName, video.channel);
+  }
   const likeButton = $("#watch-like");
   const saveButton = $("#watch-save");
   const liked = state.likes.has(id);
@@ -1325,12 +1428,12 @@ function hnCommentsHTML(comments, unavailable = false) {
   return `<div class="hn-comments">${comments.map((comment) => `
     <article class="hn-comment">
       <div class="hn-comment-head">
-        <span><b>${esc(comment.author || "Anonymous")}</b> · ${esc(comment.month || "")}</span>
+        <span><b${langAttrs(comment.author || "")}>${esc(comment.author || "Anonymous")}</b> · ${esc(comment.month || "")}</span>
         <span>${esc(HN_STANCE_LABELS[comment.stance] || comment.stance || "Comment")}</span>
       </div>
-      ${comment.story_title ? `<div class="hn-story">${esc(comment.story_title)}</div>` : ""}
-      <p>${esc(comment.text || "")}</p>
-      ${comment.why ? `<div class="hn-why">${esc(comment.why)}</div>` : ""}
+      ${comment.story_title ? `<div class="hn-story"${langAttrs(comment.story_title)}>${esc(comment.story_title)}</div>` : ""}
+      <p${langAttrs(comment.text || "")}>${esc(comment.text || "")}</p>
+      ${comment.why ? `<div class="hn-why"${langAttrs(comment.why)}>${esc(comment.why)}</div>` : ""}
       <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">Open Hacker News comment</a>
     </article>`).join("")}</div>`;
 }
@@ -1363,19 +1466,19 @@ function hnDescriptionHTML(video, mainVideo = null) {
     const label = String(category.name || category.id || "").trim();
     if (!label) return "";
     const query = category.name || category.id || label;
-    return `<a class="hn-tag hn-tag-category" href="#/hacker-news/${esc(encodeURIComponent(query))}">${esc(label)}</a>`;
+    return `<a class="hn-tag hn-tag-category"${langAttrs(label)} href="#/hacker-news/${esc(encodeURIComponent(query))}">${esc(label)}</a>`;
   }).join("");
   const tags = (video.tags || []).map((tag) => {
     const label = String(tag || "").replace(/^#+/, "").trim();
     if (!label) return "";
-    return `<a class="hn-tag hn-tag-topic" href="#/hacker-news/${esc(encodeURIComponent(label))}">#${esc(label)}</a>`;
+    return `<a class="hn-tag hn-tag-topic"${langAttrs(label)} href="#/hacker-news/${esc(encodeURIComponent(label))}">#${esc(label)}</a>`;
   }).join("");
   const tagLinks = categories + tags;
 
   return `<div class="hn-desc">
     ${metadata.length ? `<div class="hn-top-line">${metadata.map(esc).join(" · ")}</div>` : ""}
-    ${video.summary ? `<p>${esc(video.summary)}</p>` : ""}
-    ${video.why_hn ? `<p class="hn-desc-why">${esc(video.why_hn)}</p>` : ""}
+    ${video.summary ? `<p${langAttrs(video.summary)}>${esc(video.summary)}</p>` : ""}
+    ${video.why_hn ? `<p class="hn-desc-why"${langAttrs(video.why_hn)}>${esc(video.why_hn)}</p>` : ""}
     ${tagLinks ? `<div class="hn-desc-tags">${tagLinks}</div>` : ""}
   </div>`;
 }
@@ -1722,9 +1825,9 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
         <div class="player">${youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
-        <h1 class="watch-title">${esc(video.title)}</h1>
+        <h1 class="watch-title"${langAttrs(video.title)}>${esc(video.title)}</h1>
         <div class="watch-bar">
-          <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
+          <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b${langAttrs(video.channel || "")}>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
           ${watchActionsHTML(videoId)}
         </div>
         ${hnDescriptionHTML(video, mainVideo)}
@@ -1933,7 +2036,7 @@ function creatorPlaylistCard(p) {
       <span>${p.count}</span>
     </a>
     <div class="pl-row">
-      <div><a href="#/playlist/${p.id}">${esc(p.title)}</a><small>${esc(p.channel)} · ${videos(p.count)}</small></div>
+      <div><a href="#/playlist/${p.id}"${langAttrs(p.title)}>${esc(p.title)}</a><small${langAttrs(p.channel)}>${esc(p.channel)} · ${videos(p.count)}</small></div>
     </div>
   </article>`;
 }
@@ -1973,7 +2076,7 @@ function playlistCard(p) {
       <span>${p.ids.length}</span>
     </a>
     <div class="pl-row">
-      <div><a href="#/playlist/${p.id}">${esc(p.name)}</a><small>${p.ids.length ? videos(p.ids.length) : "Empty"}</small></div>
+      <div><a href="#/playlist/${p.id}"${langAttrs(p.name)}>${esc(p.name)}</a><small>${p.ids.length ? videos(p.ids.length) : "Empty"}</small></div>
       <button class="icon-btn" data-delete-playlist="${p.id}" aria-label="Delete playlist">${icon("trash")}</button>
     </div>
   </article>`;
@@ -2070,7 +2173,7 @@ function renderChannels() {
   const cards = state.meta.channels
     .map((c) => `<a class="channel-card" href="#/channel/${c.id}">
       <span class="avatar">${esc(c.name.trim().charAt(0))}</span>
-      <span><b>${esc(c.name)}</b><small>${videos(c.count)}</small></span>
+      <span><b${langAttrs(c.name)}>${esc(c.name)}</b><small>${videos(c.count)}</small></span>
     </a>`)
     .join("");
   view.innerHTML = `<section>

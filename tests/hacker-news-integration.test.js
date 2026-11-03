@@ -63,7 +63,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -876,4 +876,45 @@ test("HN filters hydrate from shareable URLs", () => {
     api.hnHashFromState(""),
     "#/hacker-news?hnScope=all&hnRecommendation=discussed&hnSort=mentions",
   );
+});
+
+test("Arabic text carries language and direction attributes", () => {
+  const { api } = createHarness();
+  const arabic = {
+    id: "arabic1",
+    title: "دورة بايثون للمبتدئين",
+    channel: "قناة عربية",
+    views: 100,
+    year: 2024,
+    topics: ["python"],
+    duration: 900,
+  };
+  const english = {
+    id: "english1",
+    title: "Python for Beginners",
+    channel: "English Channel",
+    views: 100,
+    year: 2024,
+    topics: ["python"],
+    duration: 900,
+  };
+
+  assert.equal(api.langAttrs(arabic.title), ' lang="ar" dir="rtl"');
+  assert.equal(api.langAttrs(english.title), ' lang="en" dir="ltr"');
+  assert.match(api.card(arabic), /class="card-title"[^>]*lang="ar" dir="rtl"/);
+  assert.match(api.card(english), /class="card-title"[^>]*lang="en" dir="ltr"/);
+});
+
+test("filter select markup exposes an accessible listbox", () => {
+  const { api } = createHarness();
+  const markup = api.field("lang", "Language", "All languages", [["ar", "Arabic"]], "ar", "ui");
+  assert.match(markup, /aria-controls="select-ui-lang"/);
+  assert.match(markup, /id="select-ui-lang"/);
+  assert.match(markup, /role="listbox"/);
+  assert.match(markup, /role="option" tabindex="-1"/);
+});
+
+test("the document includes a skip link to the main content", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(html, /class="skip-link" href="#view"/);
 });
