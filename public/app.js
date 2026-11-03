@@ -22,6 +22,7 @@ const state = {
   current: null,
 };
 const ui = { topics: new Set(), level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize() };
+let pendingTopic = null;
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
@@ -180,6 +181,7 @@ function applyTheme(pref) {
 }
 
 function setSidebar(open) {
+  if (open) document.body.classList.remove("side-collapsed");
   $("#sidebar").classList.toggle("open", open);
   $("#scrim").hidden = !open;
   $("#menuBtn").setAttribute("aria-expanded", String(open));
@@ -196,6 +198,10 @@ function render() {
 
   if (!seg || seg === "home") {
     resetFilters();
+    if (pendingTopic) {
+      ui.topics = new Set([pendingTopic]);
+      pendingTopic = null;
+    }
     return renderFeed({ type: "all" });
   }
   if (seg === "longs") {
@@ -255,6 +261,7 @@ function renderSidebar() {
     const target = a.getAttribute("href");
     if (target === (location.hash || "#/")) {
       if (a.dataset.nav === "home") resetFilters();
+      setSidebar(false);
       render();
     }
   });
@@ -387,7 +394,7 @@ function toolbar(scope) {
   const years = [...new Set(state.videos.map((v) => v.year).filter(Boolean))].sort((a, b) => b - a);
   const selects = [
     !scope.channel ? select("channel", "كل القنوات", state.meta.channels.map((c) => [c.id, c.name]), ui.channel) : "",
-    select("level", "كل المستويات", [["beginner", "مبتدئ"], ["advanced", "متقدم"]], ui.level),
+    select("level", "كل المستويات", [["beginner", "مبتدئ"], ["advanced", "متقدم"], ["any", "عام"]], ui.level),
     scope.kind ? "" : select("kind", "كل الأنواع", Object.entries(KIND_LABELS), ui.kind),
     select("duration", "أي مدة", [["short", "أقل من 5 د"], ["mid", "5–20 د"], ["long", "20–60 د"], ["xl", "أكثر من ساعة"]], ui.duration),
     select("year", "كل السنوات", years.map((y) => [y, String(y)]), ui.year),
@@ -719,9 +726,8 @@ function renderNotFound() {
 function onViewClick(e) {
   const goto = e.target.closest("[data-goto-topic]");
   if (goto) {
-    resetFilters();
-    ui.topics = new Set([goto.dataset.gotoTopic]);
-    if ((location.hash || "#/") === "#/") renderFeed({ type: "all" });
+    pendingTopic = goto.dataset.gotoTopic;
+    if (/^#\/(home)?$/.test(location.hash || "#/")) render();
     else location.hash = "#/";
     return;
   }
