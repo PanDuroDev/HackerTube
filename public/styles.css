@@ -1336,8 +1336,8 @@ a.card-sub:hover { color: var(--text); }
   }
   .watch-action-items > .drop > .watch-action-item > .ic:last-child {
     margin-inline-start: auto;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     color: var(--muted);
     transition: transform .16s ease;
   }

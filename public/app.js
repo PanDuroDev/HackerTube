@@ -619,7 +619,7 @@ function renderWatch(id) {
             <button class="btn watch-action-item ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
             <button class="btn watch-action-item ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
             <details class="drop">
-              <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
+              <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down")}</summary>
               <div class="drop-panel">${playlistPanel}</div>
             </details>
             <a class="btn watch-action-item watch-action-item--external" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
