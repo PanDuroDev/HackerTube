@@ -88,3 +88,11 @@ def test_playlists_keep_only_indexed_videos(tmp_path):
     lists = load_playlists(records, tmp_path)
     assert [p["id"] for p in lists] == ["PL1"]
     assert lists[0]["ids"] == ["a", "b"]
+
+
+def test_description_is_preserved_when_present():
+    records = build_records([payload([
+        {"id": "a", "title": "دورة بايثون", "duration": 900, "views": 100,
+         "description": "  وصف تفصيلي للفيديو  ", "timestamp": None},
+    ])])
+    assert records[0]["description"] == "وصف تفصيلي للفيديو"

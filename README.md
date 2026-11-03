@@ -13,6 +13,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 - Full-catalog search with relevance ranking across titles, channels, topics, and metadata, including synonyms, prefixes, typo tolerance, quality boosts, channel diversity, and exact duplicate collapsing.
 - Shareable topic and filter URLs, canonical/Open Graph metadata, a copy/native share action on watch pages, and generated sitemap/robots files.
 - Keyboard-accessible filter menus, Arabic language/direction metadata, a skip link, and active navigation state.
+- Watch progress with resume and Continue watching, optional autoplay-next, and video descriptions when the catalog provides them.
 - A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate. The Hacker News page supports programming/all scope, recommendation status, content type, level, shelf life, area filters, and sorting.
 - A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
 - Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.

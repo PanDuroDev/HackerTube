@@ -149,6 +149,7 @@ def fetch_with_api(channel_id: str, name: str, limit: int, key: str) -> dict:
                 {
                     "id": item["id"],
                     "title": snippet.get("title") or "",
+                    "description": snippet.get("description") or "",
                     "duration": parse_iso_duration(
                         (item.get("contentDetails") or {}).get("duration", "")
                     ),

@@ -31,11 +31,11 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false };
+const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const SITE_URL = "https://pandurodev.github.io/HackerTube/";
 const SORT_VALUES = new Set(["foryou", "best", "newest", "views", "longest", "shortest"]);
-const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
+const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent", progress: "ht_progress" };
 
 const state = {
   videos: [],
@@ -65,6 +65,8 @@ const state = {
   likes: new Set(storeGet(STORE.likes, [])),
   saved: new Set(storeGet(STORE.later, [])),
   seen: storeGet(STORE.seen, []),
+  progress: storeGet(STORE.progress, {}),
+  pendingResume: null,
   playlists: storeGet(STORE.playlists, []).filter((p) => p && p.id && Array.isArray(p.ids)),
   settings: Object.assign({}, DEFAULTS, storeGet(STORE.settings, {})),
   theme: storeGet(STORE.theme, "dark"),
@@ -82,6 +84,7 @@ const state = {
 
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let playlistPlayer = null;
+let progressPoll = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
@@ -117,6 +120,7 @@ function ensureMainSearchIndex() {
       video.lang === "ar" ? "Arabic عربي" : "English",
       video.year,
     ].join(" "),
+    description: video.description || "",
     id: video.id,
   }), {
     getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
@@ -149,6 +153,7 @@ async function init() {
     }
   });
   $("#scrim").addEventListener("click", () => setSidebar(false));
+  addEventListener("beforeunload", saveCurrentProgress);
   $(".skip-link")?.addEventListener("click", (event) => {
     event.preventDefault();
     view.focus();
@@ -456,6 +461,8 @@ function setSidebar(open) {
 
 function render() {
   if (playlistPlayer) {
+    saveCurrentProgress();
+    stopProgressPoll();
     playlistPlayer.destroy();
     playlistPlayer = null;
   }
@@ -992,6 +999,7 @@ function card(v, opts = {}) {
     : `<div class="card-sub"${langAttrs(channel)}>${esc(channel)}</div>`;
   const hnRecommenders = Number(hn?.hn?.recommenders || hn?.recommenders || 0);
   const hnScore = Number(hn?.score || 0);
+  const progress = progressFor(id);
   const hnMeta = hn
     ? `${hnRecommenders ? `${hnRecommenders} recommenders` : "Discussed, not recommended"} · ${esc(hn.primary_topic || "Hacker News pick")}`
     : `${compact.format(v.views || 0)} views${v.year ? ` · ${v.year}` : ""}${topic}`;
@@ -1010,6 +1018,7 @@ function card(v, opts = {}) {
       <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
       ${remove}
       <span class="dur"${badgeTitle ? ` title="${esc(badgeTitle)}"` : ""}>${badge}</span>
+      ${progress ? `<span class="card-progress" title="Resume at ${fmtDuration(progress.position)}"><i style="width:${Math.round(progress.ratio * 100)}%"></i></span>` : ""}
     </div>
     <div class="card-info">
       <a class="card-title" href="${watchHref}"${langAttrs(v.title)}>${esc(v.title)}</a>
@@ -1030,10 +1039,15 @@ function playlistPlaybackHref(video, playlistId, autoplay = true) {
 function watchActionsHTML(videoId) {
   const liked = state.likes.has(videoId);
   const later = state.saved.has(videoId);
+  const progress = progressFor(videoId);
+  const resume = progress
+    ? `<button class="btn resume-btn" type="button" data-resume="${esc(videoId)}">${icon("play")} Resume at ${fmtDuration(progress.position)}</button>`
+    : "";
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
   return `<div class="actions watch-actions">
+    ${resume}
     <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
       aria-label="More video actions" aria-controls="watchActionItems" aria-expanded="false">
       ${icon("more")} <span>More</span>
@@ -1129,6 +1143,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
         <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
         <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
       </div>
+      <p id="watch-description" class="watch-description"${v.description ? langAttrs(v.description) : " hidden"}>${esc(v.description || "")}</p>
       <section id="hn-evidence" class="hn-evidence" hidden></section>
     </div>
     <aside class="watch-side">
@@ -1142,7 +1157,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
 }
 
 function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
-  const needsApi = autoplay || (queue && queue.length > 1);
+  const needsApi = true;
   const params = new URLSearchParams({
     controls: "1",
     disablekb: "0",
@@ -1189,7 +1204,6 @@ function loadYouTubeIframeApi() {
 }
 
 async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
-  if ((!queue || queue.length <= 1) && !autoplay) return;
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
   try {
@@ -1199,10 +1213,29 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
       events: {
         onReady(event) {
           if (location.hash !== routeHash) return;
-          if (queue && queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
+          stopProgressPoll();
+          progressPoll = setInterval(saveCurrentProgress, 5000);
+          const pending = state.pendingResume;
+          if (pending && pending.id === videoId) {
+            event.target.seekTo(pending.position, true);
+            event.target.playVideo();
+            state.pendingResume = null;
+          } else if (queue && queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
           else if (autoplay) event.target.playVideo();
         },
         onStateChange(event) {
+          if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+            saveCurrentProgress();
+          }
+          if (event.data === YT.PlayerState.ENDED && (!queue || queue.length <= 1) && state.settings.autoplayNext) {
+            const currentId = event.target.getVideoData()?.video_id || videoId;
+            const next = nextRelatedVideo(currentId);
+            if (next) location.hash = videoWatchHref(next);
+            else {
+              const related = state.hnRelated?.[currentId]?.[0];
+              if (related?.vid) location.hash = `#/hn-watch/${encodeURIComponent(related.vid)}`;
+            }
+          }
           if (event.data !== YT.PlayerState.PLAYING) return;
           const playingId = event.target.getVideoData()?.video_id;
           if (playingId && playingId !== state.current && queue?.includes(playingId)) {
@@ -1281,6 +1314,12 @@ function syncWatchVideo(id, playlistId) {
       <span>${icon("tag")} ${esc(KIND_LABELS[video.kind] || "Tutorial")}</span>
       <span>${icon("level")} ${esc(LEVEL_LABELS[video.level] || "General")}</span>`;
   }
+  const description = $("#watch-description");
+  if (description) {
+    description.textContent = video.description || "";
+    description.hidden = !video.description;
+    applyTextLang(description, video.description || "");
+  }
   const related = state.videos
     .filter((item) => item.id !== video.id && item.topics.some((topic) => video.topics.includes(topic)))
     .sort((a, b) => shared(b, video) - shared(a, video) || b.score - a.score)
@@ -1299,10 +1338,60 @@ function shared(a, b) {
   return a.topics.filter((t) => b.topics.includes(t)).length;
 }
 
+function nextRelatedVideo(id) {
+  const video = state.byId.get(id);
+  if (!video) return null;
+  return state.videos
+    .filter((item) => item.id !== id && item.topics.some((topic) => video.topics.includes(topic)))
+    .sort((a, b) => shared(b, video) - shared(a, video) || b.score - a.score)[0] || null;
+}
+
 function markSeen(id) {
   state.seen = [id, ...state.seen.filter((x) => x !== id)].slice(0, 50);
   storeSet(STORE.seen, state.seen);
   invalidateHomeOrder();
+}
+
+function progressFor(id) {
+  const progress = state.progress?.[id];
+  if (!progress || !Number.isFinite(progress.duration) || progress.duration <= 0) return null;
+  if (!Number.isFinite(progress.position) || progress.position < 5) return null;
+  const ratio = progress.position / progress.duration;
+  if (ratio >= 0.95) return null;
+  return { ...progress, ratio };
+}
+
+function saveProgress(id, position, duration) {
+  if (!id || !Number.isFinite(position) || !Number.isFinite(duration) || duration <= 0) return;
+  if (!state.progress || typeof state.progress !== "object") state.progress = {};
+  if (position < 5 || position > duration - 15) {
+    delete state.progress[id];
+  } else {
+    state.progress[id] = { position, duration, updatedAt: Date.now() };
+    const entries = Object.entries(state.progress)
+      .sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0))
+      .slice(0, 100);
+    state.progress = Object.fromEntries(entries);
+  }
+  storeSet(STORE.progress, state.progress);
+}
+
+function stopProgressPoll() {
+  clearInterval(progressPoll);
+  progressPoll = null;
+}
+
+function saveCurrentProgress() {
+  const player = playlistPlayer;
+  if (!player || typeof player.getCurrentTime !== "function") return;
+  try {
+    const position = Number(player.getCurrentTime());
+    if (!Number.isFinite(position) || position <= 0) return;
+    const id = player.getVideoData?.()?.video_id || state.current;
+    saveProgress(id, position, Number(player.getDuration()));
+  } catch {
+    // The iframe may be navigating between playlist videos.
+  }
 }
 
 /* ---------- Hacker News recommendations ---------- */
@@ -1874,9 +1963,13 @@ async function renderCollection(kind) {
         ...ids.filter((id) => !state.byId.has(id)).map(videoById).filter(Boolean),
       ];
   document.title = `${cfg.title} — HackerTube`;
+  const continueList = kind === "history"
+    ? ids.map(videoById).filter((video) => video && progressFor(video.id || video.vid)).slice(0, 6)
+    : [];
   const clear = list.length ? `<button class="btn" data-clear-collection="${kind}">${icon("trash")} Clear all</button>` : "";
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${cfg.title}</h1><span class="count">${videos(list.length)}</span></div>
+    ${continueList.length ? `<section class="continue-watching"><h2 class="section-title">Continue watching</h2><div class="grid">${continueList.map((video) => card(video)).join("")}</div></section>` : ""}
     ${clear ? `<div class="head-tools">${clear}</div>` : ""}
     ${list.length
       ? `<div class="grid">${list.map((video) => card(video, { remove: kind })).join("")}</div>`
@@ -2124,6 +2217,11 @@ function renderSettings() {
         <span class="row-ic">${icon("eye")}</span>
         <span class="setting-text"><b>Hide watched videos</b><small>Keep opened videos out of Home and search.</small></span>
         <input class="switch" type="checkbox" data-setting="hideSeen" ${s.hideSeen ? "checked" : ""}>
+      </label>
+      <label class="setting-row">
+        <span class="row-ic">${icon("play")}</span>
+        <span class="setting-text"><b>Autoplay next</b><small>Play the next related video when a single video ends.</small></span>
+        <input class="switch" type="checkbox" data-setting="autoplayNext" ${s.autoplayNext ? "checked" : ""}>
       </label>
       <div class="setting-row">
         <span class="row-ic">${icon("categories")}</span>
@@ -2387,6 +2485,22 @@ function onViewClick(e) {
     return;
   }
 
+  const resume = e.target.closest("[data-resume]");
+  if (resume) {
+    const id = resume.dataset.resume;
+    const progress = progressFor(id);
+    if (!progress) return;
+    if (playlistPlayer && typeof playlistPlayer.seekTo === "function") {
+      playlistPlayer.seekTo(progress.position, true);
+      playlistPlayer.playVideo();
+      toast(`Resumed at ${fmtDuration(progress.position)}`);
+    } else {
+      state.pendingResume = { id, position: progress.position };
+      toast("Player is loading; resuming shortly.");
+    }
+    return;
+  }
+
   const act = e.target.closest("[data-act]");
   if (act) {
     closeWatchActionMenu(true);
@@ -2524,6 +2638,10 @@ function removeItem(kind, id, plId) {
     if (pl) pl.ids = pl.ids.filter((x) => x !== id);
     savePlaylists();
   }
+  if (kind === "history" && state.progress[id]) {
+    delete state.progress[id];
+    storeSet(STORE.progress, state.progress);
+  }
   storeSet(STORE.likes, [...state.likes]);
   storeSet(STORE.later, [...state.saved]);
   storeSet(STORE.seen, state.seen);
@@ -2542,12 +2660,15 @@ async function clearCollection(kind) {
   });
   if (!confirmed) return;
 
-  if (kind === "history") state.seen = [];
-  else if (kind === "liked") state.likes.clear();
+  if (kind === "history") {
+    state.seen = [];
+    state.progress = {};
+  } else if (kind === "liked") state.likes.clear();
   else state.saved.clear();
   storeSet(STORE.seen, state.seen);
   storeSet(STORE.likes, [...state.likes]);
   storeSet(STORE.later, [...state.saved]);
+  storeSet(STORE.progress, state.progress);
   invalidateHomeOrder();
   syncSidebar();
   render();
@@ -2585,6 +2706,8 @@ async function resetAll() {
   state.likes.clear();
   state.saved.clear();
   state.seen = [];
+  state.progress = {};
+  state.pendingResume = null;
   state.playlists = [];
   state.settings = Object.assign({}, DEFAULTS);
   state.homeOrder = [];
