@@ -26,7 +26,7 @@ test("Arabic and English dictionaries share the required keys", () => {
     "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
     "watch.continueWatching", "collections.likedEmpty", "collections.historyHint", "collections.browseVideos",
     "playlists.create", "playlists.fromCreators", "playlists.emptyHint", "playlists.playAll", "playlists.delete",
-    "toasts.feedRefreshed", "toasts.languageLoadFailed", "watch.addedToWatchLater", "watch.removedFromWatchLater",
+    "toasts.feedRefreshed", "toasts.languageLoadFailed", "watch.addedToWatchLater", "watch.removedFromWatchLater", "skeleton.loading",
     "hn.scope", "hn.contentTypes.comedy", "topics.web", "languages.ar",
     "counts.videos.other",
   ]) {

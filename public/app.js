@@ -211,13 +211,112 @@ async function setLocale(code, { persist = false, updateUrl = false, reload = fa
   if (reload) location.reload();
 }
 
+function skeletonCards(count = 6) {
+  return `<div class="skeleton-card-grid">${Array.from({ length: count }, () => `
+    <div class="skeleton-card">
+      <div class="sk sk-thumb"></div>
+      <div class="sk sk-line w-90"></div>
+      <div class="sk sk-line w-55"></div>
+    </div>`).join("")}</div>`;
+}
+
+function skeletonFeed() {
+  return `<div class="skeleton-head">
+      <div class="sk sk-line sk-title-line w-30"></div>
+      <div class="sk sk-pill"></div>
+    </div>
+    ${skeletonCards(9)}`;
+}
+
+function skeletonSettings() {
+  const rows = (count) => Array.from({ length: count }, () => `
+    <div class="skeleton-row">
+      <div class="sk sk-circle"></div>
+      <div class="skeleton-row-text">
+        <div class="sk sk-line w-50"></div>
+        <div class="sk sk-line sk-line-sm w-80"></div>
+      </div>
+      <div class="sk sk-switch"></div>
+    </div>`).join("");
+  return `<div class="skeleton-settings">
+    <div class="skeleton-group">
+      <div class="sk sk-line w-25"></div>
+      <div class="skeleton-segment"><div class="sk sk-pill"></div><div class="sk sk-pill"></div><div class="sk sk-pill"></div></div>
+    </div>
+    <div class="skeleton-group">
+      <div class="sk sk-line w-25"></div>
+      ${rows(2)}
+    </div>
+    <div class="skeleton-group">
+      <div class="sk sk-line w-20"></div>
+      ${rows(3)}
+    </div>
+  </div>`;
+}
+
+function skeletonTiles(count = 10, className = "sk-topic") {
+  return `<div class="skeleton-tile-grid">${Array.from({ length: count }, () => `<div class="sk ${className}"></div>`).join("")}</div>`;
+}
+
+function skeletonPlaylists() {
+  return `<div class="skeleton-head">
+      <div class="sk sk-line sk-title-line w-25"></div>
+      <div class="sk sk-line w-15"></div>
+    </div>
+    <div class="sk sk-create-bar"></div>
+    <div class="sk sk-line w-20"></div>
+    <div class="skeleton-playlist-grid">${Array.from({ length: 6 }, () => `
+      <div class="skeleton-card">
+        <div class="sk sk-thumb"></div>
+        <div class="sk sk-line w-85"></div>
+        <div class="sk sk-line sk-line-sm w-45"></div>
+      </div>`).join("")}</div>`;
+}
+
+function skeletonWatch() {
+  return `<div class="skeleton-watch">
+    <div class="skeleton-watch-main">
+      <div class="sk sk-player"></div>
+      <div class="sk sk-line sk-title-line w-75"></div>
+      <div class="skeleton-watch-bar">
+        <div class="sk sk-circle"></div>
+        <div class="sk sk-line w-35"></div>
+        <div class="sk sk-pill"></div>
+      </div>
+      <div class="skeleton-pills">
+        <div class="sk sk-pill"></div><div class="sk sk-pill"></div><div class="sk sk-pill"></div>
+      </div>
+      <div class="sk sk-line w-95"></div>
+      <div class="sk sk-line sk-line-sm w-80"></div>
+    </div>
+    <aside class="skeleton-watch-side">
+      <div class="sk sk-line w-35"></div>
+      ${skeletonCards(4)}
+    </aside>
+  </div>`;
+}
+
+function renderRouteSkeleton() {
+  const raw = (location.hash || "#/").replace(/^#\/?/, "");
+  const seg = raw.split(/[\/?]/)[0];
+  let content = skeletonFeed();
+  if (seg === "settings") content = skeletonSettings();
+  else if (seg === "categories") content = skeletonTiles(12, "sk-topic");
+  else if (seg === "channels") content = skeletonTiles(12, "sk-channel");
+  else if (seg === "playlists" || seg === "playlist") content = skeletonPlaylists();
+  else if (seg === "watch" || seg === "hn-watch") content = skeletonWatch();
+  view.innerHTML = `<div class="skeleton-screen" role="status" aria-live="polite" aria-busy="true" aria-label="${tr("skeleton.loading", "Loading…")}">${content}</div>`;
+}
+
 async function init() {
   applyTheme(state.theme);
+  renderRouteSkeleton();
   try {
     await setLocale(initialLocale(), { persist: true, updateUrl: false });
   } catch {
     state.locale = "en";
   }
+  if (view.querySelector(".skeleton-screen")) renderRouteSkeleton();
   if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
   $("#menuBtn").addEventListener("click", () => {
     if (matchMedia("(max-width: 980px)").matches) setSidebar(!$("#sidebar").classList.contains("open"));
@@ -284,6 +383,9 @@ async function init() {
     });
   }
 
+  addEventListener("hashchange", () => {
+    if (!state.videos.length) renderRouteSkeleton();
+  });
   view.addEventListener("click", onViewClick);
   view.addEventListener("keydown", onViewKeydown);
   view.addEventListener("change", onViewChange);

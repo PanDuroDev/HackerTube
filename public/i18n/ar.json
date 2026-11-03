@@ -360,5 +360,8 @@
   "toasts": {
     "feedRefreshed": "تم تحديث التوصيات",
     "languageLoadFailed": "تعذّر تحميل هذه اللغة."
+  },
+  "skeleton": {
+    "loading": "جارٍ التحميل…"
   }
 }
