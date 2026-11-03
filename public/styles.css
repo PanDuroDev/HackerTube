@@ -977,6 +977,7 @@ a.card-sub:hover { color: var(--text); }
 
 .segmented button .ic { width: 16px; height: 16px; }
 .segmented button.active { background: var(--strong); color: var(--on-strong); font-weight: 500; }
+.hn-scope { margin: 0; }
 
 .setting-row .segmented { flex: 0 0 auto; margin: 0; }
 .setting-row .segmented button { flex: 0 0 42px; padding: 0; }

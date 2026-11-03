@@ -11,7 +11,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 - 20 categories with video counts, plus user-created playlists that can be managed and populated from the watch page.
 - Curated playlists from content creators, fetched and cleaned automatically and displayed on the Playlists page.
 - Full-catalog search with relevance ranking across titles, channels, topics, and metadata, including flexible word matching and synonyms.
-- A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate.
+- A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate. The Hacker News page supports programming/all scope, recommendation status, content type, level, shelf life, area filters, and sorting.
 - A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
 - Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.
 - Video thumbnails use frames captured from inside the video (\`hq1\`/\`hq2\`/\`hq3\`) instead of relying only on the static thumbnail, with a fallback when frames are unavailable.
