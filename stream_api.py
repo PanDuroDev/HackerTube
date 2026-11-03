@@ -16,6 +16,7 @@ import yt_dlp
 from flask import Flask, Response, jsonify, request, url_for
 
 app = Flask(__name__)
+STREAM_API_VERSION = "2026.11.03-web-embedded"
 
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 ALLOWED_ORIGINS = {
@@ -142,7 +143,12 @@ def add_response_headers(response):
 
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok"})
+    """Return service health and build identifiers for deployment verification."""
+    return jsonify({
+        "status": "ok",
+        "api_version": STREAM_API_VERSION,
+        "yt_dlp_version": yt_dlp.version.__version__,
+    })
 
 
 
@@ -204,18 +210,25 @@ def stream(video_id: str):
 
         candidates = _muxed_mp4_candidates(info)
         if not candidates:
-            # Some server-side YouTube clients are served adaptive-only
-            # formats under the default client set. Retry once with Android,
-            # which can still expose a directly playable muxed MP4 format.
-            android_options = {
+            # The web_embedded client is a documented fallback for videos that
+            # permit embedding. Unlike Android, it does not require a GVS PO
+            # Token for its supported formats.
+            embedded_options = {
                 **options,
-                "extractor_args": {"youtube": {"player_client": ["android"]}},
+                "extractor_args": {
+                    "youtube": {"player_client": ["default", "web_embedded"]}
+                },
             }
-            with yt_dlp.YoutubeDL(android_options) as downloader:
+            with yt_dlp.YoutubeDL(embedded_options) as downloader:
                 info = downloader.extract_info(video_url, download=False)
             candidates = _muxed_mp4_candidates(info)
 
         if not candidates:
+            app.logger.warning(
+                "No compatible progressive MP4 found for video %s "
+                "after default and web_embedded extraction",
+                video_id,
+            )
             return jsonify({
                 "error": "No compatible progressive MP4 stream is available for this video."
             }), 422
