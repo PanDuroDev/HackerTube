@@ -16,6 +16,19 @@ const state = {
   videos: [],
   meta: null,
   byId: new Map(),
+  hnVideos: null,
+  hnVideosPromise: null,
+  hnRelated: null,
+  hnRelatedPromise: null,
+  hnAliases: null,
+  hnAliasesPromise: null,
+  hnById: new Map(),
+  hnSearchIndex: new Map(),
+  hnExisting: null,
+  hnExistingPromise: null,
+  hnMentionPartitions: new Map(),
+  hnQuery: null,
+  hnLimit: 36,
   topicLabels: {},
   channels: new Map(),
   likes: new Set(storeGet(STORE.likes, [])),
@@ -63,7 +76,11 @@ async function init() {
   $("#searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const q = $("#q").value.trim();
-    const next = q ? `#/search/${encodeURIComponent(q)}` : "#/";
+    const currentHash = location.hash || "#/";
+    const inHackerNews = currentHash.startsWith("#/hacker-news") || currentHash.startsWith("#/hn-watch");
+    const next = q
+      ? `${inHackerNews ? "#/hacker-news/" : "#/search/"}${encodeURIComponent(q)}`
+      : (inHackerNews ? "#/hacker-news" : "#/");
     if (location.hash === next) render();
     else location.hash = next;
   });
@@ -295,6 +312,8 @@ function render() {
   if (seg === "later" || seg === "saved") return renderCollection("later");
   if (seg === "history") return renderCollection("history");
   if (seg === "categories") return renderCategories();
+  if (seg === "hacker-news") return renderHackerNews(arg);
+  if (seg === "hn-watch") return renderHNWatch(arg);
   if (seg === "playlists") return renderPlaylists();
   if (seg === "playlist") return arg.startsWith("pl_") ? renderPlaylist(arg) : renderBuiltinPlaylist(arg);
   if (seg === "settings") return renderSettings();
@@ -317,6 +336,7 @@ function renderSidebar() {
     ["later", "#/later", "later", "Watch later"],
     ["categories", "#/categories", "categories", "Categories"],
     ["playlists", "#/playlists", "playlists", "Playlists"],
+    ["hacker-news", "#/hacker-news", "categories", "Hacker News"],
     ["settings", "#/settings", "settings", "Settings"],
   ];
   $("#sidebar").innerHTML = `
@@ -356,7 +376,7 @@ function syncSidebar() {
     "#/categories": "categories", "#/playlists": "playlists", "#/settings": "settings",
     "#/channels": "channels",
   };
-  const active = map[hash] || (hash.startsWith("#/playlist/") ? "playlists" : "");
+  const active = map[hash] || (hash.startsWith("#/playlist/") ? "playlists" : hash.startsWith("#/hacker-news") || hash.startsWith("#/hn-watch") ? "hacker-news" : "");
   document.querySelectorAll(".side-link[data-nav]").forEach((a) => {
     a.classList.toggle("active", a.dataset.nav === active);
   });
@@ -745,6 +765,7 @@ async function renderWatch(id, playlistId = null) {
         <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
         <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
       </div>
+      <section id="hn-evidence" class="hn-evidence" hidden></section>
     </div>
     <aside class="watch-side">
       <h2 class="section-title">Related videos</h2>
@@ -752,6 +773,7 @@ async function renderWatch(id, playlistId = null) {
     </aside>
   </section>`;
   syncSidebar();
+  renderHNEvidence(id);
   if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
 }
 
@@ -859,6 +881,7 @@ function syncWatchVideo(id, playlistId) {
     relatedGrid.innerHTML = related.map((item) => card(item)).join("")
       || '<p class="count">Nothing related yet.</p>';
   }
+  renderHNEvidence(id);
   closeWatchActionMenu(true);
   history.replaceState(null, "", `${location.pathname}${location.search}#/watch/${encodeURIComponent(id)}?list=${encodeURIComponent(playlistId)}`);
 }
@@ -872,6 +895,310 @@ function markSeen(id) {
   storeSet(STORE.seen, state.seen);
 }
 
+/* ---------- Hacker News recommendations ---------- */
+
+async function loadHNVideos() {
+  if (!state.hnVideosPromise) {
+    state.hnVideosPromise = fetchJson("data/hacker-news/videos.json").then((records) => {
+      state.hnVideos = records;
+      state.hnById = new Map(records.map((record) => [record.vid, record]));
+      state.hnSearchIndex = new Map(records.map((record) => [
+        record.vid,
+        normalizeAr([
+          record.title, record.channel, record.summary, record.why_hn,
+          record.primary_topic, ...(record.tags || []),
+          ...(record.categories || []).map((category) => category.name),
+        ].join(" ")),
+      ]));
+      return records;
+    }).catch((error) => {
+      state.hnVideosPromise = null;
+      state.hnVideos = null;
+      state.hnById = new Map();
+      state.hnSearchIndex = new Map();
+      throw error;
+    });
+  }
+  return state.hnVideosPromise;
+}
+
+async function loadHNExisting() {
+  if (!state.hnExistingPromise) {
+    state.hnExistingPromise = fetchJson("data/hacker-news/existing.json").then((records) => {
+      state.hnExisting = records;
+      return records;
+    }).catch((error) => {
+      state.hnExistingPromise = null;
+      state.hnExisting = null;
+      throw error;
+    });
+  }
+  return state.hnExistingPromise;
+}
+
+async function loadHNRelated() {
+  if (!state.hnRelatedPromise) {
+    state.hnRelatedPromise = fetchJson("data/hacker-news/related.json").then((records) => {
+      state.hnRelated = records;
+      return records;
+    }).catch((error) => {
+      state.hnRelatedPromise = null;
+      state.hnRelated = null;
+      throw error;
+    });
+  }
+  return state.hnRelatedPromise;
+}
+
+async function loadHNAliases() {
+  if (!state.hnAliasesPromise) {
+    state.hnAliasesPromise = fetchJson("data/hacker-news/aliases.json").then((records) => {
+      state.hnAliases = records;
+      return records;
+    }).catch((error) => {
+      state.hnAliasesPromise = null;
+      state.hnAliases = null;
+      throw error;
+    });
+  }
+  return state.hnAliasesPromise;
+}
+
+function hnAttributionHTML() {
+  return `<p class="hn-attribution">
+    Dataset: <a href="https://hackertube.org/" target="_blank" rel="noopener noreferrer">HackerTube</a>,
+    derived from <a href="https://huggingface.co/datasets/open-index/hacker-news" target="_blank" rel="noopener noreferrer">open-index/hacker-news</a>.
+    Licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener noreferrer">ODC-By 1.0</a>.
+    Video titles and channel names belong to their creators and are sourced from YouTube; comments remain their authors' work.
+  </p>`;
+}
+
+async function loadHNMentions(videoId) {
+  if (!videoId || !videoId[0]) return [];
+  const prefix = videoId[0];
+  if (!state.hnMentionPartitions.has(prefix)) {
+    const promise = (async () => {
+      const response = await fetch(`data/hacker-news/mentions/${encodeURIComponent(prefix)}.json.gz`, { cache: "no-cache" });
+      if (response.status === 404) return {};
+      if (!response.ok) throw new Error(`Hacker News comments: HTTP ${response.status}`);
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("This browser cannot decompress the Hacker News comment data.");
+      }
+      if (!response.body) throw new Error("Hacker News comments response has no body.");
+      const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
+      return JSON.parse(await new Response(stream).text());
+    })().catch((error) => {
+      state.hnMentionPartitions.delete(prefix);
+      throw error;
+    });
+    state.hnMentionPartitions.set(prefix, promise);
+  }
+  const partition = await state.hnMentionPartitions.get(prefix);
+  return partition[videoId] || [];
+}
+
+const HN_STANCE_LABELS = {
+  strong_rec: "Strong recommendation",
+  rec: "Recommendation",
+  reference: "Reference",
+  joke: "Joke",
+  critical: "Critical",
+};
+
+function hnCommentsHTML(comments, unavailable = false) {
+  if (unavailable) return '<p class="count">Archived Hacker News comments are temporarily unavailable. Reopen this page to retry.</p>';
+  if (!comments.length) return '<p class="count">No archived Hacker News comments for this video.</p>';
+  return `<div class="hn-comments">${comments.map((comment) => `
+    <article class="hn-comment">
+      <div class="hn-comment-head">
+        <span><b>${esc(comment.author || "Anonymous")}</b> · ${esc(comment.month || "")}</span>
+        <span>${esc(HN_STANCE_LABELS[comment.stance] || comment.stance || "Comment")}</span>
+      </div>
+      ${comment.story_title ? `<div class="hn-story">${esc(comment.story_title)}</div>` : ""}
+      <p>${esc(comment.text || "")}</p>
+      ${comment.why ? `<div class="hn-why">${esc(comment.why)}</div>` : ""}
+      <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">Open Hacker News comment</a>
+    </article>`).join("")}</div>`;
+}
+
+function hnContextHTML(video, comments, commentsUnavailable = false) {
+  const hn = video.hn || {};
+  const quote = video.quote?.text
+    ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
+    : "";
+  const categories = (video.categories || []).map((category) =>
+    `<span class="hn-tag">${esc(category.name)}</span>`).join("");
+  const tags = (video.tags || []).map((tag) =>
+    `<span class="hn-tag">${esc(tag)}</span>`).join("");
+  return `
+    <section class="hn-context">
+      <h2 class="section-title">Hacker News context</h2>
+      ${video.summary ? `<p class="hn-summary">${esc(video.summary)}</p>` : ""}
+      ${video.why_hn ? `<p class="hn-why"><b>Why it is recommended:</b> ${esc(video.why_hn)}</p>` : ""}
+      <div class="hn-stats">
+        <span><b>${Number(hn.recommenders || 0)}</b> recommenders</span>
+        <span><b>${Number(hn.rec_months || 0)}</b> recommendation months</span>
+        <span><b>${Number(hn.mentions || comments.length || 0)}</b> archived comments</span>
+        <span><b>${Number(video.score || 0).toFixed(1)}</b> HN score</span>
+      </div>
+      ${quote}
+      ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
+      ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
+      ${hnAttributionHTML()}
+    </section>
+    <section class="hn-discussion">
+      <h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>
+      ${hnCommentsHTML(comments, commentsUnavailable)}
+    </section>`;
+}
+
+async function renderHNEvidence(videoId) {
+  const root = $("#hn-evidence");
+  if (!root) return;
+  root.hidden = true;
+  root.innerHTML = "";
+  try {
+    const existing = await loadHNExisting();
+    const video = existing[videoId];
+    if (!video || !$("#hn-evidence") || state.current !== videoId) return;
+    const comments = await loadHNMentions(videoId).catch(() => null);
+    const target = $("#hn-evidence");
+    if (!target || state.current !== videoId) return;
+    target.hidden = false;
+    target.innerHTML = hnContextHTML(video, comments || [], comments === null);
+  } catch (error) {
+    const target = $("#hn-evidence");
+    if (target && state.current === videoId) {
+      target.hidden = false;
+      target.innerHTML = '<p class="count">Hacker News context could not be loaded.</p>';
+    }
+  }
+}
+
+function hnCard(video) {
+  const recommenders = Number(video.hn?.recommenders || 0);
+  const recommendationLabel = recommenders ? `${recommenders} recommenders` : "Discussed, not recommended";
+  return `<article class="card hn-card">
+    <div class="thumb">
+      <a class="thumb-link" href="#/hn-watch/${encodeURIComponent(video.vid)}" aria-label="${esc(video.title)}">
+        <img src="${thumbSrc(video.vid)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${video.vid}/hqdefault.jpg'">
+      </a>
+      <span class="dur">HN ${Number(video.score || 0).toFixed(1)}</span>
+    </div>
+    <div class="card-info">
+      <a class="card-title" href="#/hn-watch/${encodeURIComponent(video.vid)}">${esc(video.title)}</a>
+      <div class="card-sub">${esc(video.channel || "Unknown channel")}</div>
+      <div class="card-sub">${recommendationLabel} · ${esc(video.primary_topic || "Hacker News pick")}</div>
+    </div>
+  </article>`;
+}
+
+async function renderHackerNews(query = "") {
+  if (state.hnQuery !== query) {
+    state.hnQuery = query;
+    state.hnLimit = pageSize();
+  }
+  $("#q").value = query;
+  document.title = "Hacker News recommendations — HackerTube";
+  view.innerHTML = '<section><div class="feed-head"><h1>Hacker News</h1><span class="count">Loading recommendations…</span></div></section>';
+  try {
+    const records = await loadHNVideos();
+    if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
+    const normalized = normalizeAr(query);
+    const tokens = normalized ? normalized.split(" ").filter(Boolean) : [];
+    const list = records.filter((record) => {
+      const text = state.hnSearchIndex.get(record.vid) || "";
+      return tokens.every((token) => text.includes(token));
+    });
+    const shown = list.slice(0, state.hnLimit);
+    view.innerHTML = `<section class="feed">
+      <div class="feed-head">
+        <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Videos already in the main catalog are excluded.</p></div>
+        <span class="count">${videos(list.length)}</span>
+      </div>
+      ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : '<div class="empty"><strong>No matches</strong><p>Try another search phrase.</p></div>'}
+      ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
+      ${hnAttributionHTML()}
+    </section>`;
+    syncSidebar();
+  } catch (error) {
+    if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
+    view.innerHTML = `<section class="error"><strong>Could not load Hacker News data.</strong><p>${esc(error.message)}</p></section>`;
+  }
+}
+
+async function renderHNWatch(requestedVideoId) {
+  const requestedRoute = `#/hn-watch/${encodeURIComponent(requestedVideoId)}`;
+  document.title = "Hacker News video — HackerTube";
+  view.innerHTML = '<section class="watch"><div class="watch-main"><p class="count">Loading video and archived comments…</p></div></section>';
+  try {
+    const aliases = await loadHNAliases();
+    if (location.hash !== requestedRoute) return;
+    const videoId = aliases[requestedVideoId] || requestedVideoId;
+    const [records, existing, related, commentResult] = await Promise.all([
+      loadHNVideos(),
+      loadHNExisting(),
+      loadHNRelated(),
+      loadHNMentions(videoId).catch(() => null),
+    ]);
+    if (location.hash !== requestedRoute) return;
+    const video = state.hnById.get(videoId) || existing[videoId];
+    if (!video) return renderNotFound();
+    if (requestedVideoId !== videoId) {
+      location.hash = `#/hn-watch/${encodeURIComponent(videoId)}`;
+      return;
+    }
+    const commentsUnavailable = commentResult === null;
+    const comments = commentResult || [];
+    document.title = `${video.title} — HackerTube`;
+    const hn = video.hn || {};
+    const categories = (video.categories || []).map((category) =>
+      `<span class="hn-tag">${esc(category.name)}</span>`).join("");
+    const tags = (video.tags || []).map((tag) =>
+      `<span class="hn-tag">${esc(tag)}</span>`).join("");
+    const quote = video.quote?.text
+      ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
+      : "";
+    const relatedCards = (related[videoId] || [])
+      .map((item) => state.hnById.get(item.vid) || existing[item.vid])
+      .filter(Boolean)
+      .slice(0, 8);
+    const isRecommended = Number(hn.recommenders || 0) > 0;
+    view.innerHTML = `<section class="watch hn-watch">
+      <div class="watch-main">
+        <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        <h1 class="watch-title">${esc(video.title)}</h1>
+        <div class="watch-bar">
+          <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
+          <div class="actions"><a class="btn" href="https://www.youtube.com/watch?v=${video.vid}" target="_blank" rel="noopener noreferrer">${icon("external")} YouTube</a></div>
+        </div>
+        <div class="hn-stats">
+          <span><b>${Number(hn.recommenders || 0)}</b> recommenders</span>
+          <span><b>${Number(hn.rec_months || 0)}</b> recommendation months</span>
+          <span><b>${Number(hn.mentions || comments.length || 0)}</b> archived comments</span>
+          <span><b>${Number(video.score || 0).toFixed(1)}</b> HN score</span>
+        </div>
+        ${video.summary ? `<section class="hn-context"><h2 class="section-title">Summary</h2><p class="hn-summary">${esc(video.summary)}</p></section>` : ""}
+        ${video.why_hn ? `<section class="hn-context"><h2 class="section-title">${isRecommended ? "Why Hacker News recommends it" : "Why Hacker News mentioned it"}</h2><p class="hn-summary">${esc(video.why_hn)}</p></section>` : ""}
+        ${quote}
+        ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
+        ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
+        <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments, commentsUnavailable)}</section>
+      </div>
+      <aside class="watch-side">
+        <h2 class="section-title">Related HackerTube picks</h2>
+        <div class="related-grid">${relatedCards.map(hnCard).join("") || '<p class="count">No related videos available.</p>'}</div>
+        <h2 class="section-title">Source</h2>
+        <a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} Hacker News</a>
+        ${hnAttributionHTML()}
+      </aside>
+    </section>`;
+    syncSidebar();
+  } catch (error) {
+    if (location.hash !== requestedRoute) return;
+    view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
+  }
+}
 /* ---------- Collections ---------- */
 
 const COLLECTIONS = {
@@ -939,7 +1266,7 @@ function addToPlaylist(plId, videoId) {
   const pl = playlistById(plId);
   if (!pl || !videoId) return;
   if (pl.ids.includes(videoId)) {
-    toast("Already in this playlist", "info");
+    toast("Already in this playlist", "playlists");
     return;
   }
   pl.ids.push(videoId);
@@ -1217,6 +1544,12 @@ function onViewClick(e) {
   if (e.target.closest("[data-more]")) {
     ui.limit += pageSize();
     renderFeed(state.scope);
+    return;
+  }
+
+  if (e.target.closest("[data-hn-more]")) {
+    state.hnLimit += pageSize();
+    renderHackerNews(state.hnQuery || "");
     return;
   }
 
