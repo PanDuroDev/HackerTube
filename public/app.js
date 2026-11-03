@@ -71,7 +71,9 @@ const state = {
   homeStale: false,
   builtin: [],
   builtinIds: null,
-  showAllPlaylists: false,
+  playlistQuery: "",
+  playlistChannel: "",
+  playlistLimit: 24,
 };
 
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
@@ -1650,6 +1652,38 @@ function addToPlaylist(plId, videoId) {
   syncSidebar();
 }
 
+function diverseCreatorPlaylists(playlists, limit = 24) {
+  const groups = new Map();
+  for (const playlist of playlists) {
+    const key = playlist.channel_id || playlist.channel;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(playlist);
+  }
+  const buckets = [...groups.values()];
+  const result = [];
+  let added = true;
+  while (result.length < limit && added) {
+    added = false;
+    for (const bucket of buckets) {
+      if (result.length >= limit) break;
+      if (bucket.length) {
+        result.push(bucket.shift());
+        added = true;
+      }
+    }
+  }
+  return result;
+}
+
+function filteredCreatorPlaylists() {
+  const query = state.playlistQuery.trim().toLowerCase();
+  return state.builtin.filter((playlist) => {
+    if (state.playlistChannel && playlist.channel_id !== state.playlistChannel) return false;
+    if (!query) return true;
+    return `${playlist.title || ""} ${playlist.channel || ""}`.toLowerCase().includes(query);
+  });
+}
+
 async function renderPlaylists() {
   const routeHash = location.hash;
   const hasUnresolvedVideos = state.playlists.some((playlist) =>
@@ -1661,16 +1695,33 @@ async function renderPlaylists() {
   if (location.hash !== routeHash) return;
   document.title = "Playlists — HackerTube";
   const total = state.builtin.length + state.playlists.length;
-  const creators = state.showAllPlaylists ? state.builtin : state.builtin.slice(0, 24);
+  const filtered = filteredCreatorPlaylists();
+  const creators = diverseCreatorPlaylists(filtered, state.playlistLimit);
+  const channels = [...new Map(state.builtin
+    .filter((playlist) => playlist.channel_id)
+    .map((playlist) => [playlist.channel_id, playlist.channel])).entries()]
+    .sort((a, b) => String(a[1]).localeCompare(String(b[1]), undefined, { numeric: true }));
+  const isFiltered = Boolean(state.playlistQuery.trim() || state.playlistChannel);
   view.innerHTML = `<section>
     <div class="feed-head"><h1>Playlists</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
     <form class="create-pl" data-create-playlist>
       <input name="name" placeholder="New playlist name" maxlength="40" required aria-label="New playlist name">
       <button class="btn primary" type="submit">${icon("plus")} Create</button>
     </form>
-    ${state.builtin.length ? `<h2 class="section-title">From creators <span class="count">${state.builtin.length}</span></h2>
-      <div class="pl-grid">${creators.map(creatorPlaylistCard).join("")}</div>
-      ${creators.length < state.builtin.length ? `<div class="more"><button class="btn" data-more-playlists>Show all ${state.builtin.length} playlists</button></div>` : ""}` : ""}
+    ${state.builtin.length ? `<h2 class="section-title">From creators <span class="count">${filtered.length}${isFiltered ? ` of ${state.builtin.length}` : ""}</span></h2>
+      <form class="pl-filter" data-playlist-filter>
+        <input name="q" value="${esc(state.playlistQuery)}" placeholder="Search creator playlists" aria-label="Search creator playlists">
+        <select name="channel" aria-label="Filter creator playlists by channel">
+          <option value="">All channels</option>
+          ${channels.map(([id, name]) => `<option value="${esc(id)}" ${state.playlistChannel === id ? "selected" : ""}>${esc(name)}</option>`).join("")}
+        </select>
+        <button class="btn" type="submit">${icon("search")} Search</button>
+        ${isFiltered ? '<button class="btn" type="button" data-playlist-clear>Clear</button>' : ""}
+      </form>
+      ${creators.length
+        ? `<div class="pl-grid">${creators.map(creatorPlaylistCard).join("")}</div>`
+        : '<div class="empty"><strong>No creator playlists match</strong><p>Try a different title or channel.</p><button class="btn" data-playlist-clear>Clear filters</button></div>'}
+      ${creators.length < filtered.length ? `<div class="more"><button class="btn" data-more-playlists>Show more (${filtered.length - creators.length})</button></div>` : ""}` : ""}
     <h2 class="section-title">Your playlists</h2>
     ${state.playlists.length
       ? `<div class="pl-grid">${state.playlists.map(playlistCard).join("")}</div>`
@@ -1966,7 +2017,15 @@ function onViewClick(e) {
   }
 
   if (e.target.closest("[data-more-playlists]")) {
-    state.showAllPlaylists = true;
+    state.playlistLimit += 24;
+    renderPlaylists();
+    return;
+  }
+
+  if (e.target.closest("[data-playlist-clear]")) {
+    state.playlistQuery = "";
+    state.playlistChannel = "";
+    state.playlistLimit = 24;
     renderPlaylists();
     return;
   }
@@ -2061,6 +2120,16 @@ function onViewChange(e) {
 }
 
 function onViewSubmit(e) {
+  const filterForm = e.target.closest("[data-playlist-filter]");
+  if (filterForm) {
+    e.preventDefault();
+    state.playlistQuery = filterForm.elements.q.value.trim();
+    state.playlistChannel = filterForm.elements.channel.value;
+    state.playlistLimit = 24;
+    renderPlaylists();
+    return;
+  }
+
   const form = e.target.closest("[data-create-playlist]");
   if (!form) return;
   e.preventDefault();
