@@ -23,6 +23,7 @@ test("Arabic and English dictionaries share the required keys", () => {
   for (const key of [
     "app.title", "header.language", "nav.home", "nav.hackerNews",
     "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext",
+    "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
     "hn.scope", "hn.contentTypes.comedy", "topics.web", "languages.ar",
     "counts.videos.other",
   ]) {
@@ -39,6 +40,9 @@ test("t() translates, interpolates, and falls back to English", () => {
   assert.equal(i18n.t("settings.browsing"), "التصفح");
   assert.equal(i18n.t("hn.scope"), "النطاق");
   assert.equal(i18n.t("topics.web"), "تطوير الويب");
+  assert.equal(i18n.t("watch.like"), "إعجاب");
+  assert.equal(i18n.t("watch.share"), "مشاركة");
+  assert.equal(i18n.t("watch.resumeAt", { time: "2:00" }), "استئناف عند 2:00");
   i18n.setMessages("ar", { nav: { home: "بيت" } }, en);
   assert.equal(i18n.t("nav.home"), "بيت");
   assert.equal(i18n.t("header.search"), "Search");
@@ -53,6 +57,7 @@ test("Arabic plural forms and locale metadata are applied", () => {
   assert.match(i18n.formatCount("counts.videos", 3), /فيديوهات/);
   assert.match(i18n.formatCount("counts.videos", 11), /فيديو/);
   assert.equal(i18n.formatNumber(12096), "12,096");
+  assert.match(i18n.formatNumber(49_514_632, { notation: "compact", maximumFractionDigits: 1 }), /مليون/);
 });
 
 test("the locale registry is ready for additional dictionaries", () => {
