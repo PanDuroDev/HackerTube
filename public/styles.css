@@ -1114,6 +1114,26 @@ a.card-sub:hover { color: var(--text); }
 
 /* ---------- Motion ---------- */
 
+/* Theme changes should not inherit hover/focus transitions from interactive controls. */
+[data-theme-changing] .btn,
+[data-theme-changing] .icon-btn,
+[data-theme-changing] .chip,
+[data-theme-changing] .side-link,
+[data-theme-changing] .select-btn,
+[data-theme-changing] .select-opt,
+[data-theme-changing] .segmented button,
+[data-theme-changing] .card-x,
+[data-theme-changing] .later-btn,
+[data-theme-changing] .drop-panel button,
+[data-theme-changing] .channel-card,
+[data-theme-changing] .topic-card,
+[data-theme-changing] .search button,
+[data-theme-changing] .search,
+[data-theme-changing] .switch,
+[data-theme-changing] .switch::after {
+  transition: none !important;
+}
+
 .layout { transition: grid-template-columns .2s ease; }
 
 #view > section { animation: viewIn .22s ease-out both; }
