@@ -1043,3 +1043,26 @@ test("the brand locale badge follows the active UI locale", () => {
   harness.api.applyBrandLocale("en");
   assert.equal(harness.brandLocale.textContent, "EN");
 });
+
+test("Hacker News no longer renders its intro paragraph", async () => {
+  const harness = createHarness();
+  harness.location.hash = "#/hacker-news";
+  setVideoLoader(harness, [sampleHNVideo("hn1")]);
+  await harness.api.renderHackerNews("");
+  assert.doesNotMatch(harness.view.innerHTML, /hn-intro/);
+  assert.doesNotMatch(harness.view.innerHTML, /Videos recommended or discussed/);
+});
+
+test("watch actions stay inside the More menu and the mobile player is full-bleed", () => {
+  const harness = createHarness();
+  harness.api.saveProgress("video123", 120, 600);
+  const markup = harness.api.watchActionsHTML("video123");
+  assert.ok(markup.indexOf("watch-action-items") < markup.indexOf("data-resume"));
+  assert.match(markup, /data-watch-actions-toggle/);
+
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  assert.match(css, /\.watch-actions-toggle \{ display: inline-flex; \}/);
+  assert.match(css, /\.watch-action-items \{ display: none; \}/);
+  assert.match(css, /\.watch-main \.player \{ width: calc\(100% \+ 28px\); margin-inline: -14px; border-radius: 0; \}/);
+  assert.match(css, /html \{ scrollbar-gutter: auto; \}/);
+});
