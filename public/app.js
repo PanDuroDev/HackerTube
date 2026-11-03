@@ -1744,9 +1744,9 @@ function renderSettings() {
       </label>
       <div class="setting-row">
         <span class="row-ic">${icon("settings")}</span>
-        <span class="setting-text"><b>Stream API URL</b><small>Paste the HTTPS URL from your running Cloudflare Quick Tunnel. The default Render endpoint only works when its backend has been deployed.</small></span>
+        <span class="setting-text"><b>Stream API URL</b><small>For local testing, run HackerTube at 127.0.0.1:8080 and the API at 127.0.0.1:8787. Use a hosted HTTPS API only when its provider permits video delivery.</small></span>
         <form class="setting-api-form" data-stream-api-form>
-          <input type="url" name="streamApiUrl" value="${esc(s.streamApiUrl || "")}" placeholder="https://example.trycloudflare.com" autocomplete="url" spellcheck="false" aria-label="Stream API base URL">
+          <input type="url" name="streamApiUrl" value="${esc(s.streamApiUrl || "")}" placeholder="http://127.0.0.1:8787" autocomplete="url" spellcheck="false" aria-label="Stream API base URL">
           <button class="btn" type="submit">Save</button>
         </form>
       </div>
@@ -2021,7 +2021,7 @@ function onViewSubmit(e) {
       || url.search
       || url.hash
     ) {
-      toast("Use an HTTPS base URL without a path or credentials.", "info");
+      toast("Use HTTPS, or HTTP loopback for local testing, without a path or credentials.", "info");
       input.focus();
       return;
     }
