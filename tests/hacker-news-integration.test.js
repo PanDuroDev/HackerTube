@@ -13,12 +13,14 @@ const APP_SOURCE = fs.readFileSync(
 
 function createHarness() {
   const view = { innerHTML: "", addEventListener() {} };
+  const sidebar = { innerHTML: "", addEventListener() {} };
   const searchInput = { value: "" };
   const storage = new Map();
   const document = {
     title: "",
     querySelector(selector) {
       if (selector === "#q") return searchInput;
+      if (selector === "#sidebar") return sidebar;
       return selector === "#view" ? view : null;
     },
     querySelectorAll() {
@@ -63,7 +65,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderSidebar, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -74,6 +76,7 @@ function createHarness() {
     context,
     document,
     location: context.location,
+    sidebar,
     view,
   };
 }
@@ -1014,4 +1017,17 @@ test("route skeletons match the current page instead of showing feed cards every
   location.hash = "#/categories";
   api.renderRouteSkeleton();
   assert.match(view.innerHTML, /skeleton-tile-grid/);
+});
+
+
+test("sidebar navigation no longer shows per-link counts", () => {
+  const harness = createHarness();
+  harness.api.state.meta = {
+    total: 12096,
+    channels: [{ id: "channel_1", name: "Channel 1", count: 10 }],
+    topics: [{ id: "web", label: "Web", count: 10 }],
+  };
+  harness.api.renderSidebar();
+  assert.doesNotMatch(harness.sidebar.innerHTML, /data-count/);
+  assert.doesNotMatch(harness.sidebar.innerHTML, /side-count/);
 });

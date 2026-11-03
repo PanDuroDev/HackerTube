@@ -71,7 +71,6 @@ const state = {
   playlists: storeGet(STORE.playlists, []).filter((p) => p && p.id && Array.isArray(p.ids)),
   settings: Object.assign({}, DEFAULTS, storeGet(STORE.settings, {})),
   theme: storeGet(STORE.theme, "dark"),
-  longCount: 0,
   scope: { type: "all" },
   current: null,
   homeOrder: [],
@@ -426,7 +425,6 @@ async function init() {
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, tr(`topics.${t.id}`, TOPIC_LABELS[t.id] || t.label)]));
-    state.longCount = videos.filter((v) => v.duration >= 1200).length;
     renderSidebar();
     addEventListener("hashchange", () => {
       setSidebar(false);
@@ -715,10 +713,10 @@ function renderSidebar() {
       <button class="icon-btn side-close" type="button" aria-label="Close menu">${icon("close")}</button>
     </div>
     <nav class="side-nav">
-      ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span><span class="side-count" data-count="${key}"></span></a>`).join("")}
+      ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span></a>`).join("")}
     </nav>
     <div class="side-title">${tr("sidebar.explore", "Explore")}</div>
-    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span><span class="side-count" data-count="channels"></span></a>
+    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span></a>
     <p class="side-foot">${videos(state.meta.total)} · ${state.meta.channels.length} channels</p>`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
@@ -756,20 +754,6 @@ function syncSidebar() {
     a.classList.toggle("active", isActive);
     if (isActive) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
-  });
-  const counts = {
-    home: state.meta.total,
-    longs: state.longCount,
-    liked: state.likes.size,
-    history: state.seen.length,
-    later: state.saved.size,
-    categories: state.meta.topics.length,
-    playlists: state.playlists.length,
-    channels: state.meta.channels.length,
-    "hacker-news": state.hnTotal || "",
-  };
-  document.querySelectorAll("[data-count]").forEach((el) => {
-    el.textContent = counts[el.dataset.count] ?? "";
   });
 }
 
