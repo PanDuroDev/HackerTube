@@ -91,6 +91,11 @@ const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFracti
 
 init();
 
+function searchDedupeKey(item) {
+  const channel = item.channel_id || item.channel || "";
+  return `${String(channel).trim().toLowerCase()}|${String(item.title || "").trim().toLowerCase()}`;
+}
+
 async function init() {
   applyTheme(state.theme);
   if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
@@ -202,7 +207,13 @@ async function init() {
         video.year,
       ].join(" "),
       id: video.id,
-    }));
+    }), {
+      getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
+      getGroup: (video) => video.channel_id || video.channel,
+      getDedupeKey: searchDedupeKey,
+      groupLimit: 2,
+      diversityLimit: 36,
+    });
     state.longCount = videos.filter((v) => v.duration >= 1200).length;
     renderSidebar();
     addEventListener("hashchange", () => {
@@ -1110,7 +1121,13 @@ async function loadHNVideos() {
           [category.name, category.id].filter(Boolean).join(" ")
         ).join(" "),
         id: record.vid,
-      }));
+      }), {
+        getRank: (record) => Math.min(1, Math.max(0, Number(record.score) || 0) / 25),
+        getGroup: (record) => record.channel,
+        getDedupeKey: searchDedupeKey,
+        groupLimit: 2,
+        diversityLimit: 36,
+      });
       return records;
     }).catch((error) => {
       state.hnVideosPromise = null;

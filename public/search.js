@@ -95,10 +95,20 @@
     return edits <= 1;
   }
 
+  function containsPhrase(text, phrase) {
+    return Boolean(text) && Boolean(phrase) && (" " + text + " ").includes(" " + phrase + " ");
+  }
+
   class SearchIndex {
-    constructor(items, getFields) {
+    constructor(items, getFields, options) {
+      const settings = options || {};
       this.items = Array.isArray(items) ? items : [];
       this.getFields = typeof getFields === "function" ? getFields : function (item) { return item || {}; };
+      this.getRank = typeof settings.getRank === "function" ? settings.getRank : null;
+      this.getGroup = typeof settings.getGroup === "function" ? settings.getGroup : null;
+      this.getDedupeKey = typeof settings.getDedupeKey === "function" ? settings.getDedupeKey : null;
+      this.groupLimit = Math.max(0, Number(settings.groupLimit) || 0);
+      this.diversityLimit = Math.max(0, Number(settings.diversityLimit) || 0);
       this.documents = [];
       this.postings = new Map();
       this.terms = [];
@@ -188,23 +198,55 @@
         const document = this.documents[documentIndex];
         let phraseBonus = 0;
         for (const field of document.fields) {
-          if (field.text.includes(rawQuery) && rawQuery.length >= 2) {
+          if (containsPhrase(field.text, rawQuery) && rawQuery.length >= 2) {
             phraseBonus += field.name === "title" ? 42
               : field.name === "channel" ? 24
               : (FIELD_WEIGHTS[field.name] || 2) * 2;
           }
         }
         const coverage = result.matched / tokens.length;
+        const rank = this.getRank
+          ? Math.max(0, Math.min(1, Number(this.getRank(document.item)) || 0))
+          : 0;
         return {
           item: document.item,
-          score: (result.score + phraseBonus) * (0.55 + 0.45 * coverage),
+          score: (result.score + phraseBonus) * (0.55 + 0.45 * coverage) + rank * 5,
           matchedTokens: result.matched,
           totalTokens: tokens.length,
           index: document.index,
         };
       });
-      ranked.sort((a, b) => b.score - a.score || a.index - b.index);
-      return ranked;
+      let ordered = ranked.sort((a, b) => b.score - a.score || a.index - b.index);
+
+      if (this.getDedupeKey) {
+        const seen = new Set();
+        ordered = ordered.filter((result) => {
+          const key = this.getDedupeKey(result.item);
+          if (!key) return true;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+
+      if (this.getGroup && this.groupLimit > 0 && this.diversityLimit > 0) {
+        const head = [];
+        const tail = [];
+        const counts = new Map();
+        for (const result of ordered) {
+          const group = this.getGroup(result.item);
+          const count = counts.get(group) || 0;
+          if (head.length < this.diversityLimit && group && count >= this.groupLimit) {
+            tail.push(result);
+            continue;
+          }
+          head.push(result);
+          if (head.length <= this.diversityLimit && group) counts.set(group, count + 1);
+        }
+        ordered = [...head, ...tail];
+      }
+
+      return ordered;
     }
   }
 
