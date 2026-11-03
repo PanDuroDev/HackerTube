@@ -11,9 +11,10 @@ const APP_SOURCE = fs.readFileSync(
   "utf8",
 );
 
-function createHarness() {
+function createHarness(savedSettings = null) {
   const view = { innerHTML: "", addEventListener() {} };
   const storage = new Map();
+  if (savedSettings) storage.set("ht_settings", JSON.stringify(savedSettings));
   const document = {
     title: "",
     querySelector(selector) {
@@ -60,7 +61,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -313,7 +314,7 @@ test("mixed iframe queues switch watch routes at catalog boundaries", () => {
   assert.equal(location.hash, "#/watch/main123?list=pl_test&autoplay=1");
 });
 
-test("HN watch preserves native playback controls while sharing actions and playlist context", async () => {
+test("HN watch uses the YouTube iframe with native controls and preserves playlist context", async () => {
   const harness = createHarness();
   const { api, location, view } = harness;
   const hn = sampleHNVideo("hn123");
@@ -326,18 +327,23 @@ test("HN watch preserves native playback controls while sharing actions and play
   api.state.hnMentionPartitions.set("h", Promise.resolve({ [hn.vid]: [] }));
   api.state.playlists = [{ id: "pl_test", name: "Mixed", ids: [hn.vid, main.id] }];
   api.state.byId = new Map([[main.id, main]]);
-  api.state.settings.nativePlayer = true;
   location.hash = "#/hn-watch/hn123?list=pl_test&autoplay=1";
 
   await api.renderHNWatch(hn.vid, "pl_test", true);
 
   assert.equal(api.state.current, hn.vid);
   assert.equal(api.state.seen[0], hn.vid);
-  assert.ok(view.innerHTML.includes('id="native-video-player"'));
-  assert.ok(view.innerHTML.includes('data-player-toggle'));
+  assert.ok(view.innerHTML.includes('id="youtube-player"'));
+  assert.ok(view.innerHTML.includes("youtube-nocookie.com/embed/hn123"));
+  const frameSrc = view.innerHTML.match(/src="(https:\/\/www\.youtube-nocookie\.com\/embed\/[^"]+)"/)?.[1];
+  assert.ok(frameSrc, "HN watch should render an embedded YouTube player");
+  assert.equal(new URL(frameSrc).searchParams.get("controls"), "1");
+  assert.ok(!view.innerHTML.includes("<video"));
+  assert.ok(!view.innerHTML.includes("data-player-toggle"));
   assert.ok(view.innerHTML.includes('data-act="like"'));
   assert.ok(view.innerHTML.includes('data-act="save"'));
 });
+
 
 
 test("saved legacy Hacker News records restore from existing.json after reload", async () => {
@@ -440,7 +446,7 @@ test("HN watch uses the actual route when query parameter order differs", async 
   assert.ok(!view.innerHTML.includes("Loading video and archived comments"));
 });
 
-test("single-video HN playlist uses custom player controls and keeps autoplay enabled", async () => {
+test("single-video HN playlists use YouTube controls and preserve autoplay", async () => {
   const harness = createHarness();
   const { api, location, view } = harness;
   const hn = sampleHNVideo("hn123");
@@ -456,97 +462,89 @@ test("single-video HN playlist uses custom player controls and keeps autoplay en
   await api.renderHNWatch(hn.vid, "pl_test", true);
 
   assert.ok(view.innerHTML.includes("youtube-nocookie.com/embed/hn123"));
-  assert.ok(view.innerHTML.includes("controls=0"));
-  assert.ok(view.innerHTML.includes("autoplay=1"));
+  const frameSrc = view.innerHTML.match(/src="(https:\/\/www\.youtube-nocookie\.com\/embed\/[^"]+)"/)?.[1];
+  assert.ok(frameSrc);
+  const params = new URL(frameSrc).searchParams;
+  assert.equal(params.get("controls"), "1");
+  assert.equal(params.get("autoplay"), "1");
   assert.ok(view.innerHTML.includes('id="youtube-player"'));
-  assert.ok(view.innerHTML.includes('data-youtube-toggle'));
-  assert.ok(view.innerHTML.includes('data-youtube-seek'));
-  assert.ok(view.innerHTML.includes('data-youtube-speed'));
+  assert.ok(!view.innerHTML.includes("data-youtube-toggle"));
+  assert.ok(!view.innerHTML.includes("data-youtube-seek"));
+  assert.ok(!view.innerHTML.includes("<video"));
 });
 
-test("YouTube control preference restores native controls without custom controls", () => {
+
+
+test("YouTube embeds always use the original player controls", () => {
   const { api } = createHarness();
-  const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
-  assert.ok(customSrc, "custom mode should render an iframe source");
-  const customParams = new URL(customSrc).searchParams;
-  assert.equal(customParams.get("controls"), "0");
-  assert.equal(customParams.get("fs"), "0", "YouTube fullscreen control should be hidden");
-  assert.equal(customParams.get("disablekb"), "1", "YouTube keyboard controls should be disabled");
-  assert.equal(customParams.get("iv_load_policy"), "3", "video annotations should be disabled");
-  assert.ok(customMarkup.includes('data-youtube-toggle'));
+  const markup = api.youtubeIframeMarkup("video123", "Test video");
+  const src = markup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(src, "the iframe should have a source URL");
+  const params = new URL(src).searchParams;
+  assert.equal(params.get("controls"), "1");
+  assert.equal(params.get("fs"), "1");
+  assert.equal(params.get("disablekb"), "0");
+  assert.equal(params.get("iv_load_policy"), "1");
+  assert.ok(!markup.includes('id="youtube-player"'));
+  assert.ok(!markup.includes("data-youtube-toggle"));
 
-  api.state.settings.customYoutubeControls = false;
-  const nativeMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  const nativeSrc = nativeMarkup.match(/src="([^"]+)"/)?.[1];
-  assert.ok(nativeSrc, "native mode should render an iframe source");
-  const nativeParams = new URL(nativeSrc).searchParams;
-  assert.equal(nativeParams.get("controls"), "1");
-  assert.equal(nativeParams.get("fs"), "1");
-  assert.equal(nativeParams.get("disablekb"), "0");
-  assert.equal(nativeParams.get("iv_load_policy"), "1");
-  assert.ok(!nativeMarkup.includes("data-youtube-toggle"));
-  assert.ok(!nativeMarkup.includes('id="youtube-player"'));
+  const queueMarkup = api.youtubeIframeMarkup("video123", "Test video", ["video123", "video456"]);
+  const queueSrc = queueMarkup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(queueMarkup.includes('id="youtube-player"'), "playlist playback should retain its API target");
+  assert.equal(new URL(queueSrc).searchParams.get("controls"), "1");
+  assert.equal(new URL(queueSrc).searchParams.get("playlist"), "video456");
 });
 
 
-test("YouTube API failure restores native iframe controls and removes custom controls", async () => {
+test("Settings no longer expose Playback or Stream API options", () => {
+  const { api, view } = createHarness();
+  api.renderSettings();
+
+  for (const label of ["Playback", "Custom YouTube controls", "Direct video playback", "Stream API URL", "trycloudflare.com"]) {
+    assert.ok(!view.innerHTML.includes(label), `settings should not contain ${label}`);
+  }
+  assert.ok(view.innerHTML.includes("Browsing"));
+});
+
+
+test("legacy playback preferences are removed from saved browser settings", () => {
+  const { api, storage } = createHarness({
+    pageSize: 60,
+    hideSeen: true,
+    nativePlayer: true,
+    customYoutubeControls: true,
+    streamApiUrl: "https://old-tunnel.example",
+  });
+
+  assert.equal(api.state.settings.pageSize, 60);
+  assert.equal(api.state.settings.hideSeen, true);
+  for (const key of ["nativePlayer", "customYoutubeControls", "streamApiUrl"]) {
+    assert.ok(!Object.prototype.hasOwnProperty.call(api.state.settings, key));
+  }
+  assert.deepEqual(JSON.parse(storage.get("ht_settings")), { pageSize: 60, hideSeen: true });
+});
+
+
+test("ordinary single-video playback does not load the iframe API", async () => {
   const harness = createHarness();
-  const { api, context, location } = harness;
-  const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
-  assert.ok(customSrc, "custom mode should render an iframe source");
+  const { api, document, location } = harness;
+  const markup = api.youtubeIframeMarkup("video123", "Test video");
+  assert.ok(!markup.includes('id="youtube-player"'));
 
-  let customControlsRemoved = false;
-  const customControls = {
-    remove() {
-      customControlsRemoved = true;
-    },
-  };
-  const playerContainer = {
-    querySelector(selector) {
-      if (selector === "#youtube-player") return iframe;
-      if (selector === ".youtube-controls") return customControls;
-      return null;
-    },
-  };
-  const iframe = {
-    src: customSrc,
-    isConnected: true,
-    closest(selector) {
-      assert.equal(selector, ".player");
-      return playerContainer;
-    },
-  };
-
-  context.document.querySelector = (selector) =>
-    selector === "#youtube-player" ? iframe : null;
-  context.window.YT = {
-    Player: class {
-      constructor() {
-        throw new Error("Simulated YouTube player initialization failure");
-      }
-    },
-  };
   location.hash = "#/watch/video123";
-
   await api.startYouTubePlayer("video123", ["video123"], null, location.hash);
-
-  const restoredParams = new URL(iframe.src).searchParams;
-  assert.equal(restoredParams.get("controls"), "1");
-  assert.equal(restoredParams.get("fs"), "1");
-  assert.equal(restoredParams.get("disablekb"), "0");
-  assert.equal(restoredParams.get("iv_load_policy"), "1");
-  assert.equal(customControlsRemoved, true, "custom controls should be removed after fallback");
+  assert.equal(document.head, undefined, "single videos should not request the playlist API");
 });
 
 
-test("YouTube API readiness timeout restores native controls and permits a retry", async () => {
+test("YouTube API timeout leaves native iframe controls available and permits a retry", async () => {
   const harness = createHarness();
   const { api, context, document, location } = harness;
-  const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
-  assert.ok(customSrc, "custom mode should render an iframe source");
+  const markup = api.youtubeIframeMarkup("video123", "Test video", ["video123", "video456"]);
+  const src = markup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(src, "a playlist should render an iframe source");
+  assert.equal(new URL(src).searchParams.get("controls"), "1");
+  assert.ok(markup.includes('id="youtube-player"'));
 
   const timeoutCallbacks = new Map();
   let nextTimerId = 1;
@@ -562,6 +560,40 @@ test("YouTube API readiness timeout restores native controls and permits a retry
   document.createElement = (tag) => {
     assert.equal(tag, "script");
     return { src: "", onerror: null };
+  };
+  document.head = {
+    appendChild(script) {
+      assert.equal(script.src, "https://www.youtube.com/iframe_api");
+      appendedScripts += 1;
+    },
+  };
+
+  const iframe = { src, isConnected: true };
+  document.querySelector = (selector) => selector === "#youtube-player" ? iframe : null;
+  context.window.YT = undefined;
+  location.hash = "#/watch/video123?list=pl_test";
+
+  const pending = api.startYouTubePlayer("video123", ["video123", "video456"], "pl_test", location.hash);
+  assert.equal(appendedScripts, 1, "playlist playback should request the iframe API");
+  assert.equal(timeoutCallbacks.size, 1, "the readiness timeout should be armed");
+
+  const [timerId, onTimeout] = timeoutCallbacks.entries().next().value;
+  timeoutCallbacks.delete(timerId);
+  onTimeout();
+  await pending;
+
+  assert.equal(new URL(iframe.src).searchParams.get("controls"), "1");
+  assert.ok(!markup.includes("data-youtube-toggle"), "the iframe does not depend on custom controls");
+
+  const retry = api.loadYouTubeIframeApi();
+  assert.equal(appendedScripts, 2, "a timeout should clear the cached promise so the API can be retried");
+  assert.equal(timeoutCallbacks.size, 1, "a retry should arm a fresh readiness timeout");
+  const [retryTimerId, onRetryTimeout] = timeoutCallbacks.entries().next().value;
+  timeoutCallbacks.delete(retryTimerId);
+  onRetryTimeout();
+  await assert.rejects(retry, /did not become ready in time/);
+});
+null };
   };
   document.head = {
     appendChild(script) {
