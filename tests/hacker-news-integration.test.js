@@ -330,3 +330,47 @@ test("HN watch preserves native playback controls while sharing actions and play
   assert.ok(view.innerHTML.includes('data-act="like"'));
   assert.ok(view.innerHTML.includes('data-act="save"'));
 });
+
+
+test("saved legacy Hacker News records restore from existing.json after reload", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const legacy = sampleHNVideo("legacy123");
+  api.state.videos = [];
+  api.state.byId = new Map();
+  api.state.hnById = new Map();
+  api.state.hnVideosPromise = null;
+  api.state.hnExisting = null;
+  api.state.hnExistingPromise = null;
+  api.state.likes = new Set([legacy.vid]);
+  api.state.saved = new Set([legacy.vid]);
+  api.state.seen = [legacy.vid];
+  api.state.playlists = [{ id: "pl_legacy", name: "Legacy", ids: [legacy.vid] }];
+
+  api.setFetchJson(async (file) => {
+    if (file === "data/hacker-news/videos.json") return [];
+    if (file === "data/hacker-news/existing.json") return { [legacy.vid]: legacy };
+    throw new Error("Unexpected data request: " + file);
+  });
+
+  location.hash = "#/liked";
+  await api.renderCollection("liked");
+  assert.ok(view.innerHTML.includes("Hacker News sample video"));
+  assert.ok(view.innerHTML.includes('data-remove="liked"'));
+
+  location.hash = "#/later";
+  await api.renderCollection("later");
+  assert.ok(view.innerHTML.includes('data-remove="later"'));
+
+  location.hash = "#/history";
+  await api.renderCollection("history");
+  assert.ok(view.innerHTML.includes('data-remove="history"'));
+
+  location.hash = "#/playlists";
+  await api.renderPlaylists();
+  assert.ok(view.innerHTML.includes("/vi/legacy123/"));
+
+  location.hash = "#/playlist/pl_legacy";
+  await api.renderPlaylist("pl_legacy");
+  assert.ok(view.innerHTML.includes('href="#/hn-watch/legacy123?list=pl_legacy&autoplay=1"'));
+});

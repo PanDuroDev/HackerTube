@@ -823,12 +823,12 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
         const playlists = await state.builtinIds;
         ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
       }
-      if (ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId))) {
-        await loadHNVideos();
+      if (ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId) && !state.hnExisting?.[videoId])) {
+        await Promise.all([loadHNVideos(), loadHNExisting()]);
       }
       const index = ids.indexOf(id);
       if (index >= 0) {
-        queue = ids.slice(index).filter((videoId) => state.byId.has(videoId) || state.hnById.has(videoId));
+        queue = ids.slice(index).filter((videoId) => Boolean(videoById(videoId)));
       }
     } catch {
       state.builtinIds = null;
@@ -1434,7 +1434,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
           ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
         }
         const index = ids.indexOf(videoId);
-        if (index >= 0) queue = ids.slice(index).filter((nextId) => state.byId.has(nextId) || state.hnById.has(nextId));
+        if (index >= 0) queue = ids.slice(index).filter((nextId) => Boolean(videoById(nextId)));
       } catch {
         state.builtinIds = null;
       }
@@ -1505,8 +1505,8 @@ async function renderCollection(kind) {
   const cfg = COLLECTIONS[kind];
   const routeHash = location.hash;
   let ids = kind === "history" ? [...state.seen] : [...cfg.set()];
-  if (ids.some((id) => !state.byId.has(id) && !state.hnById.has(id))) {
-    try { await loadHNVideos(); } catch { /* Keep available main-catalog entries visible. */ }
+  if (ids.some((id) => !state.byId.has(id) && !state.hnById.has(id) && !state.hnExisting?.[id])) {
+    try { await Promise.all([loadHNVideos(), loadHNExisting()]); } catch { /* Render any records that were available. */ }
   }
   if (location.hash !== routeHash) return;
   // Read the collection again after async loading so changes made while loading are not lost.
@@ -1586,11 +1586,11 @@ function addToPlaylist(plId, videoId) {
 
 async function renderPlaylists() {
   const routeHash = location.hash;
-  const hasHnOnlyVideos = state.playlists.some((playlist) =>
-    playlist.ids.some((id) => !state.byId.has(id))
+  const hasUnresolvedVideos = state.playlists.some((playlist) =>
+    playlist.ids.some((id) => !state.byId.has(id) && !state.hnById.has(id) && !state.hnExisting?.[id])
   );
-  if (hasHnOnlyVideos) {
-    try { await loadHNVideos(); } catch { /* Playlist metadata still renders without HN thumbnails. */ }
+  if (hasUnresolvedVideos) {
+    try { await Promise.all([loadHNVideos(), loadHNExisting()]); } catch { /* Render available playlist data even if a source fails. */ }
   }
   if (location.hash !== routeHash) return;
   document.title = "Playlists — HackerTube";
@@ -1670,8 +1670,8 @@ async function renderPlaylist(id) {
   const pl = playlistById(id);
   if (!pl) return renderNotFound();
   const routeHash = location.hash;
-  if (pl.ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId))) {
-    try { await loadHNVideos(); } catch { /* Keep available main-catalog videos visible. */ }
+  if (pl.ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId) && !state.hnExisting?.[videoId])) {
+    try { await Promise.all([loadHNVideos(), loadHNExisting()]); } catch { /* Keep any resolvable videos visible. */ }
   }
   if (location.hash !== routeHash) return;
   const list = pl.ids.map(videoById).filter(Boolean);
