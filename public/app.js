@@ -939,7 +939,10 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   const customControls = state.settings.customYoutubeControls !== false;
   const params = new URLSearchParams({
     controls: customControls ? "0" : "1",
+    disablekb: customControls ? "1" : "0",
     enablejsapi: "1",
+    fs: customControls ? "0" : "1",
+    iv_load_policy: customControls ? "3" : "1",
     origin: location.origin,
     rel: "0",
     playsinline: "1",
@@ -1067,6 +1070,9 @@ function restoreYouTubeNativeControls(container) {
   if (!frame) return;
   const url = new URL(frame.src);
   url.searchParams.set("controls", "1");
+  url.searchParams.set("disablekb", "0");
+  url.searchParams.set("fs", "1");
+  url.searchParams.set("iv_load_policy", "1");
   frame.src = url.href;
   container.querySelector(".youtube-controls")?.remove();
 }
