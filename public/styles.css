@@ -1252,6 +1252,47 @@ a.card-sub:hover { color: var(--text); }
 }
 
 @media (max-width: 720px) {
+  .watch-bar { align-items: center; gap: 12px; }
+  .watch-actions {
+    position: relative;
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+  }
+  .watch-actions-toggle { display: inline-flex; }
+  .watch-action-items { display: none; }
+  .watch-actions.menu-open .watch-action-items {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 8px);
+    inset-inline-end: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: max-content;
+    min-width: 220px;
+    max-width: min(280px, calc(100vw - 28px));
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  }
+  .watch-action-items > .btn,
+  .watch-action-items > .drop,
+  .watch-action-items > .drop > summary {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .watch-action-items .drop-panel {
+    position: static;
+    width: 100%;
+    max-height: 180px;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
   .brand-name { display: none; }
   .brand small { display: none; }
   .search { margin-inline: 0; }
