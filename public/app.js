@@ -679,6 +679,58 @@ function syncWatchVideo(id, playlistId) {
   history.replaceState(null, "", `${location.pathname}${location.search}#/watch/${encodeURIComponent(id)}?list=${encodeURIComponent(playlistId)}`);
 }
 
+function shared(a, b) {
+  return a.topics.filter((t) => b.topics.includes(t)).length;
+}
+
+function markSeen(id) {
+  state.seen = [id, ...state.seen.filter((x) => x !== id)].slice(0, 50);
+  storeSet(STORE.seen, state.seen);
+}
+
+/* ---------- Collections ---------- */
+
+const COLLECTIONS = {
+  liked: { title: "Liked", set: () => state.likes, empty: "No liked videos yet.", hint: "Use the Like button on any video." },
+  later: { title: "Watch later", set: () => state.saved, empty: "Watch later is empty.", hint: "Use the clock icon on any card or the Watch later button." },
+  history: { title: "History", set: null, empty: "Nothing watched yet.", hint: "Videos you open show up here. The last 50 are kept in your browser." },
+};
+
+function renderCollection(kind) {
+  const cfg = COLLECTIONS[kind];
+  const list = kind === "history"
+    ? state.seen.map((id) => state.byId.get(id)).filter(Boolean)
+    : state.videos.filter((v) => cfg.set().has(v.id));
+  document.title = `${cfg.title} — HackerTube`;
+  const clear = list.length ? `<button class="btn" data-clear-collection="${kind}">${icon("trash")} Clear all</button>` : "";
+  view.innerHTML = `<section>
+    <div class="feed-head"><h1>${cfg.title}</h1><span class="count">${videos(list.length)}</span></div>
+    ${clear ? `<div class="head-tools">${clear}</div>` : ""}
+    ${list.length
+      ? `<div class="grid">${list.map((v) => card(v, { remove: kind })).join("")}</div>`
+      : `<div class="empty"><strong>${cfg.empty}</strong><p>${cfg.hint}</p><a class="btn" href="#/">Browse videos</a></div>`}
+  </section>`;
+  syncSidebar();
+}
+
+/* ---------- Categories ---------- */
+
+function renderCategories() {
+  document.title = "Categories — HackerTube";
+  const topics = [...state.meta.topics].sort((a, b) => b.count - a.count);
+  view.innerHTML = `<section>
+    <div class="feed-head"><h1>Categories</h1><span class="count">${topics.length} topics</span></div>
+    <div class="topic-grid">
+      ${topics.map((t) => `<a class="topic-card" href="#/" data-goto-topic="${t.id}">
+        <span class="topic-name">${esc(state.topicLabels[t.id] || t.id)}</span>
+        <span class="topic-num">${t.count}</span>
+        ${icon("arrowRight")}
+      </a>`).join("")}
+    </div>
+  </section>`;
+  syncSidebar();
+}
+
 /* ---------- Playlists ---------- */
 
 function playlistById(id) {
