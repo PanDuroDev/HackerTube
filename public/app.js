@@ -1652,7 +1652,7 @@ function renderSettings() {
       </label>
       <div class="setting-row">
         <span class="row-ic">${icon("settings")}</span>
-        <span class="setting-text"><b>Stream API URL</b><small>Paste the HTTPS URL from your running Cloudflare Quick Tunnel. Leave blank to use the default Render endpoint.</small></span>
+        <span class="setting-text"><b>Stream API URL</b><small>Paste the HTTPS URL from your running Cloudflare Quick Tunnel. The default Render endpoint only works when its backend has been deployed.</small></span>
         <form class="setting-api-form" data-stream-api-form>
           <input type="url" name="streamApiUrl" value="${esc(s.streamApiUrl || "")}" placeholder="https://example.trycloudflare.com" autocomplete="url" spellcheck="false" aria-label="Stream API base URL">
           <button class="btn" type="submit">Save</button>
