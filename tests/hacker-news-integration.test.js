@@ -176,9 +176,15 @@ test("collections reload and render saved HN-only videos, including updates duri
   const first = sampleHNVideo("hn123");
   const addedWhileLoading = sampleHNVideo("hn456");
   let resolveVideos;
-  api.setFetchJson(() => new Promise((resolve) => {
-    resolveVideos = resolve;
-  }));
+  api.setFetchJson((file) => {
+    if (file === "data/hacker-news/existing.json") return Promise.resolve({});
+    if (file === "data/hacker-news/videos.json") {
+      return new Promise((resolve) => {
+        resolveVideos = resolve;
+      });
+    }
+    return Promise.reject(new Error("Unexpected data request: " + file));
+  });
 
   api.state.videos = [];
   api.state.byId = new Map();
