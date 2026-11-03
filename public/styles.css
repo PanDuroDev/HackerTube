@@ -1426,3 +1426,74 @@ a.card-sub:hover { color: var(--text); }
   line-height: 1.7;
 }
 .hn-attribution a { color: var(--text); text-underline-offset: 2px; }
+
+
+/* ---------- Simplified video summary and Hacker News comments ---------- */
+
+.hn-context,
+.hn-discussion {
+  margin-top: 22px;
+  padding-top: 14px;
+}
+
+.hn-summary {
+  max-width: 80ch;
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.hn-comments {
+  gap: 0;
+  margin-top: 8px;
+}
+
+.hn-comment {
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hn-comment:first-child {
+  padding-top: 6px;
+}
+
+.hn-comment:last-child {
+  border-bottom: 0;
+}
+
+.hn-comment-head {
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+
+.hn-comment-head b {
+  font-weight: 600;
+}
+
+.hn-story {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hn-comment p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.hn-why {
+  margin-top: 4px;
+  line-height: 1.55;
+}
+
+.hn-source-link {
+  margin-top: 6px;
+  font-size: 12px;
+  text-underline-offset: 2px;
+}
