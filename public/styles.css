@@ -227,42 +227,7 @@ main {
 body.side-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr); }
 body.side-collapsed .side { display: none; }
 
-/* ---------- الصفحة الرئيسية ---------- */
-
-.home-head { margin: 4px 0 18px; }
-
-.home-head h1 {
-  margin: 0 0 4px;
-  font-size: 24px;
-  line-height: 1.3;
-  letter-spacing: -.4px;
-}
-
-.home-head p { margin: 0; max-width: 75ch; color: var(--muted); font-size: 13.5px; }
-
-.home-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin-top: 10px;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.home-stats b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-/* ---------- شرائح وفلاتر ---------- */
-
-.chipbar {
-  display: flex;
-  gap: 8px;
-  margin: 0 0 18px;
-  padding-bottom: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.chipbar::-webkit-scrollbar { display: none; }
+/* ---------- Feed header and filters ---------- */
 
 .chip {
   flex: 0 0 auto;
@@ -287,11 +252,10 @@ body.side-collapsed .side { display: none; }
 
 .feed-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .feed-head h1 {
@@ -301,40 +265,79 @@ body.side-collapsed .side { display: none; }
   letter-spacing: -.3px;
 }
 
+.feed-head .count { margin-inline-end: auto; }
+
 .count { color: var(--muted); font-size: 13px; }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
+.filter-btn { gap: 6px; }
+.filter-btn .ic { width: 16px; height: 16px; }
+
+.filter-btn.on {
+  border-color: var(--strong);
+  background: var(--strong);
+  color: var(--on-strong);
 }
 
-.toolbar select {
-  height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
   border-radius: 999px;
+  background: var(--soft-2);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-btn.on .filter-count { background: var(--on-strong); color: var(--strong); }
+
+.filters {
+  margin: 0 0 24px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.filter-group { margin-bottom: 18px; }
+
+.filter-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin-bottom: 18px;
+}
+
+.filter-field { display: block; min-width: 0; }
+
+.filter-field select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: var(--bg);
   font-size: 13px;
   cursor: pointer;
 }
 
-.toolbar select:hover { border-color: var(--muted); }
-.toolbar select:focus { border-color: var(--text); outline: none; }
+.filter-field select:hover { border-color: var(--muted); }
+.filter-field select:focus { border-color: var(--text); outline: none; }
 
-.clear-filters {
-  height: 36px;
-  padding: 0 12px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.clear-filters:hover { color: var(--text); }
+.filter-foot { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* ---------- شبكة الفيديوهات ---------- */
 
@@ -590,18 +593,6 @@ a.card-sub:hover { color: var(--text); }
 .drop-panel p { margin: 8px 10px; color: var(--muted); font-size: 13px; }
 .drop-panel a { display: block; margin: 8px 10px 10px; color: var(--text); font-size: 13px; }
 
-.note {
-  margin: 4px 0 32px;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  background: var(--soft);
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.note a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
-
 .section-title {
   margin: 28px 0 14px;
   font-size: 17px;
@@ -836,23 +827,11 @@ a.card-sub:hover { color: var(--text); }
 }
 
 .switch:checked { background: var(--strong); }
-.switch:checked::after { background: var(--on-strong); transform: translateX(-18px); }
-[data-theme="light"] .switch:checked::after { transform: translateX(-18px); }
+.switch:checked::after { background: var(--on-strong); transform: translateX(18px); }
 
 .settings-note { color: var(--muted); font-size: 13px; line-height: 1.8; }
-.settings-note a { color: var(--text); }
 
-/* ---------- عن الموقع ---------- */
-
-.about { max-width: 760px; }
-.about h1 { margin: 4px 0 10px; font-size: 26px; letter-spacing: -.4px; }
-.about h2 { margin: 28px 0 8px; font-size: 17px; font-weight: 600; }
-.about p, .about li { color: var(--muted); line-height: 1.8; }
-.about li { margin-bottom: 6px; }
-.about code { padding: 1px 6px; border-radius: 5px; background: var(--soft-2); font-size: 12.5px; }
-.about a { color: var(--text); }
-
-/* ---------- متفرقات ---------- */
+/* ---------- Misc ---------- */
 
 .skeleton-grid {
   display: grid;
@@ -907,11 +886,11 @@ a.card-sub:hover { color: var(--text); }
 
 [hidden] { display: none !important; }
 
-.note, .watch-meta, .feed-head h1, .home-head p, .about p, .about li, .card-title {
+.watch-meta, .card-title, .empty strong, .empty p {
   unicode-bidi: plaintext;
 }
 
-/* ---------- استجابة ---------- */
+/* ---------- Responsive ---------- */
 
 @media (max-width: 1100px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
@@ -923,7 +902,7 @@ a.card-sub:hover { color: var(--text); }
     display: none;
     position: fixed;
     z-index: 60;
-    inset: var(--topbar) 0 0 auto;
+    inset: var(--topbar) auto 0 0;
     width: 260px;
     height: auto;
     padding: 10px 8px 24px;
@@ -949,10 +928,13 @@ a.card-sub:hover { color: var(--text); }
   .search button { width: 52px; }
   .grid { grid-template-columns: 1fr; gap: 28px; }
   .related-grid, .skeleton-grid { grid-template-columns: 1fr; }
-  .home-head h1 { font-size: 21px; }
+  .feed-head h1 { font-size: 19px; }
+  .filters { padding: 12px; }
+  .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 480px) {
   .search input { padding: 0 12px; font-size: 13px; }
   .search button { width: 46px; }
+  .filter-grid { grid-template-columns: 1fr; }
 }
