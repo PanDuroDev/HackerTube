@@ -42,24 +42,10 @@ jobs:
                   target.parent.mkdir(parents=True, exist_ok=True)
                   target.write_bytes(zf.read(info))
                   print(f"FILE={name}\tSIZE={info.file_size}")
-
-                  if target.suffix.lower() == ".json":
-                      try:
-                          value = json.loads(target.read_text(encoding="utf-8"))
-                          if isinstance(value, list):
-                              print(f"JSON_SUMMARY={name}\tTYPE=list\tCOUNT={len(value)}")
-                              if value and isinstance(value[0], dict):
-                                  print(f"JSON_KEYS={name}\t{','.join(sorted(value[0].keys()))}")
-                          elif isinstance(value, dict):
-                              print(f"JSON_SUMMARY={name}\tTYPE=dict\tKEYS={','.join(sorted(value.keys()))}")
-                              for key, nested in value.items():
-                                  if isinstance(nested, list):
-                                      print(f"JSON_LIST={name}\t{key}\tCOUNT={len(nested)}")
-                      except Exception as exc:
-                          print(f"JSON_PARSE_ERROR={name}\t{type(exc).__name__}: {exc}")
           PY
+          cp public/data/videos.json _extracted/current-videos.json
 
-      - name: Upload extracted source data
+      - name: Upload extracted source data and current index
         uses: actions/upload-artifact@v4
         with:
           name: hackertube-extracted-source
