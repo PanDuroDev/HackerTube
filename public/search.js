@@ -17,7 +17,6 @@
     ["c plus plus", "cpp"], ["c sharp", "csharp"],
     ["جافا سكريبت", "javascript"], ["جافاسكربت", "javascript"],
     ["داتا ستركتشر", "algorithms"], ["هياكل البيانات", "algorithms"],
-    ["داتا ستركتشر", "algorithms"], ["هياكل البيانات", "algorithms"],
     ["تعلم الاله", "ai"], ["الذكاء الاصطناعي", "ai"],
     ["امن سيبراني", "security"], ["قواعد البيانات", "database"],
     ["داتا بيز", "database"], ["تطوير الويب", "web"],

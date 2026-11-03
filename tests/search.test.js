@@ -9,6 +9,7 @@ function makeIndex() {
     { id: "structures", title: "Algorithms and Data Structures", channel: "Computer Science", topics: "algorithms", metadata: "Advanced" },
     { id: "javascript", title: "JavaScript Async Patterns", channel: "Web School", topics: "javascript", metadata: "Tutorial" },
     { id: "summary", title: "Inside a New Runtime", channel: "Engineering", summary: "How Python handles memory and execution", tags: "python runtime" },
+    { id: "cpp", title: "C++ Templates", channel: "Compiler Lab", topics: "cpp C++", metadata: "Advanced" },
   ];
   return new SearchIndex(videos, (video) => video);
 }
@@ -28,6 +29,7 @@ test("topic aliases find records through their topic metadata", () => {
   assert.equal(index.search("data structures")[0].item.id, "structures");
   assert.equal(index.search("هياكل البيانات")[0].item.id, "structures");
   assert.equal(index.search("بايثون")[0].item.id, "python");
+  assert.equal(index.search("c plus plus")[0].item.id, "cpp");
 });
 
 test("prefix matching finds an unfinished final word", () => {
@@ -52,4 +54,14 @@ test("query terms can match across title and channel fields", () => {
 
 test("an empty query never returns the entire catalog", () => {
   assert.deepEqual(makeIndex().search("   "), []);
+});
+
+
+test("the index searches records beyond the initial display page", () => {
+  const records = Array.from({ length: 90 }, (_, index) => ({
+    id: String(index),
+    title: index === 89 ? "DeepSearchTarget record" : "Ordinary programming video",
+  }));
+  const results = new SearchIndex(records, (record) => record).search("DeepSearchTarget");
+  assert.equal(results[0].item.id, "89");
 });
