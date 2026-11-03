@@ -236,15 +236,6 @@ img { max-width: 100%; }
   color: var(--muted);
 }
 
-.side-foot {
-  margin: 24px 12px 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-}
-
 main {
   min-width: 0;
   padding: 16px 24px 64px;
@@ -255,8 +246,7 @@ main {
   body.side-collapsed .side { padding-inline: 8px; }
   body.side-collapsed .side-link { justify-content: center; padding: 0; gap: 0; }
   body.side-collapsed .side-link > span,
-  body.side-collapsed .side-title,
-  body.side-collapsed .side-foot { display: none; }
+  body.side-collapsed .side-title { display: none; }
 }
 
 /* ---------- Feed header and filters ---------- */
@@ -1521,7 +1511,6 @@ a.card-sub:hover { color: var(--text); }
     font-size: 15px;
   }
   .side-title { margin: 22px 14px 8px; }
-  .side-foot { margin-inline: 14px; }
 
   body.menu-open { overflow: hidden; }
 

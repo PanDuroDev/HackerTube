@@ -199,6 +199,7 @@ async function setLocale(code, { persist = false, updateUrl = false, reload = fa
   const meta = I18N.localeMeta(next);
   document.documentElement.lang = meta.lang;
   document.documentElement.dir = meta.dir;
+  applyBrandLocale(next);
   I18N.applyStaticTranslations(document);
   if (persist) storeSet(STORE.locale, next);
   if (updateUrl) {
@@ -208,6 +209,11 @@ async function setLocale(code, { persist = false, updateUrl = false, reload = fa
     history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
   if (reload) location.reload();
+}
+
+function applyBrandLocale(code) {
+  const brand = document.querySelector("#brandLocale");
+  if (brand) brand.textContent = String(code || "en").toUpperCase();
 }
 
 function skeletonCards(count = 6) {
@@ -716,8 +722,7 @@ function renderSidebar() {
       ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span></a>`).join("")}
     </nav>
     <div class="side-title">${tr("sidebar.explore", "Explore")}</div>
-    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span></a>
-    <p class="side-foot">${videos(state.meta.total)} · ${state.meta.channels.length} channels</p>`;
+    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span></a>`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
     if (e.target.closest(".side-close")) {

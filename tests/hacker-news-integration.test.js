@@ -14,6 +14,7 @@ const APP_SOURCE = fs.readFileSync(
 function createHarness() {
   const view = { innerHTML: "", addEventListener() {} };
   const sidebar = { innerHTML: "", addEventListener() {} };
+  const brandLocale = { textContent: "EN" };
   const searchInput = { value: "" };
   const storage = new Map();
   const document = {
@@ -21,6 +22,7 @@ function createHarness() {
     querySelector(selector) {
       if (selector === "#q") return searchInput;
       if (selector === "#sidebar") return sidebar;
+      if (selector === "#brandLocale") return brandLocale;
       return selector === "#view" ? view : null;
     },
     querySelectorAll() {
@@ -65,7 +67,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderSidebar, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -77,6 +79,7 @@ function createHarness() {
     document,
     location: context.location,
     sidebar,
+    brandLocale,
     view,
   };
 }
@@ -1030,4 +1033,13 @@ test("sidebar navigation no longer shows per-link counts", () => {
   harness.api.renderSidebar();
   assert.doesNotMatch(harness.sidebar.innerHTML, /data-count/);
   assert.doesNotMatch(harness.sidebar.innerHTML, /side-count/);
+  assert.doesNotMatch(harness.sidebar.innerHTML, /side-foot/);
+});
+
+test("the brand locale badge follows the active UI locale", () => {
+  const harness = createHarness();
+  harness.api.applyBrandLocale("ar");
+  assert.equal(harness.brandLocale.textContent, "AR");
+  harness.api.applyBrandLocale("en");
+  assert.equal(harness.brandLocale.textContent, "EN");
 });
