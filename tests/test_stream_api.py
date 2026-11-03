@@ -19,7 +19,11 @@ def mocked_downloader(info):
 def test_health_endpoint():
     response = stream_api.app.test_client().get("/health")
     assert response.status_code == 200
-    assert response.json == {"status": "ok"}
+    assert response.json == {
+        "status": "ok",
+        "api_version": stream_api.STREAM_API_VERSION,
+        "yt_dlp_version": stream_api.yt_dlp.version.__version__,
+    }
 
 
 def test_rejects_invalid_video_id():
@@ -109,8 +113,8 @@ def test_returns_local_proxy_url_for_muxed_mp4():
     assert response.headers["Access-Control-Allow-Origin"] == "https://pandurodev.github.io"
 
 
-def test_retries_with_android_client_when_default_has_no_muxed_mp4():
-    """Retry extraction when the default client exposes only adaptive formats."""
+def test_retries_with_web_embedded_client_when_default_has_no_muxed_mp4():
+    """Retry with web_embedded when default extraction has no muxed MP4."""
     default_info = {
         "title": "Adaptive-only default client",
         "formats": [{
@@ -123,8 +127,8 @@ def test_retries_with_android_client_when_default_has_no_muxed_mp4():
             "url": VIDEO_URL + "&quality=1080",
         }],
     }
-    android_info = {
-        "title": "Android fallback",
+    embedded_info = {
+        "title": "Embedded fallback",
         "formats": [{
             "format_id": "18",
             "ext": "mp4",
@@ -135,7 +139,7 @@ def test_retries_with_android_client_when_default_has_no_muxed_mp4():
             "url": VIDEO_URL + "&quality=360",
         }],
     }
-    contexts = [mocked_downloader(default_info), mocked_downloader(android_info)]
+    contexts = [mocked_downloader(default_info), mocked_downloader(embedded_info)]
     client = stream_api.app.test_client()
 
     with patch.object(
@@ -151,7 +155,7 @@ def test_retries_with_android_client_when_default_has_no_muxed_mp4():
     assert youtube_dl.call_count == 2
     assert "extractor_args" not in youtube_dl.call_args_list[0].args[0]
     assert youtube_dl.call_args_list[1].args[0]["extractor_args"] == {
-        "youtube": {"player_client": ["android"]}
+        "youtube": {"player_client": ["default", "web_embedded"]}
     }
 
 
@@ -206,21 +210,25 @@ def test_expired_stream_token_is_rejected():
 
 
 def test_no_compatible_format_returns_422_instead_of_extractor_error():
-    context = mocked_downloader({"title": "No matching format", "formats": []})
-    with patch.object(stream_api.yt_dlp, "YoutubeDL", return_value=context):
+    contexts = [
+        mocked_downloader({"title": "No default format", "formats": []}),
+        mocked_downloader({"title": "No embedded format", "formats": []}),
+    ]
+    with patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts):
         response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
     assert response.status_code == 422
 
 
 def test_rejects_videos_without_muxed_mp4():
-    context = mocked_downloader({
+    split_formats = {
         "title": "Audio/video split only",
         "formats": [{
             "format_id": "137", "ext": "mp4", "protocol": "https",
             "vcodec": "avc1", "acodec": "none", "url": VIDEO_URL,
         }],
-    })
-    with patch.object(stream_api.yt_dlp, "YoutubeDL", return_value=context):
+    }
+    contexts = [mocked_downloader(split_formats), mocked_downloader(split_formats)]
+    with patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts):
         response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
     assert response.status_code == 422
 
