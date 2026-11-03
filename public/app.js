@@ -436,6 +436,13 @@ function closeSelects() {
   });
 }
 
+function thumbSrc(id) {
+  // YouTube exposes three sampled frames (hq1/hq2/hq3); pick one per video, stable across reloads.
+  let n = 0;
+  for (let i = 0; i < id.length; i++) n = (n * 31 + id.charCodeAt(i)) >>> 0;
+  return `https://i.ytimg.com/vi/${id}/hq${(n % 3) + 1}.jpg`;
+}
+
 function card(v, opts = {}) {
   const later = state.saved.has(v.id);
   const remove = opts.remove
@@ -445,7 +452,7 @@ function card(v, opts = {}) {
   return `<article class="card">
     <div class="thumb">
       <a class="thumb-link" href="#/watch/${v.id}" aria-label="${esc(v.title)}">
-        <img src="https://i.ytimg.com/vi/${v.id}/hq2.jpg" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
+        <img src="${thumbSrc(v.id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
       </a>
       <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${v.id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
       ${remove}
@@ -483,6 +490,7 @@ function renderWatch(id) {
 
   const liked = state.likes.has(id);
   const later = state.saved.has(id);
+  const ch = state.channels.get(v.channel_id);
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
@@ -495,22 +503,27 @@ function renderWatch(id) {
         referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
     <h1 class="watch-title">${esc(v.title)}</h1>
-    <div class="watch-meta">
-      <a href="#/channel/${v.channel_id}">${esc(v.channel)}</a>
-      <span>${compact.format(v.views)} views</span>
-      ${v.year ? `<span>${v.year}</span>` : ""}
-      <span>${fmtDuration(v.duration)}</span>
-      <span>${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
-      <span>${esc(LEVEL_LABELS[v.level] || "General")}</span>
+    <div class="watch-bar">
+      <a class="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
+        <span class="avatar">${esc(v.channel.trim().charAt(0))}</span>
+        <span class="watch-channel-text"><b>${esc(v.channel)}</b><small>${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
+      </a>
+      <div class="actions">
+        <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+        <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+        <details class="drop">
+          <summary class="btn">${icon("playlists")} Add to playlist</summary>
+          <div class="drop-panel">${playlistPanel}</div>
+        </details>
+        <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+      </div>
     </div>
-    <div class="actions">
-      <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-      <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
-      <details class="drop">
-        <summary class="btn">${icon("playlists")} Add to playlist</summary>
-        <div class="drop-panel">${playlistPanel}</div>
-      </details>
-      <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+    <div class="watch-meta">
+      <span>${icon("eye")} ${compact.format(v.views)} views</span>
+      ${v.year ? `<span>${icon("calendar")} ${v.year}</span>` : ""}
+      <span>${icon("clock")} ${fmtDuration(v.duration)}</span>
+      <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
+      <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
     </div>
     <h2 class="section-title">Related videos</h2>
     <div class="related-grid">${related.map((x) => card(x)).join("") || '<p class="count">Nothing related yet.</p>'}</div>
@@ -622,7 +635,7 @@ function playlistCard(p) {
   const first = p.ids.map((id) => state.byId.get(id)).find(Boolean);
   return `<article class="pl-card">
     <a class="pl-cover" href="#/playlist/${p.id}" aria-label="${esc(p.name)}">
-      ${first ? `<img src="https://i.ytimg.com/vi/${first.id}/hq2.jpg" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${first.id}/hqdefault.jpg'">` : icon("playlists")}
+      ${first ? `<img src="${thumbSrc(first.id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${first.id}/hqdefault.jpg'">` : icon("playlists")}
       <span>${p.ids.length}</span>
     </a>
     <div class="pl-row">
@@ -655,35 +668,57 @@ function renderPlaylist(id) {
 function renderSettings() {
   document.title = "Settings — HackerTube";
   const s = state.settings;
-  const seg = [["light", "Light"], ["dark", "Dark"], ["system", "System"]]
-    .map(([value, label]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${label}</button>`)
+  const seg = [["light", "Light", "sun"], ["dark", "Dark", "moon"], ["system", "System", "monitor"]]
+    .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${icon(ic)} ${label}</button>`)
     .join("");
   view.innerHTML = `<section class="settings">
-    <h1>Settings</h1>
+    <div class="feed-head"><h1>Settings</h1></div>
     <div class="settings-group">
-      <h2>Appearance</h2>
+      <h2>${icon("sun")} Appearance</h2>
       <div class="segmented" role="group" aria-label="Theme">${seg}</div>
     </div>
     <div class="settings-group">
-      <h2>Browsing</h2>
+      <h2>${icon("eye")} Browsing</h2>
       <label class="setting-row">
-        <span><b>Hide watched videos</b><small>Keep opened videos out of Home and search.</small></span>
+        <span class="row-ic">${icon("eye")}</span>
+        <span class="setting-text"><b>Hide watched videos</b><small>Keep opened videos out of Home and search.</small></span>
         <input class="switch" type="checkbox" data-setting="hideSeen" ${s.hideSeen ? "checked" : ""}>
       </label>
       <div class="setting-row">
-        <span><b>Page size</b><small>Videos shown before “Show more”.</small></span>
+        <span class="row-ic">${icon("categories")}</span>
+        <span class="setting-text"><b>Page size</b><small>Videos shown before “Show more”.</small></span>
         <div class="segmented" role="group" aria-label="Page size">
           ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
         </div>
       </div>
     </div>
     <div class="settings-group">
-      <h2>Data</h2>
-      <div class="setting-row"><span><b>History</b><small>${videos(state.seen.length)}</small></span><button class="btn" data-clear-collection="history" ${state.seen.length ? "" : "disabled"}>Clear</button></div>
-      <div class="setting-row"><span><b>Liked</b><small>${videos(state.likes.size)}</small></span><button class="btn" data-clear-collection="liked" ${state.likes.size ? "" : "disabled"}>Clear</button></div>
-      <div class="setting-row"><span><b>Watch later</b><small>${videos(state.saved.size)}</small></span><button class="btn" data-clear-collection="later" ${state.saved.size ? "" : "disabled"}>Clear</button></div>
-      <div class="setting-row"><span><b>Playlists</b><small>${state.playlists.length} saved</small></span><a class="btn" href="#/playlists">Manage</a></div>
-      <div class="setting-row"><span><b>Everything</b><small>Delete likes, history, watch later, playlists and settings.</small></span><button class="btn danger" data-reset-all>Delete all</button></div>
+      <h2>${icon("database")} Data</h2>
+      <div class="setting-row">
+        <span class="row-ic">${icon("history")}</span>
+        <span class="setting-text"><b>History</b><small>${videos(state.seen.length)}</small></span>
+        <button class="btn" data-clear-collection="history" ${state.seen.length ? "" : "disabled"}>${icon("trash")} Clear</button>
+      </div>
+      <div class="setting-row">
+        <span class="row-ic">${icon("liked")}</span>
+        <span class="setting-text"><b>Liked</b><small>${videos(state.likes.size)}</small></span>
+        <button class="btn" data-clear-collection="liked" ${state.likes.size ? "" : "disabled"}>${icon("trash")} Clear</button>
+      </div>
+      <div class="setting-row">
+        <span class="row-ic">${icon("later")}</span>
+        <span class="setting-text"><b>Watch later</b><small>${videos(state.saved.size)}</small></span>
+        <button class="btn" data-clear-collection="later" ${state.saved.size ? "" : "disabled"}>${icon("trash")} Clear</button>
+      </div>
+      <div class="setting-row">
+        <span class="row-ic">${icon("playlists")}</span>
+        <span class="setting-text"><b>Playlists</b><small>${state.playlists.length} saved</small></span>
+        <a class="btn" href="#/playlists">Manage ${icon("arrowRight")}</a>
+      </div>
+      <div class="setting-row">
+        <span class="row-ic danger">${icon("trash")}</span>
+        <span class="setting-text"><b>Everything</b><small>Delete likes, history, watch later, playlists and settings.</small></span>
+        <button class="btn danger" data-reset-all>${icon("trash")} Delete all</button>
+      </div>
     </div>
     <p class="settings-note">Stored in this browser only. No account, no tracking.</p>
   </section>`;
