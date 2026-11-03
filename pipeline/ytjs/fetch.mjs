@@ -46,12 +46,22 @@ function readVideo(video) {
     || parts.find((part) => /^[\d.,]+\s*[KMB]?$/i.test(part))
     || '';
   const agoText = parts.find((part) => /ago/i.test(part)) || '';
+  const liveStatus = text(video.live_status).toLowerCase();
+  const badges = [
+    ...(Array.isArray(video.badges) ? video.badges : []),
+    ...(Array.isArray(video.metadata?.badges) ? video.metadata.badges : []),
+  ].map((badge) => text(badge?.label || badge?.text || badge).toLowerCase());
+  const isBroadcast = video.is_live === true || video.is_upcoming === true || video.was_live === true
+    || ['live', 'upcoming', 'is_live', 'is_upcoming', 'was_live', 'post_live'].includes(liveStatus)
+    || badges.some((badge) => badge === 'live' || badge === 'upcoming')
+    || parts.some((part) => /\bstreamed\b/i.test(part));
   return {
     id: video.video_id || video.content_id || video.id,
     title: text(video.title || video.metadata?.title),
     duration: Number(video.duration?.seconds) || 0,
     views: parseViews(viewsText),
     timestamp: parseAgo(agoText),
+    is_broadcast: isBroadcast,
   };
 }
 
