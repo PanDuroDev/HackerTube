@@ -16,4 +16,8 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest -q
       - name: Check frontend syntax
-        run: node --check public/app.js
+        run: |
+          node --check public/search.js
+          node --check public/app.js
+      - name: Test search engine
+        run: node --test tests/search.test.js
