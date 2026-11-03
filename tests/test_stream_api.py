@@ -1,4 +1,3 @@
-from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import stream_api
@@ -28,24 +27,36 @@ def test_rejects_invalid_video_id():
 
 
 def test_uses_cloudflare_client_ip_instead_of_forwarded_for():
-    with stream_api.app.test_request_context(
-        "/",
-        headers={
-            "CF-Connecting-IP": "203.0.113.27",
-            "X-Forwarded-For": "198.51.100.99",
-        },
-        environ_base={"REMOTE_ADDR": "127.0.0.1"},
-    ):
-        assert stream_api._client_ip() == "203.0.113.27"
+    with patch.object(stream_api, "TRUST_CLOUDFLARE_IP", True):
+        with stream_api.app.test_request_context(
+            "/",
+            headers={
+                "CF-Connecting-IP": "203.0.113.27",
+                "X-Forwarded-For": "198.51.100.99",
+            },
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            assert stream_api._client_ip() == "203.0.113.27"
 
 
 def test_invalid_cloudflare_ip_falls_back_to_socket_peer():
-    with stream_api.app.test_request_context(
-        "/",
-        headers={"CF-Connecting-IP": "not-an-ip", "X-Forwarded-For": "198.51.100.99"},
-        environ_base={"REMOTE_ADDR": "127.0.0.1"},
-    ):
-        assert stream_api._client_ip() == "127.0.0.1"
+    with patch.object(stream_api, "TRUST_CLOUDFLARE_IP", True):
+        with stream_api.app.test_request_context(
+            "/",
+            headers={"CF-Connecting-IP": "not-an-ip", "X-Forwarded-For": "198.51.100.99"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            assert stream_api._client_ip() == "127.0.0.1"
+
+
+def test_forwarding_headers_are_ignored_without_trusted_edge():
+    with patch.object(stream_api, "TRUST_CLOUDFLARE_IP", False):
+        with stream_api.app.test_request_context(
+            "/",
+            headers={"CF-Connecting-IP": "203.0.113.27", "X-Forwarded-For": "198.51.100.99"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            assert stream_api._client_ip() == "127.0.0.1"
 
 
 def test_returns_local_proxy_url_for_muxed_mp4():
