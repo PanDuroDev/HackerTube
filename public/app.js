@@ -32,6 +32,7 @@ const TOPIC_SEARCH_ALIASES = {
   tools: "ide editors ادوات المطور",
 };
 const DEFAULTS = { pageSize: 36, hideSeen: false };
+const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -52,6 +53,9 @@ const state = {
   hnMentionPartitions: new Map(),
   hnQuery: null,
   hnLimit: 36,
+  hnFilters: Object.assign({}, HN_DEFAULTS),
+  hnUiOpen: false,
+  hnTotal: 0,
   topicLabels: {},
   channels: new Map(),
   likes: new Set(storeGet(STORE.likes, [])),
@@ -169,12 +173,14 @@ async function init() {
   });
 
   try {
-    const [videos, meta] = await Promise.all([
+    const [videos, meta, hnMeta] = await Promise.all([
       fetchJson("data/videos.json"),
       fetchJson("data/meta.json"),
+      fetchJson("data/hacker-news/meta.json").catch(() => null),
     ]);
     state.videos = videos;
     state.meta = meta;
+    state.hnTotal = Number(hnMeta?.imported_videos) || 0;
     state.builtin = meta.playlists || [];
     state.homeOrder = buildHomeOrder(videos);
     state.byId = new Map(videos.map((v) => [v.id, v]));
@@ -486,6 +492,7 @@ function syncSidebar() {
     categories: state.meta.topics.length,
     playlists: state.playlists.length,
     channels: state.meta.channels.length,
+    "hacker-news": state.hnTotal || "",
   };
   document.querySelectorAll("[data-count]").forEach((el) => {
     el.textContent = counts[el.dataset.count] ?? "";
@@ -715,7 +722,7 @@ function filtersPanel() {
   </div>`;
 }
 
-function field(name, label, allLabel, options, current) {
+function field(name, label, allLabel, options, current, group = "ui") {
   const cur = String(current);
   const isAll = cur === "" || (name === "sort" && cur === "best");
   const activeOption = options.find(([value]) => String(value) === cur);
@@ -723,13 +730,13 @@ function field(name, label, allLabel, options, current) {
   const rows = [["", allLabel], ...options]
     .map(([value, text]) => {
       const on = value === "" ? isAll : String(value) === cur;
-      return `<button type="button" class="select-opt ${on ? "on" : ""}" role="option" aria-selected="${on}" data-select-opt="${name}" data-value="${esc(value)}">${esc(text)}${on ? icon("check") : ""}</button>`;
+      return `<button type="button" class="select-opt ${on ? "on" : ""}" role="option" aria-selected="${on}" data-select-opt="${name}" data-select-group="${group}" data-value="${esc(value)}">${esc(text)}${on ? icon("check") : ""}</button>`;
     })
     .join("");
   return `<div class="filter-field">
     <span class="filter-label">${esc(label)}</span>
     <div class="select">
-      <button type="button" class="select-btn" data-select-toggle="${name}" aria-haspopup="listbox" aria-expanded="false">
+      <button type="button" class="select-btn" data-select-toggle="${name}" data-select-group="${group}" aria-haspopup="listbox" aria-expanded="false">
         <span>${esc(shown)}</span>${icon("chevron")}
       </button>
       <div class="select-menu" role="listbox" aria-label="${esc(label)}">${rows}</div>
@@ -771,10 +778,16 @@ function card(v, opts = {}) {
     ? `<a class="card-sub" href="#/channel/${v.channel_id}">${esc(channel)}</a>`
     : `<div class="card-sub">${esc(channel)}</div>`;
   const hnRecommenders = Number(hn?.hn?.recommenders || hn?.recommenders || 0);
+  const hnScore = Number(hn?.score || 0);
   const hnMeta = hn
     ? `${hnRecommenders ? `${hnRecommenders} recommenders` : "Discussed, not recommended"} · ${esc(hn.primary_topic || "Hacker News pick")}`
     : `${compact.format(v.views || 0)} views${v.year ? ` · ${v.year}` : ""}${topic}`;
-  const badge = hn ? `HN ${Number(hn.score || 0).toFixed(1)}` : fmtDuration(v.duration);
+  const badge = hn
+    ? (hnScore > 0 || hnRecommenders > 0 ? `HN ${hnScore.toFixed(1)}` : "Discussed")
+    : fmtDuration(v.duration);
+  const badgeTitle = hn
+    ? (hnScore > 0 || hnRecommenders > 0 ? `Hacker News score ${hnScore.toFixed(1)} · ${hnRecommenders} recommenders` : "Discussed on Hacker News, not recommended")
+    : "";
   const watchHref = videoWatchHref(v);
   return `<article class="card">
     <div class="thumb">
@@ -783,7 +796,7 @@ function card(v, opts = {}) {
       </a>
       <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
       ${remove}
-      <span class="dur">${badge}</span>
+      <span class="dur"${badgeTitle ? ` title="${esc(badgeTitle)}"` : ""}>${badge}</span>
     </div>
     <div class="card-info">
       <a class="card-title" href="${watchHref}">${esc(v.title)}</a>
@@ -1275,6 +1288,112 @@ function hnCard(video) {
   return card(mainVideo || video, { hn: video });
 }
 
+const HN_PROGRAMMING_AREAS = new Set([
+  "software",
+  "systems-security",
+  "ai-data",
+  "math-theory",
+  "hardware",
+  "computing-history-culture",
+  "design-graphics-media",
+  "games",
+]);
+
+function hnLabel(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function hnOptionMap(records, key) {
+  const options = new Map();
+  for (const record of records) {
+    const value = record[key];
+    if (value) options.set(String(value), hnLabel(value));
+  }
+  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+}
+
+function hnAreaOptions(records) {
+  const options = new Map();
+  for (const record of records) {
+    for (const category of record.categories || []) {
+      if (category?.area) options.set(category.area, category.area_name || hnLabel(category.area));
+    }
+  }
+  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+}
+
+function hnInProgrammingScope(record) {
+  return (record.categories || []).some((category) => HN_PROGRAMMING_AREAS.has(category.area));
+}
+
+function hnIsRecommended(record) {
+  return Number(record.hn?.recommenders || record.recommenders || 0) > 0 || Number(record.score || 0) > 0;
+}
+
+function hnMatchesFilters(record) {
+  const filters = state.hnFilters;
+  if (filters.scope === "programming" && !hnInProgrammingScope(record)) return false;
+  if (filters.recommendation === "recommended" && !hnIsRecommended(record)) return false;
+  if (filters.recommendation === "discussed" && hnIsRecommended(record)) return false;
+  if (filters.contentType && record.content_type !== filters.contentType) return false;
+  if (filters.level && record.level !== filters.level) return false;
+  if (filters.shelfLife && record.shelf_life !== filters.shelfLife) return false;
+  if (filters.area && !(record.categories || []).some((category) => category.area === filters.area)) return false;
+  return true;
+}
+
+function hnFilterCount() {
+  const filters = state.hnFilters;
+  let count = filters.scope !== HN_DEFAULTS.scope ? 1 : 0;
+  for (const key of ["recommendation", "contentType", "level", "shelfLife", "area"]) {
+    if (filters[key]) count++;
+  }
+  if (filters.sort !== HN_DEFAULTS.sort) count++;
+  return count;
+}
+
+function hnComparator() {
+  const sort = state.hnFilters.sort === "best" ? "score" : state.hnFilters.sort;
+  const value = (record) => {
+    if (sort === "recommenders") return Number(record.hn?.recommenders || 0);
+    if (sort === "mentions") return Number(record.hn?.mentions || 0);
+    return Number(record.score || 0);
+  };
+  return (a, b) => value(b) - value(a)
+    || String(a.title || "").localeCompare(String(b.title || ""));
+}
+
+function hnFiltersPanel(records) {
+  const filters = state.hnFilters;
+  const contentTypes = hnOptionMap(records, "content_type");
+  const levels = hnOptionMap(records, "level");
+  const shelfLives = hnOptionMap(records, "shelf_life");
+  const areas = hnAreaOptions(records);
+  return `<div class="filters hn-filters">
+    <div class="filter-group">
+      <span class="filter-label">Scope</span>
+      <div class="segmented hn-scope" role="group" aria-label="Hacker News scope">
+        <button type="button" data-hn-scope="programming" title="Software, systems, AI, math, hardware, computing culture, design, and games" class="${filters.scope === "programming" ? "active" : ""}" aria-pressed="${filters.scope === "programming"}">Programming</button>
+        <button type="button" data-hn-scope="all" class="${filters.scope === "all" ? "active" : ""}" aria-pressed="${filters.scope === "all"}">All HN</button>
+      </div>
+    </div>
+    <div class="filter-grid">
+      ${field("recommendation", "Recommendation", "All videos", [["recommended", "Recommended only"], ["discussed", "Discussed only"]], filters.recommendation, "hn")}
+      ${field("contentType", "Type", "All types", contentTypes, filters.contentType, "hn")}
+      ${field("level", "Level", "All levels", levels, filters.level, "hn")}
+      ${field("shelfLife", "Shelf life", "All shelf lives", shelfLives, filters.shelfLife, "hn")}
+      ${field("area", "Area", "All areas", areas, filters.area, "hn")}
+      ${field("sort", "Sort", "Best match", [["score", "HN score"], ["recommenders", "Most recommenders"], ["mentions", "Most mentions"]], filters.sort, "hn")}
+    </div>
+    <div class="filter-foot">
+      <button class="btn" data-hn-clear ${hnFilterCount() ? "" : "disabled"}>Clear all</button>
+      <button class="btn primary" data-hn-close>Done</button>
+    </div>
+  </div>`;
+}
+
 async function renderHackerNews(query = "") {
   if (state.hnQuery !== query) {
     state.hnQuery = query;
@@ -1286,16 +1405,24 @@ async function renderHackerNews(query = "") {
   try {
     const records = await loadHNVideos();
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
-    const list = query
+    state.hnTotal = records.length;
+    const source = query
       ? state.hnSearchEngine.search(query).map((result) => result.item)
       : records;
+    let list = source.filter(hnMatchesFilters);
+    if (state.hnFilters.sort !== "best" || !query) list = [...list].sort(hnComparator());
     const shown = list.slice(0, state.hnLimit);
+    const activeFilters = hnFilterCount();
     view.innerHTML = `<section class="feed">
       <div class="feed-head">
-        <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Videos already in the main catalog are excluded.</p></div>
-        <span class="count">${videos(list.length)}</span>
+        <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
+        <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
+          ${icon("filter")} Filters${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
+        </button>
+        <span class="count">${videos(list.length)}${list.length !== records.length ? ` · ${records.length} total` : ""}</span>
       </div>
-      ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : '<div class="empty"><strong>No matches</strong><p>Try another search phrase.</p></div>'}
+      ${state.hnUiOpen ? hnFiltersPanel(records) : ""}
+      ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>No matches</strong><p>Try another search or adjust the Hacker News filters.</p>${activeFilters ? '<button class="btn" data-hn-clear>Clear filters</button>' : ""}</div>`}
       ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
       ${hnAttributionHTML()}
     </section>`;
@@ -1705,6 +1832,33 @@ function onViewClick(e) {
     return;
   }
 
+  if (e.target.closest("[data-hn-filter-toggle]")) {
+    state.hnUiOpen = !state.hnUiOpen;
+    renderHackerNews(state.hnQuery || "");
+    return;
+  }
+
+  if (e.target.closest("[data-hn-close]")) {
+    state.hnUiOpen = false;
+    renderHackerNews(state.hnQuery || "");
+    return;
+  }
+
+  const hnScope = e.target.closest("[data-hn-scope]");
+  if (hnScope) {
+    state.hnFilters.scope = hnScope.dataset.hnScope;
+    state.hnLimit = pageSize();
+    renderHackerNews(state.hnQuery || "");
+    return;
+  }
+
+  if (e.target.closest("[data-hn-clear]")) {
+    state.hnFilters = Object.assign({}, HN_DEFAULTS);
+    state.hnLimit = pageSize();
+    renderHackerNews(state.hnQuery || "");
+    return;
+  }
+
   const selectToggle = e.target.closest("[data-select-toggle]");
   if (selectToggle) {
     const wrap = selectToggle.closest(".select");
@@ -1721,10 +1875,17 @@ function onViewClick(e) {
   if (option) {
     const fieldName = option.dataset.selectOpt;
     const value = option.dataset.value;
+    const group = option.dataset.selectGroup || "ui";
     closeSelects();
-    ui[fieldName] = fieldName === "sort" && !value ? "best" : value;
-    ui.limit = pageSize();
-    renderFeed(state.scope);
+    if (group === "hn") {
+      state.hnFilters[fieldName] = fieldName === "sort" && !value ? "best" : value;
+      state.hnLimit = pageSize();
+      renderHackerNews(state.hnQuery || "");
+    } else {
+      ui[fieldName] = fieldName === "sort" && !value ? "best" : value;
+      ui.limit = pageSize();
+      renderFeed(state.scope);
+    }
     return;
   }
 
