@@ -109,6 +109,52 @@ def test_returns_local_proxy_url_for_muxed_mp4():
     assert response.headers["Access-Control-Allow-Origin"] == "https://pandurodev.github.io"
 
 
+def test_retries_with_android_client_when_default_has_no_muxed_mp4():
+    """Retry extraction when the default client exposes only adaptive formats."""
+    default_info = {
+        "title": "Adaptive-only default client",
+        "formats": [{
+            "format_id": "137",
+            "ext": "mp4",
+            "protocol": "https",
+            "vcodec": "avc1",
+            "acodec": "none",
+            "height": 1080,
+            "url": VIDEO_URL + "&quality=1080",
+        }],
+    }
+    android_info = {
+        "title": "Android fallback",
+        "formats": [{
+            "format_id": "18",
+            "ext": "mp4",
+            "protocol": "https",
+            "vcodec": "avc1",
+            "acodec": "mp4a",
+            "height": 360,
+            "url": VIDEO_URL + "&quality=360",
+        }],
+    }
+    contexts = [mocked_downloader(default_info), mocked_downloader(android_info)]
+    client = stream_api.app.test_client()
+
+    with patch.object(
+        stream_api.yt_dlp,
+        "YoutubeDL",
+        side_effect=contexts,
+    ) as youtube_dl:
+        response = client.get("/api/stream/dQw4w9WgXcQ")
+
+    assert response.status_code == 200
+    assert response.json["height"] == 360
+    assert response.json["url"].startswith("/media/")
+    assert youtube_dl.call_count == 2
+    assert "extractor_args" not in youtube_dl.call_args_list[0].args[0]
+    assert youtube_dl.call_args_list[1].args[0]["extractor_args"] == {
+        "youtube": {"player_client": ["android"]}
+    }
+
+
 def test_media_proxy_forwards_range_and_streams_partial_response():
     info = {
         "title": "Example",
