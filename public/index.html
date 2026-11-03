@@ -7,7 +7,7 @@
 <meta name="description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date.">
 <meta name="theme-color" content="#0f0f0f">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Cpath d='M26 20l18 12-18 12z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
 
@@ -84,12 +84,28 @@
   </main>
 </div>
 
+<dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+  <div class="confirm-panel">
+    <div class="confirm-icon" aria-hidden="true">
+      <svg class="ic"><use href="#i-trash"></use></svg>
+    </div>
+    <div class="confirm-content">
+      <h2 class="confirm-title" id="confirmTitle">Confirm action</h2>
+      <p class="confirm-message" id="confirmMessage"></p>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn" id="confirmCancel" type="button" autofocus>Cancel</button>
+      <button class="btn danger" id="confirmAccept" type="button">Delete</button>
+    </div>
+  </div>
+</dialog>
+
 <div id="toast" role="status" aria-live="polite">
   <span class="toast-ic" aria-hidden="true"></span>
   <span class="toast-msg"></span>
 </div>
 <noscript><p style="padding:24px">This site needs JavaScript to show and filter the index.</p></noscript>
 <script src="search.js?v=1"></script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

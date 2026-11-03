@@ -1064,6 +1064,71 @@ a.card-sub:hover { color: var(--text); }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+.confirm-dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.confirm-dialog::backdrop { background: rgba(0, 0, 0, .56); }
+
+.confirm-dialog[open] { animation: confirmIn .14s ease-out both; }
+
+.confirm-panel { padding: 24px; }
+
+.confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: var(--soft-2);
+  color: var(--danger);
+}
+
+.confirm-icon .ic { width: 20px; height: 20px; }
+
+.confirm-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.confirm-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.confirm-actions .btn { min-width: 88px; }
+
+@keyframes confirmIn {
+  from { opacity: 0; transform: translateY(5px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 420px) {
+  .confirm-panel { padding: 20px; }
+}
+
 #toast {
   position: fixed;
   z-index: 90;

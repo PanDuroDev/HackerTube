@@ -87,6 +87,7 @@ function getStreamApiBaseUrl() {
 }
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
+let confirmationResolver = null;
 
 
 const $ = (sel) => document.querySelector(sel);
@@ -123,6 +124,8 @@ async function init() {
     else location.hash = next;
   });
   document.addEventListener("keydown", (e) => {
+    if ($("#confirmDialog")?.open) return;
+
     if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
       e.preventDefault();
       $("#q").focus();
@@ -160,6 +163,18 @@ async function init() {
   view.addEventListener("click", onViewClick);
   view.addEventListener("change", onViewChange);
   view.addEventListener("submit", onViewSubmit);
+
+  const confirmDialog = $("#confirmDialog");
+  $("#confirmAccept").addEventListener("click", () => confirmDialog.close("confirm"));
+  $("#confirmCancel").addEventListener("click", () => confirmDialog.close("cancel"));
+  confirmDialog.addEventListener("click", (event) => {
+    if (event.target === confirmDialog) confirmDialog.close("cancel");
+  });
+  confirmDialog.addEventListener("close", () => {
+    const resolve = confirmationResolver;
+    confirmationResolver = null;
+    resolve?.(confirmDialog.returnValue === "confirm");
+  });
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".select")) closeSelects();
     if (!e.target.closest(".watch-actions")) closeWatchActionMenu();
@@ -284,6 +299,21 @@ function toast(message, kind = "check") {
   el.classList.add("show");
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+function confirmAction({ title, message, confirmLabel = "Delete" }) {
+  const dialog = $("#confirmDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return Promise.resolve(false);
+
+  $("#confirmTitle").textContent = title;
+  $("#confirmMessage").textContent = message;
+  $("#confirmAccept").textContent = confirmLabel;
+  dialog.returnValue = "cancel";
+
+  return new Promise((resolve) => {
+    confirmationResolver = resolve;
+    dialog.showModal();
+  });
 }
 
 function applyTheme(pref) {
@@ -2096,9 +2126,15 @@ function removeItem(kind, id, plId) {
   toast("Removed", "close");
 }
 
-function clearCollection(kind) {
+async function clearCollection(kind) {
   const label = kind === "history" ? "history" : kind === "liked" ? "likes" : "Watch later";
-  if (!confirm(`Clear ${label}? This cannot be undone.`)) return;
+  const confirmed = await confirmAction({
+    title: `Clear ${label}?`,
+    message: `This will permanently remove ${label} from this browser. This cannot be undone.`,
+    confirmLabel: "Clear",
+  });
+  if (!confirmed) return;
+
   if (kind === "history") state.seen = [];
   else if (kind === "liked") state.likes.clear();
   else state.saved.clear();
@@ -2110,10 +2146,16 @@ function clearCollection(kind) {
   toast(`Cleared ${label}`, "trash");
 }
 
-function deletePlaylist(id) {
+async function deletePlaylist(id) {
   const pl = playlistById(id);
   if (!pl) return;
-  if (!confirm(`Delete playlist “${pl.name}”?`)) return;
+  const confirmed = await confirmAction({
+    title: "Delete playlist?",
+    message: `“${pl.name}” and its saved video list will be removed from this browser. This cannot be undone.`,
+    confirmLabel: "Delete",
+  });
+  if (!confirmed) return;
+
   state.playlists = state.playlists.filter((p) => p.id !== id);
   savePlaylists();
   syncSidebar();
@@ -2122,8 +2164,14 @@ function deletePlaylist(id) {
   toast("Playlist deleted", "trash");
 }
 
-function resetAll() {
-  if (!confirm("Delete all local data: likes, history, watch later, playlists and settings?")) return;
+async function resetAll() {
+  const confirmed = await confirmAction({
+    title: "Delete all local data?",
+    message: "This will permanently delete likes, history, watch later, playlists and settings from this browser. This cannot be undone.",
+    confirmLabel: "Delete all",
+  });
+  if (!confirmed) return;
+
   Object.values(STORE).forEach((key) => localStorage.removeItem(key));
   state.likes.clear();
   state.saved.clear();
