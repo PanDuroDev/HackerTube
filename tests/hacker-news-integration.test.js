@@ -38,6 +38,7 @@ function createHarness() {
     },
     location: { hash: "#/", origin: "https://example.test" },
     URLSearchParams,
+    URL,
     matchMedia: () => ({ matches: false, addEventListener() {} }),
     window: {
       HackerTubeSearch: {
@@ -59,7 +60,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, startYouTubePlayer, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -486,4 +487,55 @@ test("YouTube control preference restores native controls without custom control
   assert.equal(nativeParams.get("iv_load_policy"), "1");
   assert.ok(!nativeMarkup.includes("data-youtube-toggle"));
   assert.ok(!nativeMarkup.includes('id="youtube-player"'));
+});
+
+
+test("YouTube API failure restores native iframe controls and removes custom controls", async () => {
+  const harness = createHarness();
+  const { api, context, location } = harness;
+  const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(customSrc, "custom mode should render an iframe source");
+
+  let customControlsRemoved = false;
+  const customControls = {
+    remove() {
+      customControlsRemoved = true;
+    },
+  };
+  const playerContainer = {
+    querySelector(selector) {
+      if (selector === "#youtube-player") return iframe;
+      if (selector === ".youtube-controls") return customControls;
+      return null;
+    },
+  };
+  const iframe = {
+    src: customSrc,
+    isConnected: true,
+    closest(selector) {
+      assert.equal(selector, ".player");
+      return playerContainer;
+    },
+  };
+
+  context.document.querySelector = (selector) =>
+    selector === "#youtube-player" ? iframe : null;
+  context.window.YT = {
+    Player: class {
+      constructor() {
+        throw new Error("Simulated YouTube player initialization failure");
+      }
+    },
+  };
+  location.hash = "#/watch/video123";
+
+  await api.startYouTubePlayer("video123", ["video123"], null, location.hash);
+
+  const restoredParams = new URL(iframe.src).searchParams;
+  assert.equal(restoredParams.get("controls"), "1");
+  assert.equal(restoredParams.get("fs"), "1");
+  assert.equal(restoredParams.get("disablekb"), "0");
+  assert.equal(restoredParams.get("iv_load_policy"), "1");
+  assert.equal(customControlsRemoved, true, "custom controls should be removed after fallback");
 });
