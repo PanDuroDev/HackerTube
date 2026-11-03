@@ -13,3 +13,5 @@ services:
         value: https://pandurodev.github.io,http://localhost:8080,http://127.0.0.1:8080
       - key: HT_TRUST_CLOUDFLARE_IP
         value: "true"
+      - key: HT_MAX_CONCURRENT_STREAMS
+        value: "6"
