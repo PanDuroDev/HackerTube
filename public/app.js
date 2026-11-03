@@ -729,6 +729,7 @@ function hnContextHTML(video, comments) {
       ${quote}
       ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
       ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
+      ${hnAttributionHTML()}
     </section>
     <section class="hn-discussion">
       <h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>
