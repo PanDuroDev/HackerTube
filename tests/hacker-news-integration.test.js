@@ -608,9 +608,11 @@ test("YouTube API readiness timeout restores native controls and permits a retry
   assert.equal(restoredParams.get("iv_load_policy"), "1");
   assert.equal(customControlsRemoved, true, "custom controls should be removed after timeout");
 
-  await api.loadYouTubeIframeApi().then(
-    () => assert.fail("API readiness should still be pending on a fresh attempt"),
-    () => {},
-  );
+  const retry = api.loadYouTubeIframeApi();
   assert.equal(appendedScripts, 2, "a timeout should clear the cached promise so the API can be retried");
+  assert.equal(timeoutCallbacks.size, 1, "a retry should arm a fresh readiness timeout");
+  const [retryTimerId, onRetryTimeout] = timeoutCallbacks.entries().next().value;
+  timeoutCallbacks.delete(retryTimerId);
+  onRetryTimeout();
+  await assert.rejects(retry, /did not become ready in time/);
 });
