@@ -27,6 +27,24 @@ def test_health_endpoint():
     }
 
 
+def test_bgutil_provider_ready_requires_node_and_built_script(tmp_path, monkeypatch):
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    script = build_dir / "generate_once.js"
+    script.write_text("// built provider script", encoding="utf-8")
+
+    monkeypatch.setattr(stream_api, "BGUTIL_NODE_SCRIPT", script)
+    monkeypatch.setattr(
+        stream_api.shutil,
+        "which",
+        lambda executable: "/usr/bin/node" if executable == "node" else None,
+    )
+    assert stream_api._bgutil_provider_ready()
+
+    monkeypatch.setattr(stream_api.shutil, "which", lambda _executable: None)
+    assert not stream_api._bgutil_provider_ready()
+
+
 def test_rejects_invalid_video_id():
     response = stream_api.app.test_client().get("/api/stream/not-a-video-id")
     assert response.status_code == 400
