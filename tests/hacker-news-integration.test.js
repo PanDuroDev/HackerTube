@@ -60,7 +60,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -572,4 +572,17 @@ test("YouTube API timeout leaves native iframe controls available and permits a 
   timeoutCallbacks.delete(retryTimerId);
   onRetryTimeout();
   await assert.rejects(retry, /did not become ready in time/);
+});
+
+test("HN comment partitions use a lowercase, case-insensitive prefix", async () => {
+  const harness = createHarness();
+  const requested = [];
+  harness.context.fetch = async (url) => {
+    requested.push(url);
+    return { status: 404, ok: false };
+  };
+
+  const comments = await harness.api.loadHNMentions("AbCdEfGhIjK");
+  assert.equal(comments.length, 0);
+  assert.deepEqual(requested, ["data/hacker-news/mentions/a.json.gz"]);
 });

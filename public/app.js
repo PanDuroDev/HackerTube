@@ -1140,7 +1140,7 @@ function hnAttributionHTML() {
 
 async function loadHNMentions(videoId) {
   if (!videoId || !videoId[0]) return [];
-  const prefix = videoId[0];
+  const prefix = videoId[0].toLowerCase();
   if (!state.hnMentionPartitions.has(prefix)) {
     const promise = (async () => {
       const response = await fetch(`data/hacker-news/mentions/${encodeURIComponent(prefix)}.json.gz`, { cache: "no-cache" });

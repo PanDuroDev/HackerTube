@@ -61,12 +61,15 @@ def test_hacker_news_comments_are_complete_and_partitioned():
     partition_ids = set()
     comments_by_video = {}
     alias_comments = 0
+    partition_paths = sorted((HN_DATA / "mentions").glob("*.json.gz"))
+    assert len({path.name.casefold() for path in partition_paths}) == len(partition_paths)
+    assert all(path.name == path.name.lower() for path in partition_paths)
 
-    for path in (HN_DATA / "mentions").glob("*.json.gz"):
+    for path in partition_paths:
         with gzip.open(path, "rt", encoding="utf-8") as stream:
             partition = json.load(stream)
         for video_id, comments in partition.items():
-            assert video_id[0] == path.name[0]
+            assert video_id[0].lower() == path.name[0]
             assert video_id in canonical_ids
             assert isinstance(comments, list)
             partition_ids.add(video_id)
@@ -89,7 +92,8 @@ def test_hacker_news_comments_are_complete_and_partitioned():
     for video in canonical_records:
         video_id = video.get("vid", video.get("id"))
         assert video.get("hn", {}).get("mentions") == len(comments_by_video.get(video_id, []))
-    assert len(list((HN_DATA / "mentions").glob("*.json.gz"))) == meta["mention_partitions"]
+    assert len(partition_paths) == meta["mention_partitions"]
+    assert "case-insensitive" in meta["comments_format"]
     assert partition_ids
 
 
