@@ -475,6 +475,14 @@ test("YouTube control preference restores native controls without custom control
   assert.equal(customParams.get("disablekb"), "1", "YouTube keyboard controls should be disabled");
   assert.equal(customParams.get("iv_load_policy"), "3", "video annotations should be disabled");
   assert.ok(customMarkup.includes('data-youtube-toggle'));
+  assert.ok(!customMarkup.includes("youtube-player-frame--cropped"));
+  assert.ok(!customMarkup.includes("data-youtube-start"));
+
+  api.state.settings.hideYoutubeOverlays = true;
+  const croppedMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  assert.ok(croppedMarkup.includes("youtube-player-frame--cropped"));
+  assert.ok(croppedMarkup.includes('data-youtube-start disabled'));
+  assert.ok(croppedMarkup.includes("https://i.ytimg.com/vi/video123/hqdefault.jpg"));
 
   api.state.settings.customYoutubeControls = false;
   const nativeMarkup = api.youtubeIframeMarkup("video123", "Test video");
@@ -503,10 +511,26 @@ test("YouTube API failure restores native iframe controls and removes custom con
       customControlsRemoved = true;
     },
   };
+  let cropClassRemoved = false;
+  let startOverlayRemoved = false;
+  const croppedFrame = {
+    classList: {
+      remove(className) {
+        assert.equal(className, "youtube-player-frame--cropped");
+        cropClassRemoved = true;
+      },
+    },
+    querySelector(selector) {
+      return selector === "[data-youtube-start]"
+        ? { remove() { startOverlayRemoved = true; } }
+        : null;
+    },
+  };
   const playerContainer = {
     querySelector(selector) {
       if (selector === "#youtube-player") return iframe;
       if (selector === ".youtube-controls") return customControls;
+      if (selector === ".youtube-player-frame") return croppedFrame;
       return null;
     },
   };
@@ -538,6 +562,8 @@ test("YouTube API failure restores native iframe controls and removes custom con
   assert.equal(restoredParams.get("disablekb"), "0");
   assert.equal(restoredParams.get("iv_load_policy"), "1");
   assert.equal(customControlsRemoved, true, "custom controls should be removed after fallback");
+  assert.equal(cropClassRemoved, true, "the crop mode should be removed after fallback");
+  assert.equal(startOverlayRemoved, true, "the custom start overlay should be removed after fallback");
 });
 
 
@@ -615,4 +641,54 @@ test("YouTube API readiness timeout restores native controls and permits a retry
   timeoutCallbacks.delete(retryTimerId);
   onRetryTimeout();
   await assert.rejects(retry, /did not become ready in time/);
+});
+
+
+test("cropped YouTube overlay mode follows cued, playing, and ended states", async () => {
+  const harness = createHarness();
+  const { api, context, location } = harness;
+  api.state.settings.hideYoutubeOverlays = true;
+  api.state.current = "video123";
+
+  const overlay = { hidden: false };
+  const playerContainer = {
+    querySelector(selector) {
+      return selector === "[data-youtube-start]" ? overlay : null;
+    },
+  };
+  const iframe = {
+    isConnected: true,
+    closest(selector) {
+      assert.equal(selector, ".player");
+      return playerContainer;
+    },
+  };
+  let playerOptions;
+  context.document.querySelector = (selector) =>
+    selector === "#youtube-player" ? iframe : null;
+  context.window.YT = {
+    PlayerState: { ENDED: 0, PLAYING: 1, PAUSED: 2, CUED: 5, UNSTARTED: -1 },
+    Player: class {
+      constructor(target, options) {
+        assert.equal(target, iframe);
+        playerOptions = options;
+      }
+    },
+  };
+  location.hash = "#/watch/video123";
+
+  await api.startYouTubePlayer("video123", ["video123"], null, location.hash);
+  assert.ok(playerOptions, "the iframe API player should be initialized");
+
+  playerOptions.events.onStateChange({ data: context.window.YT.PlayerState.CUED });
+  assert.equal(overlay.hidden, false, "the custom start overlay should cover the cued YouTube overlay");
+
+  playerOptions.events.onStateChange({
+    data: context.window.YT.PlayerState.PLAYING,
+    target: { getVideoData: () => ({ video_id: "video123" }) },
+  });
+  assert.equal(overlay.hidden, true, "the custom poster should disappear during playback");
+
+  playerOptions.events.onStateChange({ data: context.window.YT.PlayerState.ENDED });
+  assert.equal(overlay.hidden, false, "the custom replay poster should cover YouTube's end overlay");
 });
