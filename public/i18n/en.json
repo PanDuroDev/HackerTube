@@ -311,7 +311,9 @@
     "yearsAgo": "{count} years ago",
     "loadError": "Could not load this video.",
     "unknownChannel": "Unknown channel",
-    "continueWatching": "Continue watching"
+    "continueWatching": "Continue watching",
+    "addedToWatchLater": "Added to Watch later",
+    "removedFromWatchLater": "Removed from Watch later"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",
@@ -345,5 +347,9 @@
     "deleteAria": "Delete playlist",
     "emptyLabel": "Empty",
     "created": "Created “{name}”"
+  },
+  "toasts": {
+    "feedRefreshed": "Recommendations refreshed",
+    "languageLoadFailed": "Could not load that language."
   }
 }
