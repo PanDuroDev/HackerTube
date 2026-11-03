@@ -1,41 +1,116 @@
 {
- "generated_at": "2026-11-03T05:23:29+00:00",
- "total": 4876,
- "total_hours": 2525,
+ "generated_at": "2026-11-03T06:07:38+00:00",
+ "total": 12116,
+ "total_hours": 6189,
  "languages": {
-  "en": 1838,
-  "ar": 3038
+  "en": 6290,
+  "ar": 5826
  },
  "channels": [
   {
    "id": "UCW5YeuERMmlnqo4oq8vwUpg",
    "name": "Net Ninja",
-   "count": 294
+   "count": 484
   },
   {
    "id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "name": "Coder Shiyar (كودر شيار)",
-   "count": 292
+   "count": 484
   },
   {
    "id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "name": "راكوان للبرمجة - CodeRK",
-   "count": 284
+   "count": 479
   },
   {
    "id": "UCWX_0VvMxl0_XosvYOZ7O0g",
    "name": "محمد الدسوقى (Mohamed El Desouki)",
-   "count": 256
+   "count": 431
   },
   {
    "id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
    "name": "Codevolution",
-   "count": 255
+   "count": 410
+  },
+  {
+   "id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+   "name": "Bro Code",
+   "count": 402
+  },
+  {
+   "id": "UCxxljM6JkSvJVSD_T90ZnMw",
+   "name": "Hesham Asem",
+   "count": 387
+  },
+  {
+   "id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "name": "Muhammed Essa",
+   "count": 382
+  },
+  {
+   "id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "name": "Elzero Web School",
+   "count": 377
+  },
+  {
+   "id": "UCY38RvRIxYODO4penyxUwTg",
+   "name": "Dave Gray",
+   "count": 375
+  },
+  {
+   "id": "UC59K-uG2A5ogwIrHw4bmlEg",
+   "name": "Telusko",
+   "count": 363
+  },
+  {
+   "id": "UC_mYaQAE6-71rjSN6CeCA-g",
+   "name": "NeetCode",
+   "count": 362
+  },
+  {
+   "id": "UC29ju8bIPH5as8OGnQzwJyA",
+   "name": "Traversy Media",
+   "count": 336
   },
   {
    "id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "name": "Abdelrahman Gamal",
-   "count": 254
+   "count": 326
+  },
+  {
+   "id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "name": "Academind",
+   "count": 323
+  },
+  {
+   "id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "name": "TheNewBaghdad (بغداد الجديدة)",
+   "count": 310
+  },
+  {
+   "id": "UCtb5ZYdEPjgVU58AOqs5xHg",
+   "name": "محمود السكري | كود عربي",
+   "count": 263
+  },
+  {
+   "id": "UCJZv4d5rbIKd4QHMPkcABCw",
+   "name": "Kevin Powell",
+   "count": 253
+  },
+  {
+   "id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "name": "Web Dev Simplified",
+   "count": 242
+  },
+  {
+   "id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "name": "Ben Awad",
+   "count": 237
+  },
+  {
+   "id": "UCCezIgC97PvUuR4_gbFUs5g",
+   "name": "Corey Schafer",
+   "count": 226
   },
   {
    "id": "UCa--uYErOqjm8qT576P1hMQ",
@@ -43,24 +118,34 @@
    "count": 225
   },
   {
-   "id": "UCxxljM6JkSvJVSD_T90ZnMw",
-   "name": "Hesham Asem",
-   "count": 214
+   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "name": "freeCodeCamp.org",
+   "count": 205
   },
   {
-   "id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
-   "name": "Elzero Web School",
-   "count": 209
+   "id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "name": "NetworkChuck",
+   "count": 195
   },
   {
-   "id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
-   "name": "TheNewBaghdad (بغداد الجديدة)",
-   "count": 206
+   "id": "UCsBjURrPoezykLs9EqgamOA",
+   "name": "Fireship",
+   "count": 190
   },
   {
-   "id": "UC29ju8bIPH5as8OGnQzwJyA",
-   "name": "Traversy Media",
-   "count": 199
+   "id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
+   "name": "OctuCode",
+   "count": 180
+  },
+  {
+   "id": "UCbRP3c757lWg9M-U7TyEkXA",
+   "name": "Theo - t3․gg",
+   "count": 180
+  },
+  {
+   "id": "UC5COvx1Z8fnfvVkafqL_UZg",
+   "name": "اتعلم ببساطة",
+   "count": 178
   },
   {
    "id": "UCFnqbM05-W4VpmzZj36-Kog",
@@ -68,19 +153,24 @@
    "count": 178
   },
   {
+   "id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "name": "The Coding Train",
+   "count": 177
+  },
+  {
    "id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "name": "Programming with Mosh",
    "count": 173
   },
   {
-   "id": "UCSJbGtTlrDami-tDGPUV9-w",
-   "name": "Academind",
-   "count": 165
+   "id": "UCmXmlB4-HJytD7wek0Uo97A",
+   "name": "JavaScript Mastery",
+   "count": 166
   },
   {
-   "id": "UCFbNIlppjAuEX4znoulh0Cw",
-   "name": "Web Dev Simplified",
-   "count": 150
+   "id": "UC4JX40jDee_tINbkjycV4Sg",
+   "name": "Tech With Tim",
+   "count": 155
   },
   {
    "id": "UCdngmbVKX1Tgre699-XLlUA",
@@ -88,9 +178,34 @@
    "count": 149
   },
   {
-   "id": "UC5COvx1Z8fnfvVkafqL_UZg",
-   "name": "اتعلم ببساطة",
-   "count": 118
+   "id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
+   "name": "Yehia Tech يحيى تك",
+   "count": 148
+  },
+  {
+   "id": "UCRPMAqdtSgd0Ipeef7iFsKw",
+   "name": "Gaurav Sen",
+   "count": 148
+  },
+  {
+   "id": "UCXI-0kiYsOaQeGrehUvI22A",
+   "name": "BarmajaOnline - برمجة أونلاين",
+   "count": 146
+  },
+  {
+   "id": "UCnGblT_CyMwswTIH9QmJ3YQ",
+   "name": "غريب الشيخ || Ghareeb Elshaikh",
+   "count": 137
+  },
+  {
+   "id": "UCaGo8x7uqxMK5A08AI8s6IQ",
+   "name": "QAcart",
+   "count": 129
+  },
+  {
+   "id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "name": "Computerphile",
+   "count": 126
   },
   {
    "id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
@@ -98,14 +213,19 @@
    "count": 118
   },
   {
-   "id": "UCsBjURrPoezykLs9EqgamOA",
-   "name": "Fireship",
-   "count": 113
+   "id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "name": "Arpit Bhayani",
+   "count": 115
   },
   {
-   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
-   "name": "freeCodeCamp.org",
-   "count": 105
+   "id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "name": "Arabic Competitive Programming",
+   "count": 115
+  },
+  {
+   "id": "UC4Y8dVfo_-aydzENDmE7wTw",
+   "name": "Ali Shahin",
+   "count": 107
   },
   {
    "id": "UCveX_0uBOHVHbpV838OGXVA",
@@ -113,29 +233,29 @@
    "count": 97
   },
   {
-   "id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
-   "name": "Yehia Tech يحيى تك",
-   "count": 90
+   "id": "UCcabW7890RKJzL968QWEykA",
+   "name": "CS50",
+   "count": 96
   },
   {
-   "id": "UC9-y-6csu5WGm29I7JiwpnA",
-   "name": "Computerphile",
-   "count": 87
+   "id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "name": "أكاديمية حسوب",
+   "count": 96
   },
   {
-   "id": "UCnGblT_CyMwswTIH9QmJ3YQ",
-   "name": "غريب الشيخ || Ghareeb Elshaikh",
-   "count": 86
+   "id": "UCGzhwKMUHFl6lLyam3Py6fA",
+   "name": "البرمجة مع غنيم Coding With Ghonaim",
+   "count": 94
   },
   {
-   "id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
-   "name": "NetworkChuck",
-   "count": 84
+   "id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
+   "name": "Almdrasa - تعلم البرمجة بالعربية - المدرسة",
+   "count": 77
   },
   {
-   "id": "UCaGo8x7uqxMK5A08AI8s6IQ",
-   "name": "QAcart",
-   "count": 73
+   "id": "UCuEOSK8blSM6j5jxVp3ttnQ",
+   "name": "Programming Advices",
+   "count": 70
   },
   {
    "id": "UC1fxEAVE-_N9mDL7APCkeOQ",
@@ -143,14 +263,14 @@
    "count": 69
   },
   {
-   "id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "name": "Ali Shahin",
-   "count": 68
+   "id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "name": "MIT OpenCourseWare",
+   "count": 67
   },
   {
-   "id": "UCvjgXvBlbQiydffZU7m1_aw",
-   "name": "The Coding Train",
-   "count": 64
+   "id": "UCZgt6AzoyjslHTC9dz0UoTw",
+   "name": "ByteByteGo",
+   "count": 61
   },
   {
    "id": "UCrgG9J-S4NaHfNkvtMthRDA",
@@ -158,127 +278,147 @@
    "count": 56
   },
   {
-   "id": "UCuEOSK8blSM6j5jxVp3ttnQ",
-   "name": "Programming Advices",
-   "count": 52
+   "id": "UCZCFT11CWBi3MHNlGf019nw",
+   "name": "Abdul Bari",
+   "count": 47
   },
   {
-   "id": "UCJv37tcBvJlBF2MoVMRMvbQ",
-   "name": "أكاديمية حسوب",
+   "id": "UCr6GUYRpTOiuE22lU1t9p-g",
+   "name": "Mohammed Fathy | محمد فتحي",
    "count": 36
   },
   {
    "id": "UCOApBrMjpXbBAii6d0187ww",
    "name": "Ziad Emad",
+   "count": 33
+  },
+  {
+   "id": "UCgwvA-wbE0u3AVhlNO29vjA",
+   "name": "CodingVi",
    "count": 32
+  },
+  {
+   "id": "UC3_wZsZVPqBH04GTwqZHmkQ",
+   "name": "putcodes",
+   "count": 32
+  },
+  {
+   "id": "UC8ENHE5xdFSwx71u3fDH5Xw",
+   "name": "ThePrimeagen",
+   "count": 27
   },
   {
    "id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
    "name": "بايثون بالعربي",
    "count": 25
+  },
+  {
+   "id": "UCNJn6zuDrFaeNFj9PNNjmiA",
+   "name": "Devrabic",
+   "count": 9
   }
  ],
  "topics": [
   {
    "id": "python",
    "label": "بايثون",
-   "count": 642
+   "count": 1890
   },
   {
    "id": "javascript",
    "label": "جافاسكربت",
-   "count": 427
+   "count": 1297
   },
   {
    "id": "web",
    "label": "تطوير الويب",
-   "count": 1255
+   "count": 3066
   },
   {
    "id": "php",
    "label": "PHP",
-   "count": 212
+   "count": 499
   },
   {
    "id": "java",
    "label": "جافا",
-   "count": 281
+   "count": 725
   },
   {
    "id": "cpp",
    "label": "C++",
-   "count": 312
+   "count": 598
   },
   {
    "id": "csharp",
    "label": "C#",
-   "count": 30
+   "count": 142
   },
   {
    "id": "mobile",
    "label": "تطبيقات الموبايل",
-   "count": 201
+   "count": 630
   },
   {
    "id": "database",
    "label": "قواعد البيانات",
-   "count": 320
+   "count": 801
   },
   {
    "id": "linux",
    "label": "لينكس",
-   "count": 54
+   "count": 154
   },
   {
    "id": "devops",
    "label": "ديفوبس والسحابة",
-   "count": 185
+   "count": 347
   },
   {
    "id": "git",
    "label": "Git",
-   "count": 99
+   "count": 194
   },
   {
    "id": "security",
    "label": "الأمن السيبراني",
-   "count": 69
+   "count": 219
   },
   {
    "id": "ai",
    "label": "الذكاء الاصطناعي",
-   "count": 936
+   "count": 1910
   },
   {
    "id": "data",
    "label": "تحليل البيانات",
-   "count": 16
+   "count": 74
   },
   {
    "id": "algorithms",
    "label": "الخوارزميات",
-   "count": 200
+   "count": 688
   },
   {
    "id": "cs",
    "label": "علوم الحاسب",
-   "count": 29
+   "count": 95
   },
   {
    "id": "testing",
    "label": "الاختبار",
-   "count": 103
+   "count": 188
   },
   {
    "id": "networking",
    "label": "الشبكات",
-   "count": 71
+   "count": 158
   },
   {
    "id": "tools",
    "label": "أدوات المطوّر",
-   "count": 135
+   "count": 285
   }
  ],
- "fetched_channels": 34
+ "fetched_channels": 63
 }
