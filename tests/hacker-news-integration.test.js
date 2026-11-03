@@ -801,3 +801,28 @@ test("creator playlists preview diversifies channels and supports filtering", as
   assert.match(view.innerHTML, /3 of 60/);
   assert.match(view.innerHTML, /data-playlist-clear/);
 });
+
+test("HN renders a preview before the full catalog resolves", async () => {
+  const harness = createHarness();
+  harness.location.hash = "#/hacker-news";
+  let resolveFull;
+  harness.api.setFetchJson((file) => {
+    if (file === "data/hacker-news/videos-preview.json") {
+      return Promise.resolve([sampleHNVideo("preview1", { title: "Preview video" })]);
+    }
+    if (file === "data/hacker-news/videos.json") {
+      return new Promise((resolve) => { resolveFull = resolve; });
+    }
+    throw new Error("Unexpected data request: " + file);
+  });
+
+  const pending = harness.api.renderHackerNews("");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.match(harness.view.innerHTML, /Preview video/);
+  assert.match(harness.view.innerHTML, /loading full catalog/);
+
+  resolveFull([sampleHNVideo("full1", { title: "Full catalog video" })]);
+  await pending;
+  assert.match(harness.view.innerHTML, /Full catalog video/);
+  assert.doesNotMatch(harness.view.innerHTML, /loading full catalog/);
+});

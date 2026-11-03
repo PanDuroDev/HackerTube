@@ -20,8 +20,20 @@ ROOT = Path(__file__).resolve().parent.parent
 ARCHIVE = ROOT / "hackertube-data.zip"
 SITE_INDEX = ROOT / "public" / "data" / "videos.json"
 OUT = ROOT / "public" / "data" / "hacker-news"
+ASSETS = ROOT / "data" / "hacker-news"
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
 SOURCE_ROOT = "hackertube-data/"
+PREVIEW_LIMIT = 36
+PROGRAMMING_AREAS = {
+    "software",
+    "systems-security",
+    "ai-data",
+    "math-theory",
+    "hardware",
+    "computing-history-culture",
+    "design-graphics-media",
+    "games",
+}
 
 PUBLISHED_LAYOUT_NOTE = b"""
 
@@ -30,12 +42,12 @@ PUBLISHED_LAYOUT_NOTE = b"""
 This directory contains the generated site-ready files, not the source JSONL files:
 
 - `videos.json`: an array of video records, keyed by `vid`.
+- `videos-preview.json`: the first programming-scope records used for a fast first paint. The full catalog and search load afterward.
 - `existing.json`: source video records already represented in the main catalog, keyed by canonical YouTube ID.
 - `aliases.json`: duplicate source IDs mapped to their canonical video ID.
 - `related.json`: related-video records. Join `vid` and `related[].vid` to `videos.json` or `existing.json`.
 - `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. The prefix is the lowercase first character of the ID, so partitions are safe on case-insensitive filesystems. Each comment's `vid` joins to `videos.json` or `existing.json`.
-- `taxonomy.json`: the topic tree. Join `videos.categories[].id` to category `id`.
-- `embeddings.npy` and `embedding_ids.json`: row `i` maps to `embedding_ids.json[i]`, then to the source video's `vid`.
+- The taxonomy and embedding assets are source-only files kept in `data/hacker-news/`, outside the published site.
 """
 
 
@@ -175,6 +187,16 @@ def import_archive() -> dict[str, int]:
             record for video_id, record in canonical_records.items()
             if video_id not in existing_ids
         ]
+        preview_videos = sorted(
+            (
+                record for record in new_videos
+                if any(
+                    category.get("area") in PROGRAMMING_AREAS
+                    for category in record.get("categories") or []
+                )
+            ),
+            key=lambda record: (-float(record.get("score") or 0), record["vid"]),
+        )[:PREVIEW_LIMIT]
 
         embedding_ids = json.loads(archive.read(SOURCE_ROOT + "embedding_ids.json").decode("utf-8"))
         if len(embedding_ids) != len(set(embedding_ids)) or set(embedding_ids) != set(by_id):
@@ -267,15 +289,19 @@ def import_archive() -> dict[str, int]:
     # Remove stale partitions before writing a reproducible snapshot.
     if OUT.exists():
         shutil.rmtree(OUT)
+    if ASSETS.exists():
+        shutil.rmtree(ASSETS)
     (OUT / "mentions").mkdir(parents=True)
+    ASSETS.mkdir(parents=True)
 
     write_json(OUT / "videos.json", new_videos)
+    write_json(OUT / "videos-preview.json", preview_videos)
     write_json(OUT / "existing.json", overlaps)
     write_json(OUT / "aliases.json", aliases)
     write_json(OUT / "related.json", related)
-    write_json(OUT / "taxonomy.json", taxonomy, compact=False)
-    write_json(OUT / "embedding_ids.json", embedding_ids)
-    (OUT / "embeddings.npy").write_bytes(embeddings)
+    write_json(ASSETS / "taxonomy.json", taxonomy, compact=False)
+    write_json(ASSETS / "embedding_ids.json", embedding_ids)
+    (ASSETS / "embeddings.npy").write_bytes(embeddings)
     (OUT / "DATA.md").write_bytes(data_documentation + PUBLISHED_LAYOUT_NOTE)
     for prefix, grouped in sorted(mentions_by_prefix.items()):
         write_gzip_json(OUT / "mentions" / f"{prefix}.json.gz", grouped)
@@ -284,6 +310,7 @@ def import_archive() -> dict[str, int]:
         "source_videos": len(source_videos),
         "canonical_source_videos": len(canonical_records),
         "imported_videos": len(new_videos),
+        "preview_videos": len(preview_videos),
         "excluded_existing_videos": len(overlaps),
         "duplicate_title_video_ids": len(aliases),
         "mentions": mention_count,

@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from pipeline.classify import TOPIC_LABELS
-from pipeline.normalize import normalize_ar
 
 ROOT = Path(__file__).resolve().parent.parent
 VIDEOS = ROOT / "public" / "data" / "videos.json"
@@ -16,7 +15,7 @@ def test_built_dataset_schema():
     videos = json.loads(VIDEOS.read_text(encoding="utf-8"))
     meta = json.loads(META.read_text(encoding="utf-8"))
     required = {"id", "title", "channel", "channel_id", "views", "duration",
-                "year", "topics", "level", "kind", "lang", "score", "search"}
+                "year", "topics", "level", "kind", "lang", "score"}
 
     assert len(videos) == meta["total"] > 0
     assert len({v["id"] for v in videos}) == len(videos)
@@ -26,5 +25,21 @@ def test_built_dataset_schema():
         assert v["topics"] and set(v["topics"]) <= set(TOPIC_LABELS)
         assert v["level"] in {"beginner", "advanced", "any"}
         assert v["kind"] in {"course", "tutorial", "project", "talk", "short"}
-        assert v["search"] == normalize_ar(f"{v['title']} {v['channel']}")
+        assert "search" not in v
         assert 0 <= v["year"] <= 2030
+
+
+
+def test_site_payload_budget():
+    hn_dir = ROOT / "public" / "data" / "hacker-news"
+    assets = ROOT / "data" / "hacker-news"
+    preview = hn_dir / "videos-preview.json"
+
+    assert VIDEOS.stat().st_size < 4_500_000
+    assert (hn_dir / "videos.json").stat().st_size < 9_000_000
+    assert preview.stat().st_size < 200_000
+    assert not (hn_dir / "embeddings.npy").exists()
+    assert not (hn_dir / "embedding_ids.json").exists()
+    assert not (hn_dir / "taxonomy.json").exists()
+    assert (assets / "embeddings.npy").is_file()
+    assert (assets / "taxonomy.json").is_file()

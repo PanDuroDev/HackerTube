@@ -42,6 +42,8 @@ const state = {
   searchEngine: null,
   hnVideos: null,
   hnVideosPromise: null,
+  hnPreview: null,
+  hnPreviewPromise: null,
   hnRelated: null,
   hnRelatedPromise: null,
   hnAliases: null,
@@ -96,6 +98,43 @@ init();
 function searchDedupeKey(item) {
   const channel = item.channel_id || item.channel || "";
   return `${String(channel).trim().toLowerCase()}|${String(item.title || "").trim().toLowerCase()}`;
+}
+
+function ensureMainSearchIndex() {
+  if (state.searchEngine) return state.searchEngine;
+  state.searchEngine = new window.HackerTubeSearch.SearchIndex(state.videos, (video) => ({
+    title: video.title,
+    channel: video.channel,
+    topics: (video.topics || []).map((topic) => [
+      topic,
+      TOPIC_LABELS[topic] || topic,
+      TOPIC_SEARCH_ALIASES[topic] || "",
+    ].join(" ")).join(" "),
+    metadata: [
+      KIND_LABELS[video.kind],
+      LEVEL_LABELS[video.level],
+      video.lang === "ar" ? "Arabic عربي" : "English",
+      video.year,
+    ].join(" "),
+    id: video.id,
+  }), {
+    getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
+    getGroup: (video) => video.channel_id || video.channel,
+    getDedupeKey: searchDedupeKey,
+    groupLimit: 2,
+    diversityLimit: 36,
+  });
+  return state.searchEngine;
+}
+
+function warmSearchIndex() {
+  if (state.searchEngine || !state.videos.length) return;
+  const build = () => { try { ensureMainSearchIndex(); } catch { /* Build on first search instead. */ } };
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(build, { timeout: 3000 });
+  } else {
+    setTimeout(build, 1200);
+  }
 }
 
 async function init() {
@@ -194,28 +233,6 @@ async function init() {
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, TOPIC_LABELS[t.id] || t.label]));
-    state.searchEngine = new window.HackerTubeSearch.SearchIndex(videos, (video) => ({
-      title: video.title,
-      channel: video.channel,
-      topics: (video.topics || []).map((topic) => [
-        topic,
-        TOPIC_LABELS[topic] || topic,
-        TOPIC_SEARCH_ALIASES[topic] || "",
-      ].join(" ")).join(" "),
-      metadata: [
-        KIND_LABELS[video.kind],
-        LEVEL_LABELS[video.level],
-        video.lang === "ar" ? "Arabic عربي" : "English",
-        video.year,
-      ].join(" "),
-      id: video.id,
-    }), {
-      getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
-      getGroup: (video) => video.channel_id || video.channel,
-      getDedupeKey: searchDedupeKey,
-      groupLimit: 2,
-      diversityLimit: 36,
-    });
     state.longCount = videos.filter((v) => v.duration >= 1200).length;
     renderSidebar();
     addEventListener("hashchange", () => {
@@ -224,6 +241,7 @@ async function init() {
       render();
     });
     render();
+    warmSearchIndex();
   } catch (err) {
     view.innerHTML = `<div class="error"><strong>Could not load the data.</strong>
       <p>Run the site from a local server: <code>python -m http.server 8080 -d public</code></p>
@@ -535,8 +553,8 @@ function resetFilters(sort = "best") {
 function filtered(scope) {
   const q = String(scope.q || "").trim();
   // SearchIndex covers the complete catalog; pagination happens only when rendering.
-  const source = q && state.searchEngine
-    ? state.searchEngine.search(q).map((result) => result.item)
+  const source = q
+    ? ensureMainSearchIndex().search(q).map((result) => result.item)
     : state.videos;
   const results = source.filter((v) => {
     if (scope.minDuration && v.duration < scope.minDuration) return false;
@@ -1107,29 +1125,26 @@ function markSeen(id) {
 
 /* ---------- Hacker News recommendations ---------- */
 
+async function loadHNPreview() {
+  if (state.hnPreview) return state.hnPreview;
+  if (!state.hnPreviewPromise) {
+    state.hnPreviewPromise = fetchJson("data/hacker-news/videos-preview.json").then((records) => {
+      state.hnPreview = records;
+      return records;
+    }).catch((error) => {
+      state.hnPreviewPromise = null;
+      throw error;
+    });
+  }
+  return state.hnPreviewPromise;
+}
+
 async function loadHNVideos() {
   if (!state.hnVideosPromise) {
     state.hnVideosPromise = fetchJson("data/hacker-news/videos.json").then((records) => {
       state.hnVideos = records;
       state.hnById = new Map(records.map((record) => [record.vid, record]));
-      state.hnSearchEngine = new window.HackerTubeSearch.SearchIndex(records, (record) => ({
-        title: record.title,
-        channel: record.channel,
-        summary: record.summary,
-        why_hn: record.why_hn,
-        primary_topic: record.primary_topic,
-        tags: (record.tags || []).join(" "),
-        categories: (record.categories || []).map((category) =>
-          [category.name, category.id].filter(Boolean).join(" ")
-        ).join(" "),
-        id: record.vid,
-      }), {
-        getRank: (record) => Math.min(1, Math.max(0, Number(record.score) || 0) / 25),
-        getGroup: (record) => record.channel,
-        getDedupeKey: searchDedupeKey,
-        groupLimit: 2,
-        diversityLimit: 36,
-      });
+      state.hnSearchEngine = null;
       return records;
     }).catch((error) => {
       state.hnVideosPromise = null;
@@ -1436,6 +1451,52 @@ function hnFiltersPanel(records) {
   </div>`;
 }
 
+function ensureHNSearchIndex() {
+  if (state.hnSearchEngine) return state.hnSearchEngine;
+  state.hnSearchEngine = new window.HackerTubeSearch.SearchIndex(state.hnVideos || [], (record) => ({
+    title: record.title,
+    channel: record.channel,
+    summary: record.summary,
+    why_hn: record.why_hn,
+    primary_topic: record.primary_topic,
+    tags: (record.tags || []).join(" "),
+    categories: (record.categories || []).map((category) =>
+      [category.name, category.id].filter(Boolean).join(" ")
+    ).join(" "),
+    id: record.vid,
+  }), {
+    getRank: (record) => Math.min(1, Math.max(0, Number(record.score) || 0) / 25),
+    getGroup: (record) => record.channel,
+    getDedupeKey: searchDedupeKey,
+    groupLimit: 2,
+    diversityLimit: 36,
+  });
+  return state.hnSearchEngine;
+}
+
+function hnListMarkup(source, total, { query = "", partial = false } = {}) {
+  let list = source.filter(hnMatchesFilters);
+  if (state.hnFilters.sort !== "best" || !query) list = [...list].sort(hnComparator());
+  const shown = list.slice(0, state.hnLimit);
+  const activeFilters = hnFilterCount();
+  const count = partial
+    ? `${videos(list.length)} · loading full catalog…`
+    : `${videos(list.length)}${list.length !== total ? ` · ${total} total` : ""}`;
+  return `<section class="feed">
+    <div class="feed-head">
+      <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
+      <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
+        ${icon("filter")} Filters${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
+      </button>
+      <span class="count">${count}</span>
+    </div>
+    ${state.hnUiOpen ? hnFiltersPanel(source) : ""}
+    ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>No matches</strong><p>Try another search or adjust the Hacker News filters.</p>${activeFilters ? '<button class="btn" data-hn-clear>Clear filters</button>' : ""}</div>`}
+    ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
+    ${hnAttributionHTML()}
+  </section>`;
+}
+
 async function renderHackerNews(query = "") {
   if (state.hnQuery !== query) {
     state.hnQuery = query;
@@ -1445,29 +1506,20 @@ async function renderHackerNews(query = "") {
   document.title = "Hacker News recommendations — HackerTube";
   view.innerHTML = '<section><div class="feed-head"><h1>Hacker News</h1><span class="count">Loading recommendations…</span></div></section>';
   try {
+    if (!query && !state.hnVideos) {
+      const preview = await loadHNPreview().catch(() => null);
+      if (preview && !state.hnVideos && (location.hash || "#/").startsWith("#/hacker-news") && state.hnQuery === query) {
+        view.innerHTML = hnListMarkup(preview, state.hnTotal || preview.length, { partial: true });
+        syncSidebar();
+      }
+    }
     const records = await loadHNVideos();
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
     state.hnTotal = records.length;
     const source = query
-      ? state.hnSearchEngine.search(query).map((result) => result.item)
+      ? ensureHNSearchIndex().search(query).map((result) => result.item)
       : records;
-    let list = source.filter(hnMatchesFilters);
-    if (state.hnFilters.sort !== "best" || !query) list = [...list].sort(hnComparator());
-    const shown = list.slice(0, state.hnLimit);
-    const activeFilters = hnFilterCount();
-    view.innerHTML = `<section class="feed">
-      <div class="feed-head">
-        <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
-        <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
-          ${icon("filter")} Filters${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
-        </button>
-        <span class="count">${videos(list.length)}${list.length !== records.length ? ` · ${records.length} total` : ""}</span>
-      </div>
-      ${state.hnUiOpen ? hnFiltersPanel(records) : ""}
-      ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>No matches</strong><p>Try another search or adjust the Hacker News filters.</p>${activeFilters ? '<button class="btn" data-hn-clear>Clear filters</button>' : ""}</div>`}
-      ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
-      ${hnAttributionHTML()}
-    </section>`;
+    view.innerHTML = hnListMarkup(source, records.length, { query });
     syncSidebar();
   } catch (error) {
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
