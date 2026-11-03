@@ -994,7 +994,8 @@ const HN_STANCE_LABELS = {
   critical: "Critical",
 };
 
-function hnCommentsHTML(comments) {
+function hnCommentsHTML(comments, unavailable = false) {
+  if (unavailable) return '<p class="count">Archived Hacker News comments are temporarily unavailable. Reopen this page to retry.</p>';
   if (!comments.length) return '<p class="count">No archived Hacker News comments for this video.</p>';
   return `<div class="hn-comments">${comments.map((comment) => `
     <article class="hn-comment">
@@ -1009,7 +1010,7 @@ function hnCommentsHTML(comments) {
     </article>`).join("")}</div>`;
 }
 
-function hnContextHTML(video, comments) {
+function hnContextHTML(video, comments, commentsUnavailable = false) {
   const hn = video.hn || {};
   const quote = video.quote?.text
     ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
@@ -1036,7 +1037,7 @@ function hnContextHTML(video, comments) {
     </section>
     <section class="hn-discussion">
       <h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>
-      ${hnCommentsHTML(comments)}
+      ${hnCommentsHTML(comments, commentsUnavailable)}
     </section>`;
 }
 
@@ -1049,11 +1050,11 @@ async function renderHNEvidence(videoId) {
     const existing = await loadHNExisting();
     const video = existing[videoId];
     if (!video || !$("#hn-evidence") || state.current !== videoId) return;
-    const comments = await loadHNMentions(videoId);
+    const comments = await loadHNMentions(videoId).catch(() => null);
     const target = $("#hn-evidence");
     if (!target || state.current !== videoId) return;
     target.hidden = false;
-    target.innerHTML = hnContextHTML(video, comments);
+    target.innerHTML = hnContextHTML(video, comments || [], comments === null);
   } catch (error) {
     const target = $("#hn-evidence");
     if (target && state.current === videoId) {
@@ -1093,7 +1094,11 @@ async function renderHackerNews(query = "") {
     const records = await loadHNVideos();
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
     const normalized = normalizeAr(query);
-    const list = records.filter((record) => !normalized || state.hnSearchIndex.get(record.vid).includes(normalized));
+    const tokens = normalized ? normalized.split(" ").filter(Boolean) : [];
+    const list = records.filter((record) => {
+      const text = state.hnSearchIndex.get(record.vid) || "";
+      return tokens.every((token) => text.includes(token));
+    });
     const shown = list.slice(0, state.hnLimit);
     view.innerHTML = `<section class="feed">
       <div class="feed-head">
@@ -1106,6 +1111,7 @@ async function renderHackerNews(query = "") {
     </section>`;
     syncSidebar();
   } catch (error) {
+    if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
     view.innerHTML = `<section class="error"><strong>Could not load Hacker News data.</strong><p>${esc(error.message)}</p></section>`;
   }
 }
