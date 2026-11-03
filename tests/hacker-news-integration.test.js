@@ -59,7 +59,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -380,4 +380,81 @@ test("saved legacy Hacker News records restore from existing.json after reload",
   location.hash = "#/playlist/pl_legacy";
   await api.renderPlaylist("pl_legacy");
   assert.ok(view.innerHTML.includes('href="#/hn-watch/legacy123?list=pl_legacy&autoplay=1"'));
+});
+
+
+test("main-catalog playlist entries remain playable when HN data loading fails", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const first = {
+    id: "main123",
+    title: "First catalog video",
+    channel: "Main channel",
+    channel_id: "channel1",
+    views: 100,
+    topics: [],
+    duration: 120,
+  };
+  const second = {
+    ...first,
+    id: "main456",
+    title: "Second catalog video",
+  };
+
+  api.state.videos = [first, second];
+  api.state.byId = new Map([[first.id, first], [second.id, second]]);
+  api.state.hnById = new Map();
+  api.state.hnExisting = null;
+  api.state.hnVideosPromise = null;
+  api.state.hnExistingPromise = null;
+  api.state.playlists = [{ id: "pl_test", name: "Mixed", ids: [first.id, "hn_missing", second.id] }];
+  api.state.channels = new Map();
+  api.setFetchJson(async (file) => {
+    throw new Error("HN data unavailable: " + file);
+  });
+  location.hash = "#/watch/main123?list=pl_test&autoplay=1";
+
+  await api.renderWatch(first.id, "pl_test", true);
+
+  assert.ok(view.innerHTML.includes("youtube-nocookie.com/embed/main123"));
+  assert.ok(view.innerHTML.includes("playlist=main456"));
+});
+
+test("HN watch uses the actual route when query parameter order differs", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const hn = sampleHNVideo("hn123");
+  api.state.hnVideosPromise = Promise.resolve([hn]);
+  api.state.hnById = new Map([[hn.vid, hn]]);
+  api.state.hnExistingPromise = Promise.resolve({});
+  api.state.hnRelatedPromise = Promise.resolve({});
+  api.state.hnAliasesPromise = Promise.resolve({});
+  api.state.hnMentionPartitions.set("h", Promise.resolve({ [hn.vid]: [] }));
+  api.state.playlists = [{ id: "pl_test", name: "Single", ids: [hn.vid] }];
+  location.hash = "#/hn-watch/hn123?autoplay=1&list=pl_test";
+
+  await api.renderHNWatch(hn.vid, "pl_test", true);
+
+  assert.ok(view.innerHTML.includes('class="watch hn-watch"'));
+  assert.ok(!view.innerHTML.includes("Loading video and archived comments"));
+});
+
+test("single-video HN playlist embeds with autoplay enabled", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const hn = sampleHNVideo("hn123");
+  api.state.hnVideosPromise = Promise.resolve([hn]);
+  api.state.hnById = new Map([[hn.vid, hn]]);
+  api.state.hnExistingPromise = Promise.resolve({});
+  api.state.hnRelatedPromise = Promise.resolve({});
+  api.state.hnAliasesPromise = Promise.resolve({});
+  api.state.hnMentionPartitions.set("h", Promise.resolve({ [hn.vid]: [] }));
+  api.state.playlists = [{ id: "pl_test", name: "Single", ids: [hn.vid] }];
+  location.hash = "#/hn-watch/hn123?list=pl_test&autoplay=1";
+
+  await api.renderHNWatch(hn.vid, "pl_test", true);
+
+  assert.ok(view.innerHTML.includes("youtube-nocookie.com/embed/hn123"));
+  assert.ok(view.innerHTML.includes("autoplay=1"));
+  assert.ok(!view.innerHTML.includes('id="youtube-player"'));
 });
