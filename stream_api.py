@@ -29,6 +29,9 @@ ALLOWED_ORIGINS = {
 RATE_LIMIT = int(os.environ.get("HT_STREAM_RATE_LIMIT", "20"))
 RATE_WINDOW = 60
 STREAM_TTL = int(os.environ.get("HT_STREAM_TOKEN_TTL", "1800"))
+TRUST_CLOUDFLARE_IP = os.environ.get("HT_TRUST_CLOUDFLARE_IP", "false").lower() in {
+    "1", "true", "yes"
+}
 
 _requests: dict[str, deque[float]] = defaultdict(deque)
 _rate_lock = threading.Lock()
@@ -78,14 +81,16 @@ def _get_stream(token: str):
 
 
 def _client_ip() -> str:
-    # Render routes public traffic through Cloudflare, which supplies this
-    # single-value header. Never trust the leftmost X-Forwarded-For entry.
-    forwarded_ip = request.headers.get("CF-Connecting-IP", "").strip()
-    if forwarded_ip:
-        try:
-            return str(ipaddress.ip_address(forwarded_ip))
-        except ValueError:
-            pass
+    # Trust Cloudflare's single-value client IP header only on deployments
+    # known to sit behind Render's Cloudflare edge. Local/direct deployments
+    # use the socket peer and never accept client-supplied forwarding headers.
+    if TRUST_CLOUDFLARE_IP:
+        forwarded_ip = request.headers.get("CF-Connecting-IP", "").strip()
+        if forwarded_ip:
+            try:
+                return str(ipaddress.ip_address(forwarded_ip))
+            except ValueError:
+                pass
     return request.remote_addr or "unknown"
 
 
