@@ -109,7 +109,7 @@ def import_archive() -> dict[str, int]:
         if len(embedding_ids) != len(set(embedding_ids)) or set(embedding_ids) != set(by_id):
             raise ValueError("Embedding IDs must uniquely cover every source video.")
         embeddings = archive.read(SOURCE_ROOT + "embeddings.npy")
-        if not embeddings.startswith(b"\\x93NUMPY"):
+        if not embeddings.startswith(bytes([0x93]) + b"NUMPY"):
             raise ValueError("embeddings.npy has an invalid NumPy file signature.")
         data_documentation = archive.read(SOURCE_ROOT + "DATA.md")
 
