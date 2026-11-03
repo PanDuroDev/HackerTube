@@ -10,7 +10,7 @@ const TOPIC_LABELS = {
   testing: "Testing", networking: "Networking", tools: "Dev Tools",
 };
 const DEFAULTS = { pageSize: 36, hideSeen: false };
-const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme" };
+const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
   videos: [],
@@ -27,6 +27,7 @@ const state = {
   longCount: 0,
   scope: { type: "all" },
   current: null,
+  homeOrder: [],
 };
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
@@ -111,6 +112,7 @@ async function init() {
     ]);
     state.videos = videos;
     state.meta = meta;
+    state.homeOrder = buildHomeOrder(videos);
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, TOPIC_LABELS[t.id] || t.label]));
@@ -402,13 +404,61 @@ function sorter(sort) {
   return (a, b) => b.score - a.score;
 }
 
+/* ---------- Feed discovery ---------- */
+
+// Weighted random ranking keeps stronger videos more likely while changing the
+// homepage on each fresh load. The first page limits channel repetition and
+// avoids immediately repeating the previous homepage session.
+function buildHomeOrder(videos) {
+  const recent = new Set(storeGet(STORE.homeRecent, []));
+  const ranked = videos
+    .map((video) => ({
+      video,
+      key: -Math.log(Math.max(Math.random(), Number.EPSILON)) / (0.5 + Math.max(0, Number(video.score) || 0)),
+    }))
+    .sort((a, b) => a.key - b.key)
+    .map(({ video }) => video);
+
+  const fresh = ranked.filter((video) => !recent.has(video.id));
+  const previous = ranked.filter((video) => recent.has(video.id));
+  const firstPage = [];
+  const channelCounts = new Map();
+
+  for (const video of fresh) {
+    if (firstPage.length >= pageSize()) break;
+    const count = channelCounts.get(video.channel_id) || 0;
+    if (count >= 2) continue;
+    firstPage.push(video);
+    channelCounts.set(video.channel_id, count + 1);
+  }
+
+  if (firstPage.length < pageSize()) {
+    for (const video of previous) {
+      if (firstPage.length >= pageSize()) break;
+      const count = channelCounts.get(video.channel_id) || 0;
+      if (count >= 2) continue;
+      firstPage.push(video);
+      channelCounts.set(video.channel_id, count + 1);
+    }
+  }
+
+  const selected = new Set(firstPage.map((video) => video.id));
+  const order = [...firstPage, ...ranked.filter((video) => !selected.has(video.id))];
+  storeSet(STORE.homeRecent, order.slice(0, pageSize()).map((video) => video.id));
+  return order;
+}
+
 /* ---------- Feed ---------- */
 
 function renderFeed(scope) {
   state.scope = scope;
   if (scope.q !== undefined) $("#q").value = scope.q;
   else if (scope.type !== "search") $("#q").value = "";
-  const list = filtered(scope);
+  let list = filtered(scope);
+  if (scope.type === "all" && ui.sort === "best" && state.homeOrder.length) {
+    const rank = new Map(state.homeOrder.map((video, index) => [video.id, index]));
+    list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
+  }
   const shown = list.slice(0, ui.limit);
   const title = scope.title || "";
   document.title = title ? `${title} — HackerTube` : "HackerTube";
