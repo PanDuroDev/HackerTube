@@ -1,125 +1,89 @@
-# هاكر تيوب عربي (HackerTube AR)
+# HackerTube AR
 
-فهرس فيديوهات برمجية من قنوات عربية وإنجليزية مختارة، مع فلاتر للموضوع واللغة والمستوى والنوع
-والمدة والسنة والقناة. البحث يفهرس كامل الكتالوج ويرتب النتائج حسب الصلة، مع دعم
-المرادفات العربية والإنجليزية والبادئات والأخطاء الإملائية البسيطة.
+A programming video index built from selected Arabic and English YouTube channels. Browse videos by topic, language, level, content type, duration, year, and channel. Search covers the full catalog and ranks results by relevance, with support for Arabic and English synonyms, prefixes, and basic typo tolerance.
 
-مستوحى من [hackertube.org](https://hackertube.org) لكنه مختلف: الأصل يعتمد توصيات
-Hacker News بالإنجليزية، وهذا المشروع يركّز على محتوى برمجي عربي أولًا
-(الزيرو، يحيى تك، ذا نيو بغداد، كودزيلا، وغيرها)، ويضيف قنوات أجنبية مختارة عادي.
+Inspired by [HackerTube](https://hackertube.org), but with a different focus: the original centers on English-language recommendations from Hacker News, while this project prioritizes Arabic programming content (including Elzero, Yahya Tech, TheNewBaghdad, Codezilla, and others), alongside a curated selection of international channels.
 
-## المزايا
+## Features
 
-- رئيسية بتوصيات متنوعة تتعلم محليًا من الإعجابات وسجل المشاهدة وقوائم التشغيل والمشاهدة لاحقًا، إلى جانب الفيديوهات الطويلة والإعجاب والسجل.
-- واجهة إنجليزية باتجاه LTR، وزر «Filters» واحد يجمع الموضوع واللغة والقناة والمستوى والنوع والمدة والسنة والترتيب.
-- 20 تصنيفًا مع عدد الفيديوهات، وقوائم تشغيل ينشئها المستخدم ويضيف إليها من صفحة المشاهدة.
-- قوائم تشغيل جاهزة من صنّاع المحتوى، تُجلب وتُنظّف تلقائيًا وتظهر في صفحة Playlists.
-- بحث كامل في فهرس الفيديوهات، مع ترتيب بحسب صلة العنوان والقناة والموضوع والبيانات الوصفية، ومطابقة مرنة للكلمات والمرادفات.
-- بحث Hacker News مستقل يفهرس العنوان والقناة والملخص وسياق الترشيح والوسوم والتصنيفات، دون خلط نتائج الكتالوجين.
-- قسم Hacker News مستقل يعرض توصياته والنقاشات والتصنيفات والروابط المرتبطة، دون خلطه بفهرس القنوات البرمجية.
-- يحتفظ ببيانات العلاقات وتعليقات HN وملفات embeddings الأصلية لاستخدام البحث الدلالي لاحقًا.
-- أغلفة الفيديو من لقطات داخل المقطع (hq1/hq2/hq3) بدل الصورة المصغّرة الثابتة، مع بديل عند غيابها.
-- إعدادات للمظهر (داكن/فاتح/النظام)، إخفاء المشاهد، حجم الصفحة، ومسح البيانات المحلية.
-- تصميم بسيط بألوان محايدة مستوحى من HackerTube وUber Base، وأيقونات
-  [MingCute](https://www.mingcute.com/) عبر [Iconify](https://iconify.design/).
-- لا حسابات ولا تتبع: الإعجابات والسجل والقوائم في `localStorage` فقط.
+- A home feed with varied recommendations that learns locally from likes, watch history, playlists, and watch-later activity, alongside long videos, likes, and viewing history.
+- An English, left-to-right interface with a single **Filters** menu for topics, language, channel, level, content type, duration, year, and sorting.
+- 20 categories with video counts, plus user-created playlists that can be managed and populated from the watch page.
+- Curated playlists from content creators, fetched and cleaned automatically and displayed on the Playlists page.
+- Full-catalog search with relevance ranking across titles, channels, topics, and metadata, including flexible word matching and synonyms.
+- A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate.
+- A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
+- Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.
+- Video thumbnails use frames captured from inside the video (\`hq1\`/\`hq2\`/\`hq3\`) instead of relying only on the static thumbnail, with a fallback when frames are unavailable.
+- Appearance settings (dark, light, or system), watched-video visibility, page size, and local-data reset controls.
+- A minimal interface with neutral colors, inspired by HackerTube and Uber Base, using [MingCute](https://www.mingcute.com/) icons through [Iconify](https://iconify.design/).
+- No accounts or tracking. Likes, history, and playlists are stored locally in \`localStorage\`.
 
-## التشغيل
+## Run locally
 
-```bash
-# من جذر المشروع
+From the repository root:
+
+\`\`\`bash
 python -m http.server 8080 -d public
-# ثم افتح http://localhost:8080
-```
+# Open http://localhost:8080
+\`\`\`
 
-لا يحتاج خادم تطبيق ولا قاعدة بيانات: الموقع ملفات ثابتة + JSON.
+No application server or database is required. The website is made of static files and JSON data.
 
-## بناء البيانات
+## Build the data
 
-```bash
+\`\`\`bash
 pip install -r requirements.txt
-cp .env.example .env         # المفتاح اختياري لـ fetch، ومطلوب لـ fetch_playlists
-python -m pipeline.fetch     # أحدث 500 فيديو لكل قناة إلى data/raw/
-python -m pipeline.fetch_playlists  # يتطلب YOUTUBE_API_KEY؛ قوائم صنّاع المحتوى إلى data/playlists/
-python -m pipeline.build     # ينتج videos.json و meta.json و playlists.json
-python -m pipeline.import_hacker_news  # يستورد توصيات Hacker News دون تكرار الفيديوهات
-pytest                       # الاختبارات
-```
+cp .env.example .env         # Optional for fetch; required for fetch_playlists
+python -m pipeline.fetch     # Fetch the latest 500 videos per channel into data/raw/
+python -m pipeline.fetch_playlists  # Requires YOUTUBE_API_KEY; fetches creator playlists into data/playlists/
+python -m pipeline.build     # Generates videos.json, meta.json, and playlists.json
+python -m pipeline.import_hacker_news  # Imports Hacker News recommendations without duplicate videos
+pytest                       # Run the test suite
+\`\`\`
 
-`pipeline.fetch` يجرّب المصادر بالترتيب: YouTube Data API ثم yt-dlp ثم
-YouTube.js، وينتقل للتالي عند فشل أو حجب أي واحد. غيّر الترتيب بـ
-`--sources api,yt-dlp,youtubei` أو `HT_FETCH_SOURCES`. المفتاح يُقرأ من `.env`
-(مستبعد من git) أو من متغير البيئة، ولا يُكتب في المستودع.
+\`pipeline.fetch\` tries its sources in this order: YouTube Data API, yt-dlp, then YouTube.js. It falls back to the next source when one fails or is blocked. Change the order with \`--sources api,yt-dlp,youtubei\` or the \`HT_FETCH_SOURCES\` environment variable. The API key is read from \`.env\` (which is excluded from git) or from an environment variable; it is never written into the repository.
 
-بديل YouTube.js يحتاج تثبيت مرة واحدة:
+The YouTube.js fallback requires a one-time installation:
 
-```bash
+\`\`\`bash
 cd pipeline/ytjs && npm install
-```
+\`\`\`
 
-قيّد المفتاح من Google Cloud على YouTube Data API v3 فقط، ولا تستخدمه في الواجهة.
+Restrict the key in Google Cloud to YouTube Data API v3 only. Never expose it in the frontend.
 
-## البنية
+## Project structure
 
-```
-pipeline/        الجلب (API/yt-dlp/YouTube.js) والتصنيف والبناء
-pipeline/ytjs/   بديل YouTube.js
-public/          الموقع الثابت (HTML/CSS/JS بدون أطر عمل)
-public/search.js  فهرسة محلية، بحث موزون، مرادفات، بادئات وتصحيح أخطاء محدود
-public/data/     الفهرس المولّد وبيانات Hacker News وتعليقاته وعلاقاته وملفات embeddings
-tests/           اختبارات التطبيع والتصنيف والمصادر والبيانات
-```
+\`\`\`
+pipeline/        Fetching (API/yt-dlp/YouTube.js), classification, and data generation
+pipeline/ytjs/   YouTube.js fallback
+public/          Static website (HTML/CSS/JS, no frontend framework)
+public/search.js Local indexing, weighted search, synonyms, prefixes, and limited typo correction
+public/data/     Generated catalog, Hacker News data, comments, relationships, and embeddings
+tests/           Tests for normalization, classification, sources, and data
+\`\`\`
 
-## القيود المعروفة
+## Known limitations
 
-- البحث الأساسي يفهرس العنوان والقناة والموضوع والتصنيفات واللغة والمستوى والنوع والسنة؛ لا تتوفر أوصاف الفيديوهات أو تفريغاتها النصية في بيانات الفهرس، لذلك لا يدّعي البحث فهرسة محتواها المنطوق. لا يستخدم البحث الحالي نموذجًا دلاليًا.
-- التصنيف في الفهرس البرمجي الأساسي يعتمد على عنوان الفيديو فقط، بلا وصف ولا نموذج لغوي.
-- بيانات Hacker News منفصلة لأن المصدر لا يوزع مدد الفيديوهات أو أعداد المشاهدات.
-- بيانات HackerTube مرخصة وفق ODC-By 1.0؛ يلزم نسب المصدر إلى HackerTube وopen-index/hacker-news.
-- نجلب أحدث 500 فيديو لكل قناة، فالقنوات القديمة الكبيرة غير مغطاة بالكامل.
-- حصة YouTube API محدودة يوميًا؛ عند نفادها ينتقل الجلب تلقائيًا إلى yt-dlp.
-- تاريخ النشر من API دقيق، ومن yt-dlp تقريبي (approximate_date).
-- التوصيات الشخصية مبنية على تفاعلات محلية فقط؛ لا حسابات ولا تتبع، وتبقى الإعجابات والسجل والقوائم في المتصفح.
-- لا نستضيف الفيديو؛ التشغيل عبر youtube-nocookie، والحقوق لأصحاب القنوات.
+- The main catalog search indexes video titles, channels, topics, categories, language, level, content type, and year. Video descriptions and transcripts are not included in the index, so search does not claim to cover spoken content. The current search is not semantic.
+- Classification in the main programming catalog is based on video titles only. It does not use descriptions or a language model.
+- Hacker News data is kept separate because the source dataset does not provide video durations or view counts.
+- HackerTube data is licensed under ODC-By 1.0. Attribution to HackerTube and open-index/hacker-news is required.
+- The fetcher retrieves the latest 500 videos per channel, so older videos from large channels may not be included.
+- YouTube API quota is limited per day. When the quota is exhausted, fetching automatically falls back to yt-dlp.
+- Publish dates from the API are exact; dates from yt-dlp are approximate and marked as \`approximate_date\`.
+- Personal recommendations use local interactions only. There are no accounts or tracking, and likes, history, and playlists remain in the browser.
+- Videos are not hosted by this project. Playback uses youtube-nocookie embeds, and all video rights remain with their respective owners.
 
+## License and attribution
 
-## تشغيل الفيديو المباشر (اختياري)
+The project code is licensed under the MIT License. Video metadata (titles, IDs, and view counts) belongs to the respective YouTube content owners and is used here for indexing only.
 
-التشغيل الافتراضي يبقى عبر تضمين YouTube كما هو. يمكن تفعيل **Direct video playback**
-من Settings لاستخدام مشغّل HTML5 واستخراج رابط MP4 مؤقت عبر خدمة مستقلة تشغّل yt-dlp.
-يعيد الـ API رمزاً مؤقتاً، ثم تمرّر الخدمة نفسها بيانات الفيديو إلى المتصفح مع دعم HTTP Range
-والاستجابة الجزئية (206)، بدلاً من كشف رابط Googlevideo الموقّع للمتصفح. لا تُنزّل ملفات الفيديو
-ولا تُخزّن الروابط المؤقتة في الفهرس.
+HackerTube/Hacker News data is licensed under the [Open Data Commons Attribution License (ODC-By) 1.0](https://opendatacommons.org/licenses/by/1-0/). Required attribution:
 
-### نشر خدمة الاستخراج
+- [HackerTube](https://hackertube.org/)
+- [open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news)
 
-1. أنشئ خدمة Web Service جديدة في Render من هذا المستودع باستخدام ملف `render.yaml`.
-2. انشر الخدمة باسم `hackertube-stream-api` حتى يطابق عنوان API الثابت في الواجهة:
-   `https://hackertube-stream-api.onrender.com`.
-3. إذا غيّرت اسم الخدمة أو نطاق GitHub Pages، حدّث `STREAM_API_BASE_URL` في
-   `public/app.js` و`HT_ALLOWED_ORIGINS` في إعدادات Render.
-4. افتح Settings في HackerTube وفعّل Direct video playback.
+Hacker News comments remain the work of their authors. Video titles and channel names belong to their respective owners. YouTube metadata that YouTube's terms do not allow to be redistributed is not redistributed here. Videos are played through YouTube embeds.
 
-الخدمة تسمح فقط بمعرّفات YouTube ذات الصيغة الصحيحة، وتحدّ معدل الطلبات لكل عنوان IP
-باستخدام ترويسة `CF-Connecting-IP` التي يمررها Cloudflare إلى Render. لا تثق الخدمة
-بترويسات IP الممررة من العميل عند تشغيلها محليًا أو خلف خادم غير موثوق.
-تختار صيغة MP4 تحتوي الصوت والصورة معًا؛ لا تجمع مسارات DASH المنفصلة. بعض الفيديوهات
-قد لا توفر صيغة MP4 متوافقة أو قد تمنع استخراجها. في هذه الحالات يرجع الموقع تلقائيًا
-إلى مشغّل YouTube. روابط البث مؤقتة وقد تنتهي، ولذلك يستخرجها الموقع عند فتح الفيديو
-ولا يخزّنها. صلاحية رمز البروكسي الافتراضية ست ساعات، وتُقصَر تلقائيًا إذا كان رابط
-Googlevideo نفسه يحتوي على وقت انتهاء أقرب. يحد البروكسي الاتصالات المتزامنة إلى ستة
-افتراضيًا، ويرفض الزيادة مؤقتًا باستجابة `503` بدل استنزاف خيوط الخدمة.
-
-الخطة المجانية في Render قد توقف الخدمة عند الخمول، ما يجعل أول طلب أبطأ. تبقي إعدادات
-Gunicorn على عامل واحد لأن رموز البث ومحدد المعدل وحد الاتصالات محفوظة في الذاكرة؛ لا ترفع عدد العمال
-أو نسخ الخدمة دون نقل هذه الحالة إلى مخزن مشترك مثل Redis. لا يحتاج الموقع إلى الخدمة
-إطلاقًا عند استخدام مشغّل YouTube الافتراضي.
-
-## الترخيص
-
-كود المشروع MIT. بيانات الفيديوهات (العناوين والمعرّفات والمشاهدات) ملك أصحابها
-على يوتيوب، وتستخدم هنا للفهرسة فقط.
-
-بيانات HackerTube/Hacker News مرخصة وفق [ODC-By 1.0](https://opendatacommons.org/licenses/by/1-0/). النسب المطلوب:
-[HackerTube](https://hackertube.org/) و[open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news).
-تعليقات Hacker News تبقى من تأليف أصحابها. عناوين الفيديوهات وأسماء القنوات تخص أصحابها، ولا نعيد توزيع بيانات YouTube الوصفية التي يمنع المصدر إعادة توزيعها. التشغيل عبر تضمين YouTube. المشروع غير تابع لـ YouTube أو Google أو Hacker News أو Y Combinator.
+This project is not affiliated with YouTube, Google, Hacker News, or Y Combinator.
