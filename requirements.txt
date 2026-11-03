@@ -1,4 +1,5 @@
-yt-dlp>=2025.1.15
+yt-dlp[default]==2026.10.26
+bgutil-ytdlp-pot-provider==2.0.2
 pytest>=8
 Flask>=3.0,<4
 gunicorn>=22,<24
