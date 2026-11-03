@@ -106,6 +106,14 @@ function videos(n) {
   if (I18N) return I18N.formatCount("counts.videos", n, { count: I18N.formatNumber(n) });
   return `${n} ${n === 1 ? "video" : "videos"}`;
 }
+
+function kindLabel(kind) {
+  return tr(`kinds.${kind}`, KIND_LABELS[kind] || kind);
+}
+
+function levelLabel(level) {
+  return tr(`levels.${level}`, LEVEL_LABELS[level] || level);
+}
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 init();
@@ -314,7 +322,7 @@ async function init() {
     state.homeOrder = buildHomeOrder(videos);
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
-    state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, TOPIC_LABELS[t.id] || t.label]));
+    state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, tr(`topics.${t.id}`, TOPIC_LABELS[t.id] || t.label)]));
     state.longCount = videos.filter((v) => v.duration >= 1200).length;
     renderSidebar();
     addEventListener("hashchange", () => {
@@ -903,15 +911,15 @@ function renderFeed(scope) {
   view.innerHTML = `<section class="feed">
     <div class="feed-head">
       ${title ? `<h1>${esc(title)}</h1>` : ""}
-      ${scope.type === "all" ? `<button class="btn refresh-btn" data-refresh-home>${icon("refresh")} Refresh</button>` : ""}
+      ${scope.type === "all" ? `<button class="btn refresh-btn" data-refresh-home>${icon("refresh")} ${tr("filters.refresh", "Refresh")}</button>` : ""}
       <button class="btn filter-btn ${hasFilters() ? "on" : ""}" data-filter-toggle aria-expanded="${ui.open}">
-        ${icon("filter")} Filters${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
+        ${icon("filter")} ${tr("filters.button", "Filters")}${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
       </button>
       <span class="count">${videos(list.length)}</span>
     </div>
     ${ui.open ? filtersPanel() : ""}
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
-    ${list.length > ui.limit ? `<div class="more"><button class="btn" data-more>Show more (${list.length - ui.limit})</button></div>` : ""}
+    ${list.length > ui.limit ? `<div class="more"><button class="btn" data-more>${tr("filters.showMore", "Show more")} (${list.length - ui.limit})</button></div>` : ""}
   </section>`;
   syncFeedUrl();
   syncSidebar();
@@ -923,33 +931,33 @@ function filtersPanel() {
     .map((t) => `<button class="chip ${ui.topics.has(t.id) ? "on" : ""}" data-topic="${t.id}" aria-pressed="${ui.topics.has(t.id)}">${esc(state.topicLabels[t.id] || t.id)}</button>`)
     .join("");
   const sortOptions = [
-    ["newest", "Newest"],
-    ["views", "Most viewed"],
-    ["longest", "Longest"],
-    ["shortest", "Shortest"],
+    ["newest", tr("filters.newest", "Newest")],
+    ["views", tr("filters.views", "Most viewed")],
+    ["longest", tr("filters.longest", "Longest")],
+    ["shortest", tr("filters.shortest", "Shortest")],
   ];
-  if (state.scope?.type === "all") sortOptions.unshift(["foryou", "For you"]);
+  if (state.scope?.type === "all") sortOptions.unshift(["foryou", tr("filters.forYou", "For you")]);
   const selects = [
-    field("channel", "Channel", "All channels", state.meta.channels.map((c) => [c.id, c.name]), ui.channel),
-    field("lang", "Language", "All languages", [["ar", "Arabic"], ["en", "English"]], ui.lang),
-    field("level", "Level", "All levels", Object.entries(LEVEL_LABELS), ui.level),
-    field("kind", "Type", "All types", Object.entries(KIND_LABELS), ui.kind),
-    field("duration", "Duration", "Any length", [["short", "Under 5 min"], ["mid", "5–20 min"], ["long", "20–60 min"], ["xl", "Over 1 hour"]], ui.duration),
-    field("year", "Year", "Any year", years.map((y) => [y, String(y)]), ui.year),
-    field("sort", "Sort", "Best", sortOptions, ui.sort),
+    field("channel", tr("filters.channel", "Channel"), tr("filters.allChannels", "All channels"), state.meta.channels.map((c) => [c.id, c.name]), ui.channel),
+    field("lang", tr("filters.language", "Language"), tr("filters.allLanguages", "All languages"), [["ar", tr("languages.ar", "Arabic")], ["en", tr("languages.en", "English")]], ui.lang),
+    field("level", tr("filters.level", "Level"), tr("filters.allLevels", "All levels"), Object.entries(LEVEL_LABELS).map(([value, label]) => [value, tr(`levels.${value}`, label)]), ui.level),
+    field("kind", tr("filters.type", "Type"), tr("filters.allTypes", "All types"), Object.entries(KIND_LABELS).map(([value, label]) => [value, tr(`kinds.${value}`, label)]), ui.kind),
+    field("duration", tr("filters.duration", "Duration"), tr("filters.anyLength", "Any length"), [["short", tr("filters.short", "Under 5 min")], ["mid", tr("filters.mid", "5–20 min")], ["long", tr("filters.long", "20–60 min")], ["xl", tr("filters.xl", "Over 1 hour")]], ui.duration),
+    field("year", tr("filters.year", "Year"), tr("filters.anyYear", "Any year"), years.map((y) => [y, String(y)]), ui.year),
+    field("sort", tr("filters.sort", "Sort"), tr("filters.best", "Best"), sortOptions, ui.sort),
   ].join("");
   return `<div class="filters">
     <div class="filter-group">
-      <span class="filter-label">Topic</span>
+      <span class="filter-label">${tr("filters.topic", "Topic")}</span>
       <div class="chips">
-        <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">All</button>
+        <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">${tr("filters.allTopics", "All")}</button>
         ${topics}
       </div>
     </div>
     <div class="filter-grid">${selects}</div>
     <div class="filter-foot">
-      <button class="btn" data-clear ${hasFilters() ? "" : "disabled"}>Clear all</button>
-      <button class="btn primary" data-filter-close>Done</button>
+      <button class="btn" data-clear ${hasFilters() ? "" : "disabled"}>${tr("filters.clearAll", "Clear all")}</button>
+      <button class="btn primary" data-filter-close>${tr("filters.done", "Done")}</button>
     </div>
   </div>`;
 }
@@ -1070,14 +1078,15 @@ function card(v, opts = {}) {
   const hnRecommenders = Number(hn?.hn?.recommenders || hn?.recommenders || 0);
   const hnScore = Number(hn?.score || 0);
   const progress = progressFor(id);
+  const recommenderLabel = tr("hn.recommenders", `${hnRecommenders} recommenders`, { count: I18N ? I18N.formatNumber(hnRecommenders) : hnRecommenders });
   const hnMeta = hn
-    ? `${hnRecommenders ? `${hnRecommenders} recommenders` : "Discussed, not recommended"} · ${esc(hn.primary_topic || "Hacker News pick")}`
+    ? `${hnRecommenders ? recommenderLabel : tr("hn.discussedNotRecommended", "Discussed, not recommended")} · ${esc(hn.primary_topic || tr("hn.pick", "Hacker News pick"))}`
     : `${compact.format(v.views || 0)} views${v.year ? ` · ${v.year}` : ""}${topic}`;
   const badge = hn
-    ? (hnScore > 0 || hnRecommenders > 0 ? `HN ${hnScore.toFixed(1)}` : "Discussed")
+    ? (hnScore > 0 || hnRecommenders > 0 ? `HN ${hnScore.toFixed(1)}` : tr("hn.discussed", "Discussed"))
     : fmtDuration(v.duration);
   const badgeTitle = hn
-    ? (hnScore > 0 || hnRecommenders > 0 ? `Hacker News score ${hnScore.toFixed(1)} · ${hnRecommenders} recommenders` : "Discussed on Hacker News, not recommended")
+    ? (hnScore > 0 || hnRecommenders > 0 ? tr("hn.scoreTooltip", `Hacker News score ${hnScore.toFixed(1)} · ${hnRecommenders} recommenders`, { score: hnScore.toFixed(1), count: I18N ? I18N.formatNumber(hnRecommenders) : hnRecommenders }) : tr("hn.discussedTooltip", "Discussed on Hacker News, not recommended"))
     : "";
   const watchHref = videoWatchHref(v);
   return `<article class="card">
@@ -1137,9 +1146,9 @@ function watchActionsHTML(videoId) {
 
 function emptyState() {
   return `<div class="empty">
-    <strong>No matches</strong>
-    <p>Try a different search or clear the filters.</p>
-    ${hasFilters() ? '<button class="btn" data-clear>Clear filters</button>' : state.settings.hideSeen ? '<a class="btn" href="#/settings">Watched videos are hidden</a>' : '<a class="btn" href="#/categories">Browse categories</a>'}
+    <strong>${tr("filters.noMatches", "No matches")}</strong>
+    <p>${tr("filters.noMatchesHint", "Try a different search or clear the filters.")}</p>
+    ${hasFilters() ? `<button class="btn" data-clear>${tr("filters.clearFilters", "Clear filters")}</button>` : state.settings.hideSeen ? `<a class="btn" href="#/settings">${tr("filters.watchedHidden", "Watched videos are hidden")}</a>` : `<a class="btn" href="#/categories">${tr("filters.browseCategories", "Browse categories")}</a>`}
   </div>`;
 }
 
@@ -1210,8 +1219,8 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
         <span>${icon("eye")} ${compact.format(v.views)} views</span>
         ${v.year ? `<span>${icon("calendar")} ${v.year}</span>` : ""}
         <span>${icon("clock")} ${fmtDuration(v.duration)}</span>
-        <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
-        <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
+        <span>${icon("tag")} ${esc(kindLabel(v.kind))}</span>
+        <span>${icon("level")} ${esc(levelLabel(v.level))}</span>
       </div>
       <p id="watch-description" class="watch-description"${v.description ? langAttrs(v.description) : " hidden"}>${esc(v.description || "")}</p>
       <section id="hn-evidence" class="hn-evidence" hidden></section>
@@ -1381,8 +1390,8 @@ function syncWatchVideo(id, playlistId) {
     meta.innerHTML = `<span>${icon("eye")} ${compact.format(video.views)} views</span>
       ${video.year ? `<span>${icon("calendar")} ${video.year}</span>` : ""}
       <span>${icon("clock")} ${fmtDuration(video.duration)}</span>
-      <span>${icon("tag")} ${esc(KIND_LABELS[video.kind] || "Tutorial")}</span>
-      <span>${icon("level")} ${esc(LEVEL_LABELS[video.level] || "General")}</span>`;
+      <span>${icon("tag")} ${esc(kindLabel(video.kind))}</span>
+      <span>${icon("level")} ${esc(levelLabel(video.level))}</span>`;
   }
   const description = $("#watch-description");
   if (description) {
@@ -1617,7 +1626,7 @@ function hnDescriptionHTML(video, mainVideo = null) {
     metadata.push(`${Number(hn.recommenders)} recommenders`);
   }
 
-  const contentType = String(video.content_type || (mainVideo?.kind ? KIND_LABELS[mainVideo.kind] || mainVideo.kind : "")).trim();
+  const contentType = String(video.content_type || (mainVideo?.kind ? kindLabel(mainVideo.kind) : "")).trim();
   if (contentType) metadata.push(contentType.toLowerCase());
   if (video.shelf_life) metadata.push(String(video.shelf_life).toLowerCase());
 
@@ -1703,23 +1712,23 @@ function hnLabel(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function hnOptionMap(records, key) {
+function hnOptionMap(records, key, prefix) {
   const options = new Map();
   for (const record of records) {
     const value = record[key];
-    if (value) options.set(String(value), hnLabel(value));
+    if (value) options.set(String(value), tr(`${prefix}.${value}`, hnLabel(value)));
   }
-  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1], state.locale));
 }
 
 function hnAreaOptions(records) {
   const options = new Map();
   for (const record of records) {
     for (const category of record.categories || []) {
-      if (category?.area) options.set(category.area, category.area_name || hnLabel(category.area));
+      if (category?.area) options.set(category.area, tr(`hn.areas.${category.area}`, category.area_name || hnLabel(category.area)));
     }
   }
-  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1], state.locale));
 }
 
 function hnInProgrammingScope(record) {
@@ -1802,29 +1811,29 @@ function hnComparator() {
 
 function hnFiltersPanel(records) {
   const filters = state.hnFilters;
-  const contentTypes = hnOptionMap(records, "content_type");
-  const levels = hnOptionMap(records, "level");
-  const shelfLives = hnOptionMap(records, "shelf_life");
+  const contentTypes = hnOptionMap(records, "content_type", "hn.contentTypes");
+  const levels = hnOptionMap(records, "level", "hn.levels");
+  const shelfLives = hnOptionMap(records, "shelf_life", "hn.shelfLives");
   const areas = hnAreaOptions(records);
   return `<div class="filters hn-filters">
     <div class="filter-group">
-      <span class="filter-label">Scope</span>
-      <div class="segmented hn-scope" role="group" aria-label="Hacker News scope">
-        <button type="button" data-hn-scope="programming" title="Software, systems, AI, math, hardware, computing culture, design, and games" class="${filters.scope === "programming" ? "active" : ""}" aria-pressed="${filters.scope === "programming"}">Programming</button>
-        <button type="button" data-hn-scope="all" class="${filters.scope === "all" ? "active" : ""}" aria-pressed="${filters.scope === "all"}">All HN</button>
+      <span class="filter-label">${tr("hn.scope", "Scope")}</span>
+      <div class="segmented hn-scope" role="group" aria-label="${tr("hn.scope", "Scope")}">
+        <button type="button" data-hn-scope="programming" title="${tr("hn.programmingHint", "Software, systems, AI, math, hardware, computing culture, design, and games")}" class="${filters.scope === "programming" ? "active" : ""}" aria-pressed="${filters.scope === "programming"}">${tr("hn.programming", "Programming")}</button>
+        <button type="button" data-hn-scope="all" class="${filters.scope === "all" ? "active" : ""}" aria-pressed="${filters.scope === "all"}">${tr("hn.allHn", "All HN")}</button>
       </div>
     </div>
     <div class="filter-grid">
-      ${field("recommendation", "Recommendation", "All videos", [["recommended", "Recommended only"], ["discussed", "Discussed only"]], filters.recommendation, "hn")}
-      ${field("contentType", "Type", "All types", contentTypes, filters.contentType, "hn")}
-      ${field("level", "Level", "All levels", levels, filters.level, "hn")}
-      ${field("shelfLife", "Shelf life", "All shelf lives", shelfLives, filters.shelfLife, "hn")}
-      ${field("area", "Area", "All areas", areas, filters.area, "hn")}
-      ${field("sort", "Sort", "Best match", [["score", "HN score"], ["recommenders", "Most recommenders"], ["mentions", "Most mentions"]], filters.sort, "hn")}
+      ${field("recommendation", tr("hn.recommendation", "Recommendation"), tr("hn.allVideos", "All videos"), [["recommended", tr("hn.recommendedOnly", "Recommended only")], ["discussed", tr("hn.discussedOnly", "Discussed only")]], filters.recommendation, "hn")}
+      ${field("contentType", tr("hn.type", "Type"), tr("hn.allTypes", "All types"), contentTypes, filters.contentType, "hn")}
+      ${field("level", tr("hn.level", "Level"), tr("hn.allLevels", "All levels"), levels, filters.level, "hn")}
+      ${field("shelfLife", tr("hn.shelfLife", "Shelf life"), tr("hn.allShelfLives", "All shelf lives"), shelfLives, filters.shelfLife, "hn")}
+      ${field("area", tr("hn.area", "Area"), tr("hn.allAreas", "All areas"), areas, filters.area, "hn")}
+      ${field("sort", tr("hn.sort", "Sort"), tr("hn.bestMatch", "Best match"), [["score", tr("hn.hnScore", "HN score")], ["recommenders", tr("hn.mostRecommenders", "Most recommenders")], ["mentions", tr("hn.mostMentions", "Most mentions")]], filters.sort, "hn")}
     </div>
     <div class="filter-foot">
-      <button class="btn" data-hn-clear ${hnFilterCount() ? "" : "disabled"}>Clear all</button>
-      <button class="btn primary" data-hn-close>Done</button>
+      <button class="btn" data-hn-clear ${hnFilterCount() ? "" : "disabled"}>${tr("hn.clearAll", "Clear all")}</button>
+      <button class="btn primary" data-hn-close>${tr("hn.done", "Done")}</button>
     </div>
   </div>`;
 }
@@ -1862,15 +1871,15 @@ function hnListMarkup(source, total, { query = "", partial = false } = {}) {
     : `${videos(list.length)}${list.length !== total ? ` · ${total} total` : ""}`;
   return `<section class="feed">
     <div class="feed-head">
-      <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
+      <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1><p class="hn-intro">${tr("hn.intro", "Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.")}</p></div>
       <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
-        ${icon("filter")} Filters${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
+        ${icon("filter")} ${tr("filters.button", "Filters")}${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
       </button>
       <span class="count">${count}</span>
     </div>
     ${state.hnUiOpen ? hnFiltersPanel(source) : ""}
-    ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>No matches</strong><p>Try another search or adjust the Hacker News filters.</p>${activeFilters ? '<button class="btn" data-hn-clear>Clear filters</button>' : ""}</div>`}
-    ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
+    ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>${tr("hn.noMatches", "No matches")}</strong><p>${tr("hn.noMatchesHint", "Try another search or adjust the Hacker News filters.")}</p>${activeFilters ? `<button class="btn" data-hn-clear>${tr("hn.clearFilters", "Clear filters")}</button>` : ""}</div>`}
+    ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>${tr("filters.showMore", "Show more")} (${list.length - state.hnLimit})</button></div>` : ""}
     ${hnAttributionHTML()}
   </section>`;
 }
@@ -1891,7 +1900,7 @@ async function renderHackerNews(query = "", params = null) {
     description: "Programming videos recommended and discussed in Hacker News comments, with archived discussion context.",
     canonical: `${SITE_URL}${hnHashFromState(query)}`,
   });
-  view.innerHTML = '<section><div class="feed-head"><h1>Hacker News</h1><span class="count">Loading recommendations…</span></div></section>';
+  view.innerHTML = `<section><div class="feed-head"><h1>${tr("pages.hackerNews", "Hacker News")}</h1><span class="count">${tr("hn.loading", "Loading recommendations…")}</span></div></section>`;
   try {
     if (!query && !state.hnVideos) {
       const preview = await loadHNPreview().catch(() => null);
@@ -2272,64 +2281,64 @@ async function renderPlaylist(id) {
 function renderSettings() {
   document.title = `${tr("pages.settings", "Settings")} — HackerTube`;
   const s = state.settings;
-  const seg = [["light", "Light", "sun"], ["dark", "Dark", "moon"], ["system", "System", "monitor"]]
+  const seg = [["light", tr("settings.light", "Light"), "sun"], ["dark", tr("settings.dark", "Dark"), "moon"], ["system", tr("settings.system", "System"), "monitor"]]
     .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${icon(ic)} ${label}</button>`)
     .join("");
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
-      <h2>${icon("sun")} Appearance</h2>
-      <div class="segmented" role="group" aria-label="Theme">${seg}</div>
+      <h2>${icon("sun")} ${tr("settings.appearance", "Appearance")}</h2>
+      <div class="segmented" role="group" aria-label="${tr("settings.appearance", "Appearance")}">${seg}</div>
     </div>
     <div class="settings-group">
-      <h2>${icon("eye")} Browsing</h2>
+      <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
       <label class="setting-row">
         <span class="row-ic">${icon("eye")}</span>
-        <span class="setting-text"><b>Hide watched videos</b><small>Keep opened videos out of Home and search.</small></span>
+        <span class="setting-text"><b>${tr("settings.hideSeen", "Hide watched videos")}</b><small>${tr("settings.hideSeenHint", "Keep opened videos out of Home and search.")}</small></span>
         <input class="switch" type="checkbox" data-setting="hideSeen" ${s.hideSeen ? "checked" : ""}>
       </label>
       <label class="setting-row">
         <span class="row-ic">${icon("play")}</span>
-        <span class="setting-text"><b>Autoplay next</b><small>Play the next related video when a single video ends.</small></span>
+        <span class="setting-text"><b>${tr("settings.autoplayNext", "Autoplay next")}</b><small>${tr("settings.autoplayNextHint", "Play the next related video when a single video ends.")}</small></span>
         <input class="switch" type="checkbox" data-setting="autoplayNext" ${s.autoplayNext ? "checked" : ""}>
       </label>
       <div class="setting-row">
         <span class="row-ic">${icon("categories")}</span>
-        <span class="setting-text"><b>Page size</b><small>Videos shown before “Show more”.</small></span>
-        <div class="segmented" role="group" aria-label="Page size">
+        <span class="setting-text"><b>${tr("settings.pageSize", "Page size")}</b><small>${tr("settings.pageSizeHint", "Videos shown before “Show more”.")}</small></span>
+        <div class="segmented" role="group" aria-label="${tr("settings.pageSize", "Page size")}">
           ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
         </div>
       </div>
     </div>
     <div class="settings-group">
-      <h2>${icon("database")} Data</h2>
+      <h2>${icon("database")} ${tr("settings.data", "Data")}</h2>
       <div class="setting-row">
         <span class="row-ic">${icon("history")}</span>
-        <span class="setting-text"><b>History</b><small>${videos(state.seen.length)}</small></span>
-        <button class="btn" data-clear-collection="history" ${state.seen.length ? "" : "disabled"}>${icon("trash")} Clear</button>
+        <span class="setting-text"><b>${tr("settings.history", "History")}</b><small>${videos(state.seen.length)}</small></span>
+        <button class="btn" data-clear-collection="history" ${state.seen.length ? "" : "disabled"}>${icon("trash")} ${tr("settings.clear", "Clear")}</button>
       </div>
       <div class="setting-row">
         <span class="row-ic">${icon("liked")}</span>
-        <span class="setting-text"><b>Liked</b><small>${videos(state.likes.size)}</small></span>
-        <button class="btn" data-clear-collection="liked" ${state.likes.size ? "" : "disabled"}>${icon("trash")} Clear</button>
+        <span class="setting-text"><b>${tr("settings.liked", "Liked")}</b><small>${videos(state.likes.size)}</small></span>
+        <button class="btn" data-clear-collection="liked" ${state.likes.size ? "" : "disabled"}>${icon("trash")} ${tr("settings.clear", "Clear")}</button>
       </div>
       <div class="setting-row">
         <span class="row-ic">${icon("later")}</span>
-        <span class="setting-text"><b>Watch later</b><small>${videos(state.saved.size)}</small></span>
-        <button class="btn" data-clear-collection="later" ${state.saved.size ? "" : "disabled"}>${icon("trash")} Clear</button>
+        <span class="setting-text"><b>${tr("settings.watchLater", "Watch later")}</b><small>${videos(state.saved.size)}</small></span>
+        <button class="btn" data-clear-collection="later" ${state.saved.size ? "" : "disabled"}>${icon("trash")} ${tr("settings.clear", "Clear")}</button>
       </div>
       <div class="setting-row">
         <span class="row-ic">${icon("playlists")}</span>
-        <span class="setting-text"><b>Playlists</b><small>${state.playlists.length} saved</small></span>
-        <a class="btn" href="#/playlists">Manage ${icon("arrowRight")}</a>
+        <span class="setting-text"><b>${tr("settings.playlists", "Playlists")}</b><small>${tr("settings.playlistsHint", "{count} saved", { count: I18N ? I18N.formatNumber(state.playlists.length) : state.playlists.length })}</small></span>
+        <a class="btn" href="#/playlists">${tr("settings.manage", "Manage")} ${icon("arrowRight")}</a>
       </div>
       <div class="setting-row">
         <span class="row-ic danger">${icon("trash")}</span>
-        <span class="setting-text"><b>Everything</b><small>Delete likes, history, watch later, playlists and settings.</small></span>
-        <button class="btn danger" data-reset-all>${icon("trash")} Delete all</button>
+        <span class="setting-text"><b>${tr("settings.everything", "Everything")}</b><small>${tr("settings.everythingHint", "Delete likes, history, watch later, playlists and settings.")}</small></span>
+        <button class="btn danger" data-reset-all>${icon("trash")} ${tr("settings.deleteAll", "Delete all")}</button>
       </div>
     </div>
-    <p class="settings-note">Stored in this browser only. No account, no tracking.</p>
+    <p class="settings-note">${tr("settings.note", "Stored in this browser only. No account, no tracking.")}</p>
   </section>`;
   syncSidebar();
 }
@@ -2463,7 +2472,7 @@ function onViewClick(e) {
     storeSet(STORE.settings, state.settings);
     ui.limit = pageSize();
     renderSettings();
-    toast("Saved");
+    toast(tr("settings.saved", "Saved"));
     return;
   }
 
@@ -2632,7 +2641,7 @@ function onViewChange(e) {
     storeSet(STORE.settings, state.settings);
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
-    toast("Saved");
+    toast(tr("settings.saved", "Saved"));
     if (key === "hideSeen" || key === "pageSize") {
       if (/^#\/($|longs|search\/|channel\/)/.test(location.hash || "#/")) renderFeed(state.scope);
     }
@@ -2718,15 +2727,15 @@ function removeItem(kind, id, plId) {
   invalidateHomeOrder();
   syncSidebar();
   render();
-  toast("Removed", "close");
+  toast(tr("dialogs.removed", "Removed"), "close");
 }
 
 async function clearCollection(kind) {
-  const label = kind === "history" ? "history" : kind === "liked" ? "likes" : "Watch later";
+  const label = kind === "history" ? tr("settings.history", "History") : kind === "liked" ? tr("settings.liked", "Liked") : tr("settings.watchLater", "Watch later");
   const confirmed = await confirmAction({
-    title: `Clear ${label}?`,
-    message: `This will permanently remove ${label} from this browser. This cannot be undone.`,
-    confirmLabel: "Clear",
+    title: tr("dialogs.clearTitle", "Clear {label}?", { label }),
+    message: tr("dialogs.clearMessage", "This will permanently remove {label} from this browser. This cannot be undone.", { label }),
+    confirmLabel: tr("dialogs.clear", "Clear"),
   });
   if (!confirmed) return;
 
@@ -2742,16 +2751,16 @@ async function clearCollection(kind) {
   invalidateHomeOrder();
   syncSidebar();
   render();
-  toast(`Cleared ${label}`, "trash");
+  toast(tr("dialogs.cleared", "Cleared {label}", { label }), "trash");
 }
 
 async function deletePlaylist(id) {
   const pl = playlistById(id);
   if (!pl) return;
   const confirmed = await confirmAction({
-    title: "Delete playlist?",
-    message: `“${pl.name}” and its saved video list will be removed from this browser. This cannot be undone.`,
-    confirmLabel: "Delete",
+    title: tr("dialogs.deletePlaylistTitle", "Delete playlist?"),
+    message: tr("dialogs.deletePlaylistMessage", "“{name}” and its saved video list will be removed from this browser. This cannot be undone.", { name: pl.name }),
+    confirmLabel: tr("dialogs.delete", "Delete"),
   });
   if (!confirmed) return;
 
@@ -2761,14 +2770,14 @@ async function deletePlaylist(id) {
   syncSidebar();
   if ((location.hash || "#/").startsWith("#/playlist/")) location.hash = "#/playlists";
   else render();
-  toast("Playlist deleted", "trash");
+  toast(tr("dialogs.playlistDeleted", "Playlist deleted"), "trash");
 }
 
 async function resetAll() {
   const confirmed = await confirmAction({
-    title: "Delete all local data?",
-    message: "This will permanently delete likes, history, watch later, playlists and settings from this browser. This cannot be undone.",
-    confirmLabel: "Delete all",
+    title: tr("dialogs.deleteAllTitle", "Delete all local data?"),
+    message: tr("dialogs.deleteAllMessage", "This will permanently delete likes, history, watch later, playlists and settings from this browser. This cannot be undone."),
+    confirmLabel: tr("dialogs.deleteAll", "Delete all"),
   });
   if (!confirmed) return;
 
@@ -2788,5 +2797,5 @@ async function resetAll() {
   storeSet(STORE.theme, state.theme);
   syncSidebar();
   render();
-  toast("All data deleted", "trash");
+  toast(tr("dialogs.allDeleted", "All data deleted"), "trash");
 }
