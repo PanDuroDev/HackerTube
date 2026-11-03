@@ -30,7 +30,7 @@ python -m http.server 8080 -d public
 
 No application server or database is required. The website is made of static files and JSON data.
 
-Optional HTML5 direct playback uses a separate Python API. The YouTube iframe remains the default. To test direct playback without a hosted API, run the API locally and expose it temporarily with a Cloudflare Quick Tunnel. See [Direct playback setup](docs/direct-playback.md).
+Video playback uses the official YouTube embedded player with its built-in controls.
 
 ## Build the data
 
@@ -75,7 +75,7 @@ tests/           Tests for normalization, classification, sources, and data
 - YouTube API quota is limited per day. When the quota is exhausted, fetching automatically falls back to yt-dlp.
 - Publish dates from the API are exact; dates from yt-dlp are approximate and marked as \`approximate_date\`.
 - Personal recommendations use local interactions only. There are no accounts or tracking, and likes, history, and playlists remain in the browser.
-- Videos are not stored or re-uploaded by this project. Playback defaults to youtube-nocookie embeds; optional HTML5 playback uses a separately run API to proxy temporary streams. All video rights remain with their respective owners.
+- Videos are not stored or re-uploaded by this project. Playback uses youtube-nocookie embeds. All video rights remain with their respective owners.
 
 ## License and attribution
 
