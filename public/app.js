@@ -767,7 +767,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
   const playerMarkup = state.settings.nativePlayer
-    ? `<video id="native-video-player" playsinline preload="metadata"
+    ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous"
         aria-label="${esc(v.title)}"></video>
         <div class="native-controls" id="native-player-controls" aria-label="Video controls">
           <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
@@ -912,14 +912,17 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
   }
 
   let fallbackStarted = false;
+  let mediaTimeout = null;
   const fallback = (error = null) => {
     if (fallbackStarted || location.hash !== routeHash || !player.isConnected) return;
     fallbackStarted = true;
+    clearTimeout(mediaTimeout);
     fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
   };
 
   player.addEventListener("error", () => fallback(new Error("The browser could not play the extracted stream.")), { once: true });
   player.addEventListener("canplay", () => {
+    clearTimeout(mediaTimeout);
     status.remove();
     if (autoplay) {
       player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
@@ -941,6 +944,10 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
     if (location.hash !== routeHash || !player.isConnected) return;
     player.src = new URL(payload.url, STREAM_API_BASE_URL).href;
     player.load();
+    mediaTimeout = setTimeout(
+      () => fallback(new Error("The stream did not become playable in time.")),
+      35000,
+    );
   } catch (error) {
     fallback(error);
   } finally {
@@ -1347,7 +1354,7 @@ async function renderHNWatch(requestedVideoId) {
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
         <div class="player">${state.settings.nativePlayer
-          ? `<video id="native-video-player" playsinline preload="metadata" aria-label="${esc(video.title)}"></video>
+          ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous" aria-label="${esc(video.title)}"></video>
             <div class="native-controls" id="native-player-controls" aria-label="Video controls">
               <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
               <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
