@@ -1308,6 +1308,9 @@ a.card-sub:hover { color: var(--text); }
   .watch-action-items .watch-action-item:focus-visible {
     background: var(--soft-2);
   }
+  .watch-action-items .watch-action-item:active {
+    transform: none;
+  }
   .watch-action-items .watch-action-item[aria-pressed="true"] {
     color: var(--accent);
     background: var(--soft);
