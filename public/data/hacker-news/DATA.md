@@ -290,6 +290,6 @@ This directory contains the generated site-ready files, not the source JSONL fil
 - `existing.json`: source video records already represented in the main catalog, keyed by canonical YouTube ID.
 - `aliases.json`: duplicate source IDs mapped to their canonical video ID.
 - `related.json`: related-video records. Join `vid` and `related[].vid` to `videos.json` or `existing.json`.
-- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. Each comment's `vid` joins to `videos.json` or `existing.json`.
+- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. The prefix is the lowercase first character of the ID, so partitions are safe on case-insensitive filesystems. Each comment's `vid` joins to `videos.json` or `existing.json`.
 - `taxonomy.json`: the topic tree. Join `videos.categories[].id` to category `id`.
 - `embeddings.npy` and `embedding_ids.json`: row `i` maps to `embedding_ids.json[i]`, then to the source video's `vid`.

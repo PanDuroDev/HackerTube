@@ -33,7 +33,7 @@ This directory contains the generated site-ready files, not the source JSONL fil
 - `existing.json`: source video records already represented in the main catalog, keyed by canonical YouTube ID.
 - `aliases.json`: duplicate source IDs mapped to their canonical video ID.
 - `related.json`: related-video records. Join `vid` and `related[].vid` to `videos.json` or `existing.json`.
-- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. Each comment's `vid` joins to `videos.json` or `existing.json`.
+- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. The prefix is the lowercase first character of the ID, so partitions are safe on case-insensitive filesystems. Each comment's `vid` joins to `videos.json` or `existing.json`.
 - `taxonomy.json`: the topic tree. Join `videos.categories[].id` to category `id`.
 - `embeddings.npy` and `embedding_ids.json`: row `i` maps to `embedding_ids.json[i]`, then to the source video's `vid`.
 """
@@ -196,14 +196,14 @@ def import_archive() -> dict[str, int]:
             if canonical_id != source_id:
                 normalized_mention["original_vid"] = source_id
                 normalized_mention["vid"] = canonical_id
-            mentions_by_prefix[canonical_id[0]][canonical_id].append(normalized_mention)
+            mentions_by_prefix[canonical_id[0].lower()][canonical_id].append(normalized_mention)
             mention_count += 1
             if canonical_id in overlaps:
                 mentions_for_existing += 1
 
         # Keep canonical counters aligned with the comments published after alias remapping.
         for video_id, video in canonical_records.items():
-            comments = mentions_by_prefix[video_id[0]].get(video_id, [])
+            comments = mentions_by_prefix[video_id[0].lower()].get(video_id, [])
             hn = dict(video.get("hn") or {})
             stance_counts: dict[str, int] = defaultdict(int)
             for comment in comments:
@@ -307,7 +307,7 @@ def import_archive() -> dict[str, int]:
         "attribution": "Credit HackerTube and open-index/hacker-news; video titles and channel names belong to their creators; comments remain their authors' work.",
         **stats,
         "deduplication": "Exact YouTube video ID, then normalized title+channel against the main catalog and within this source archive.",
-        "comments_format": "Gzip-compressed JSON objects partitioned by the first YouTube ID character.",
+        "comments_format": "Gzip-compressed JSON objects partitioned by the case-insensitive first YouTube ID character.",
     }
     write_json(OUT / "meta.json", meta, compact=False)
     return stats
