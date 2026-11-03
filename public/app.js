@@ -193,22 +193,20 @@ function fmtDuration(seconds) {
   return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
-const TOAST_STATES = {
-  check: { kind: "success", icon: "check" },
-  liked: { kind: "liked", icon: "liked" },
-  later: { kind: "later", icon: "later" },
-  playlists: { kind: "success", icon: "playlists" },
-  plus: { kind: "success", icon: "plus" },
-  close: { kind: "neutral", icon: "close" },
-  trash: { kind: "danger", icon: "trash" },
-  info: { kind: "info", icon: "playlists" },
+const TOAST_ICONS = {
+  check: "check",
+  liked: "liked",
+  later: "later",
+  playlists: "playlists",
+  plus: "plus",
+  close: "close",
+  trash: "trash",
+  info: "playlists",
 };
 
 function toast(message, kind = "check") {
   const el = $("#toast");
-  const status = TOAST_STATES[kind] || TOAST_STATES.check;
-  el.dataset.kind = status.kind;
-  el.querySelector(".toast-ic").innerHTML = icon(status.icon);
+  el.querySelector(".toast-ic").innerHTML = icon(TOAST_ICONS[kind] || TOAST_ICONS.check);
   el.querySelector(".toast-msg").textContent = message;
   el.classList.remove("show");
   void el.offsetWidth;
