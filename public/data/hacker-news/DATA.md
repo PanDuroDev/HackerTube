@@ -280,3 +280,16 @@ like the HN archive it is derived from. Please credit **HackerTube** (https://ha
 [open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news) dataset. Hacker News
 data is provided by Y Combinator, and comments remain the work of their authors. Video titles and
 channel names belong to their creators. Not affiliated with YouTube, Google, Hacker News or Y Combinator.
+
+
+## Published layout
+
+This directory contains the generated site-ready files, not the source JSONL files:
+
+- `videos.json`: an array of video records, keyed by `vid`.
+- `existing.json`: source video records already represented in the main catalog, keyed by canonical YouTube ID.
+- `aliases.json`: duplicate source IDs mapped to their canonical video ID.
+- `related.json`: related-video records. Join `vid` and `related[].vid` to `videos.json` or `existing.json`.
+- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. Each comment's `vid` joins to `videos.json` or `existing.json`.
+- `taxonomy.json`: the topic tree. Join `videos.categories[].id` to category `id`.
+- `embeddings.npy` and `embedding_ids.json`: row `i` maps to `embedding_ids.json[i]`, then to the source video's `vid`.
