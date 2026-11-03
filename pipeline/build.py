@@ -56,6 +56,9 @@ def build_records(payloads: list[dict]) -> list[dict]:
                 "year": year,
                 **classify(title, duration, views, year),
             }
+            description = (e.get("description") or "").strip()
+            if description:
+                rec["description"] = description
             rec["lang"] = lang  # لغة القناة أهم من لغة العنوان للتصفية
             kind = "course" if is_episode(title) and duration >= 600 else rec["kind"]
             rec["kind"] = kind

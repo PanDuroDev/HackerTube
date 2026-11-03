@@ -63,7 +63,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -489,7 +489,7 @@ test("YouTube embeds always use the original player controls", () => {
   assert.equal(params.get("fs"), "1");
   assert.equal(params.get("disablekb"), "0");
   assert.equal(params.get("iv_load_policy"), "1");
-  assert.ok(!markup.includes('id="youtube-player"'));
+  assert.ok(markup.includes('id="youtube-player"'));
   assert.ok(!markup.includes("data-youtube-toggle"));
 
   const queueMarkup = api.youtubeIframeMarkup("video123", "Test video", ["video123", "video456"]);
@@ -511,15 +511,11 @@ test("Settings no longer expose Playback or Stream API options", () => {
 });
 
 
-test("ordinary single-video playback does not load the iframe API", async () => {
-  const harness = createHarness();
-  const { api, document, location } = harness;
+test("single-video playback keeps an iframe API target for progress tracking", () => {
+  const { api } = createHarness();
   const markup = api.youtubeIframeMarkup("video123", "Test video");
-  assert.ok(!markup.includes('id="youtube-player"'));
-
-  location.hash = "#/watch/video123";
-  await api.startYouTubePlayer("video123", ["video123"], null, location.hash);
-  assert.equal(document.head, undefined, "single videos should not request the playlist API");
+  assert.ok(markup.includes('id="youtube-player"'));
+  assert.ok(!markup.includes("data-youtube-toggle"));
 });
 
 
@@ -917,4 +913,60 @@ test("filter select markup exposes an accessible listbox", () => {
 test("the document includes a skip link to the main content", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.match(html, /class="skip-link" href="#view"/);
+});
+
+test("watch progress is stored, rendered on cards, and offered as resume", () => {
+  const { api } = createHarness();
+  api.saveProgress("video123", 120, 600);
+
+  const progress = api.progressFor("video123");
+  assert.equal(progress.position, 120);
+  assert.equal(progress.duration, 600);
+
+  const cardMarkup = api.card(sampleMainVideo("video123"));
+  assert.match(cardMarkup, /class="card-progress"/);
+  assert.match(cardMarkup, /width:20%/);
+
+  const actions = api.watchActionsHTML("video123");
+  assert.match(actions, /data-resume="video123"/);
+  assert.match(actions, /Resume at 2:00/);
+
+  api.saveProgress("video123", 590, 600);
+  assert.equal(api.progressFor("video123"), null);
+});
+
+test("history shows a Continue watching section for partial videos", async () => {
+  const harness = createHarness();
+  const { api, location } = harness;
+  const video = sampleMainVideo("resume1", { title: "Resume this video" });
+  api.state.videos = [video];
+  api.state.byId = new Map([[video.id, video]]);
+  api.state.seen = [video.id];
+  api.saveProgress(video.id, 180, 900);
+  location.hash = "#/history";
+
+  await api.renderCollection("history");
+
+  assert.match(harness.view.innerHTML, /Continue watching/);
+  assert.match(harness.view.innerHTML, /Resume this video/);
+  assert.match(harness.view.innerHTML, /class="card-progress"/);
+});
+
+test("main watch pages render a description when the catalog provides one", async () => {
+  const harness = createHarness();
+  const { api, location } = harness;
+  const video = sampleMainVideo("desc1", {
+    title: "Video with description",
+    description: "An Arabic explanation of the topic.",
+  });
+  api.state.videos = [video];
+  api.state.byId = new Map([[video.id, video]]);
+  api.state.channels = new Map([["channel_desc1", { name: video.channel, count: 1 }]]);
+  api.state.topicLabels = { web: "Web Development" };
+  location.hash = "#/watch/desc1";
+
+  await api.renderWatch(video.id);
+
+  assert.match(harness.view.innerHTML, /id="watch-description"/);
+  assert.match(harness.view.innerHTML, /An Arabic explanation of the topic/);
 });
