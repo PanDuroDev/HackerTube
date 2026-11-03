@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from .classify import TOPIC_LABELS, classify, is_episode
-from .config import MIN_DURATION
+from .config import CHANNEL_LANG, MIN_DURATION
 from .normalize import normalize_ar
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,6 +35,7 @@ def build_records(payloads: list[dict]) -> list[dict]:
 
     for payload in payloads:
         channel = clean_name(payload.get("channel") or payload["channel_id"])
+        lang = payload.get("lang") or CHANNEL_LANG.get(payload["channel_id"], "ar")
         for e in payload.get("entries", []):
             title = (e.get("title") or "").strip()
             duration = int(e.get("duration") or 0)
@@ -54,6 +55,7 @@ def build_records(payloads: list[dict]) -> list[dict]:
                 "year": year,
                 **classify(title, duration, views, year),
             }
+            rec["lang"] = lang  # لغة القناة أهم من لغة العنوان للتصفية
             kind = "course" if is_episode(title) and duration >= 600 else rec["kind"]
             rec["kind"] = kind
             prev = records.get(rec["id"])
@@ -92,10 +94,12 @@ def build_records(payloads: list[dict]) -> list[dict]:
 def build_meta(records: list[dict], payloads: list[dict]) -> dict:
     topic_counts = Counter(t for r in records for t in r["topics"])
     channel_counts = Counter((r["channel_id"], r["channel"]) for r in records)
+    lang_counts = Counter(r.get("lang", "ar") for r in records)
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "total": len(records),
         "total_hours": round(sum(r["duration"] for r in records) / 3600),
+        "languages": dict(lang_counts),
         "channels": [
             {"id": cid, "name": name, "count": n}
             for (cid, name), n in channel_counts.most_common()

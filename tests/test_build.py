@@ -5,8 +5,8 @@ def entry(vid, title, duration=900, views=1000):
     return {"id": vid, "title": title, "duration": duration, "views": views, "timestamp": None}
 
 
-def payload(entries, channel_id="UC1", channel="قناة تجريبية"):
-    return {"channel_id": channel_id, "channel": channel, "entries": entries}
+def payload(entries, channel_id="UC1", channel="قناة تجريبية", lang="ar"):
+    return {"channel_id": channel_id, "channel": channel, "lang": lang, "entries": entries}
 
 
 def test_build_filters_and_dedupes():
@@ -43,7 +43,20 @@ def test_meta_counts():
     meta = build_meta(records, [payload([])])
     assert meta["total"] == 2
     assert meta["channels"][0]["count"] == 2
+    assert meta["languages"] == {"ar": 2}
     assert {t["id"] for t in meta["topics"]} == {"python", "web"}
+
+
+def test_channel_language_wins_over_title():
+    records = build_records([payload(
+        [entry("a", "Python for beginners")],
+        channel_id="UC_EN",
+        channel="Fireship",
+        lang="en",
+    )])
+    assert records[0]["lang"] == "en"
+    meta = build_meta(records, [])
+    assert meta["languages"] == {"en": 1}
 
 
 def test_search_text_is_normalized():
