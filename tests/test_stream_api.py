@@ -23,6 +23,7 @@ def test_health_endpoint():
         "status": "ok",
         "api_version": stream_api.STREAM_API_VERSION,
         "yt_dlp_version": stream_api.yt_dlp.version.__version__,
+        "pot_provider": "ready" if stream_api._bgutil_provider_ready() else "unavailable",
     }
 
 
@@ -142,11 +143,14 @@ def test_retries_with_web_embedded_client_when_default_has_no_muxed_mp4():
     contexts = [mocked_downloader(default_info), mocked_downloader(embedded_info)]
     client = stream_api.app.test_client()
 
-    with patch.object(
-        stream_api.yt_dlp,
-        "YoutubeDL",
-        side_effect=contexts,
-    ) as youtube_dl:
+    with (
+        patch.object(stream_api, "_bgutil_provider_ready", return_value=False),
+        patch.object(
+            stream_api.yt_dlp,
+            "YoutubeDL",
+            side_effect=contexts,
+        ) as youtube_dl,
+    ):
         response = client.get("/api/stream/dQw4w9WgXcQ")
 
     assert response.status_code == 200
@@ -157,6 +161,59 @@ def test_retries_with_web_embedded_client_when_default_has_no_muxed_mp4():
     assert youtube_dl.call_args_list[1].args[0]["extractor_args"] == {
         "youtube": {"player_client": ["default", "web_embedded"]}
     }
+
+
+def test_retries_with_mweb_and_bgutil_po_tokens_when_other_clients_fail():
+    """Use mweb with the installed BgUtils provider as the final extractor fallback."""
+    no_format = {"title": "No muxed format", "formats": []}
+    mweb_info = {
+        "title": "mweb PO Token fallback",
+        "formats": [{
+            "format_id": "18",
+            "ext": "mp4",
+            "protocol": "https",
+            "vcodec": "avc1",
+            "acodec": "mp4a",
+            "height": 360,
+            "url": VIDEO_URL + "&quality=360",
+        }],
+    }
+    contexts = [
+        mocked_downloader(no_format),
+        mocked_downloader(no_format),
+        mocked_downloader(mweb_info),
+    ]
+    with (
+        patch.object(stream_api, "_bgutil_provider_ready", return_value=True),
+        patch.object(
+            stream_api.yt_dlp,
+            "YoutubeDL",
+            side_effect=contexts,
+        ) as youtube_dl,
+    ):
+        response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
+
+    assert response.status_code == 200
+    assert response.json["height"] == 360
+    assert youtube_dl.call_count == 3
+    assert youtube_dl.call_args_list[2].args[0]["extractor_args"] == {
+        "youtube": {"player_client": ["mweb"]},
+        "youtubepot-bgutilscript": {
+            "server_home": [str(stream_api.BGUTIL_SERVER_HOME)]
+        },
+    }
+
+
+def test_extraction_limit_returns_retryable_503():
+    semaphore = threading.BoundedSemaphore(1)
+    assert semaphore.acquire(blocking=False)
+    try:
+        with patch.object(stream_api, "_extract_slots", semaphore):
+            response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
+        assert response.status_code == 503
+        assert response.headers["Retry-After"] == "5"
+    finally:
+        semaphore.release()
 
 
 def test_media_proxy_forwards_range_and_streams_partial_response():
@@ -214,7 +271,10 @@ def test_no_compatible_format_returns_422_instead_of_extractor_error():
         mocked_downloader({"title": "No default format", "formats": []}),
         mocked_downloader({"title": "No embedded format", "formats": []}),
     ]
-    with patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts):
+    with (
+        patch.object(stream_api, "_bgutil_provider_ready", return_value=False),
+        patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts),
+    ):
         response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
     assert response.status_code == 422
 
@@ -228,7 +288,10 @@ def test_rejects_videos_without_muxed_mp4():
         }],
     }
     contexts = [mocked_downloader(split_formats), mocked_downloader(split_formats)]
-    with patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts):
+    with (
+        patch.object(stream_api, "_bgutil_provider_ready", return_value=False),
+        patch.object(stream_api.yt_dlp, "YoutubeDL", side_effect=contexts),
+    ):
         response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
     assert response.status_code == 422
 
