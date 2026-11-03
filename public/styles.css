@@ -35,7 +35,24 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar) + 16px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-gutter: stable;
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border: 3px solid var(--bg);
+  border-radius: 999px;
+  background: var(--soft-2);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 body {
   margin: 0;
@@ -166,6 +183,7 @@ img { max-width: 100%; }
   align-self: start;
   height: calc(100vh - var(--topbar));
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px 8px 24px;
 }
 
@@ -365,6 +383,7 @@ main {
   inset-inline: 0;
   max-height: 280px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -420,10 +439,10 @@ main {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity .2s;
+  transition: transform .4s cubic-bezier(.2, .7, .3, 1), opacity .2s;
 }
 
-.card:hover .thumb img { opacity: .82; }
+.card:hover .thumb img { transform: scale(1.035); opacity: .92; }
 
 .dur {
   position: absolute;
@@ -571,7 +590,29 @@ a.card-sub:hover { color: var(--text); }
 
 /* ---------- المشاهدة ---------- */
 
-.watch { max-width: 1120px; }
+.watch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+.watch-main { min-width: 0; }
+
+.watch-side { min-width: 0; }
+.watch-side .section-title { margin-top: 0; }
+.watch-side .related-grid { grid-template-columns: 1fr; gap: 18px; }
+
+.watch-side .card {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.watch-side .card-info { padding-top: 0; }
+.watch-side .card-title { font-size: 13.5px; line-height: 18px; }
+.watch-side .card-sub { font-size: 12px; line-height: 16px; }
+.watch-side .dur { font-size: 11px; }
 
 .player {
   aspect-ratio: 16 / 9;
@@ -1031,11 +1072,83 @@ a.card-sub:hover { color: var(--text); }
 
 [hidden] { display: none !important; }
 
+/* ---------- Motion ---------- */
+
+.layout { transition: grid-template-columns .2s ease; }
+
+#view > section { animation: viewIn .22s ease-out both; }
+
+.filters,
+.select-menu,
+.drop-panel { animation: menuIn .15s ease-out both; transform-origin: top center; }
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.btn,
+.icon-btn,
+.chip,
+.side-link,
+.select-btn,
+.select-opt,
+.segmented button,
+.card-x,
+.later-btn,
+.drop-panel button,
+.channel-card,
+.topic-card,
+.search button,
+.search {
+  transition: background-color .16s ease, border-color .16s ease,
+    color .16s ease, opacity .16s ease, transform .12s ease;
+}
+
+.btn:active,
+.icon-btn:active,
+.chip:active,
+.select-btn:active,
+.select-opt:active,
+.segmented button:active,
+.card-x:active,
+.later-btn:active,
+.drop-panel button:active {
+  transform: scale(.96);
+}
+
+.btn.primary:active,
+.btn.on:active { transform: scale(.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 .watch-meta, .card-title, .empty strong, .empty p {
   unicode-bidi: plaintext;
 }
 
 /* ---------- Responsive ---------- */
+
+@media (max-width: 1180px) {
+  .watch { grid-template-columns: 1fr; gap: 0; }
+  .watch-side .section-title { margin-top: 28px; }
+  .watch-side .related-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 32px 16px; }
+  .watch-side .card { display: block; }
+  .watch-side .card-info { padding-top: 12px; }
+  .watch-side .card-title { font-size: 16px; line-height: 22px; }
+  .watch-side .card-sub { font-size: 13px; line-height: 18px; }
+}
 
 @media (max-width: 1100px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
