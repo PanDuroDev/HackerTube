@@ -981,32 +981,6 @@ a.card-sub:hover { color: var(--text); }
 .setting-row .segmented { flex: 0 0 auto; margin: 0; }
 .setting-row .segmented button { flex: 0 0 42px; padding: 0; }
 
-.setting-api-form {
-  display: flex;
-  flex: 1 1 100%;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-inline-start: 50px;
-}
-
-.setting-api-form input {
-  flex: 1 1 240px;
-  min-width: 0;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg);
-  font-size: 13px;
-}
-
-.setting-api-form input:focus { border-color: var(--muted); outline: none; }
-
-@media (max-width: 560px) {
-  .setting-api-form { margin-inline-start: 0; }
-}
-
 .switch {
   appearance: none;
   flex: 0 0 auto;
