@@ -1083,12 +1083,19 @@ a.card-sub:hover { color: var(--text); }
 
 .confirm-panel { padding: 24px; }
 
+.confirm-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .confirm-icon {
   display: grid;
   place-items: center;
+  flex: 0 0 40px;
   width: 40px;
   height: 40px;
-  margin-bottom: 16px;
   border-radius: 50%;
   background: var(--soft-2);
   color: var(--danger);
@@ -1097,7 +1104,8 @@ a.card-sub:hover { color: var(--text); }
 .confirm-icon .ic { width: 20px; height: 20px; }
 
 .confirm-title {
-  margin: 0 0 8px;
+  min-width: 0;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
   line-height: 1.35;
