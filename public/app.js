@@ -193,9 +193,22 @@ function fmtDuration(seconds) {
   return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
+const TOAST_STATES = {
+  check: { kind: "success", icon: "check" },
+  liked: { kind: "liked", icon: "liked" },
+  later: { kind: "later", icon: "later" },
+  playlists: { kind: "success", icon: "playlists" },
+  plus: { kind: "success", icon: "plus" },
+  close: { kind: "neutral", icon: "close" },
+  trash: { kind: "danger", icon: "trash" },
+  info: { kind: "info", icon: "playlists" },
+};
+
 function toast(message, kind = "check") {
   const el = $("#toast");
-  el.querySelector(".toast-ic").innerHTML = icon(kind);
+  const status = TOAST_STATES[kind] || TOAST_STATES.check;
+  el.dataset.kind = status.kind;
+  el.querySelector(".toast-ic").innerHTML = icon(status.icon);
   el.querySelector(".toast-msg").textContent = message;
   el.classList.remove("show");
   void el.offsetWidth;
@@ -928,7 +941,7 @@ function addToPlaylist(plId, videoId) {
   const pl = playlistById(plId);
   if (!pl || !videoId) return;
   if (pl.ids.includes(videoId)) {
-    toast("Already in this playlist", "playlists");
+    toast("Already in this playlist", "info");
     return;
   }
   pl.ids.push(videoId);
