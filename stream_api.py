@@ -246,7 +246,7 @@ def stream(video_id: str):
             if not candidates and provider_ready:
                 # mweb needs PO Tokens for some YouTube sessions. The BgUtils
                 # script provider generates them on demand using the bundled
-                # Deno runtime; the extraction semaphore keeps this work serial.
+                # Node.js runtime; the extraction semaphore keeps this work serial.
                 mweb_options = {
                     **options,
                     "extractor_args": {
