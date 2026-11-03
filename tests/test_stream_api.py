@@ -27,6 +27,27 @@ def test_rejects_invalid_video_id():
     assert response.status_code == 400
 
 
+def test_uses_cloudflare_client_ip_instead_of_forwarded_for():
+    with stream_api.app.test_request_context(
+        "/",
+        headers={
+            "CF-Connecting-IP": "203.0.113.27",
+            "X-Forwarded-For": "198.51.100.99",
+        },
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        assert stream_api._client_ip() == "203.0.113.27"
+
+
+def test_invalid_cloudflare_ip_falls_back_to_socket_peer():
+    with stream_api.app.test_request_context(
+        "/",
+        headers={"CF-Connecting-IP": "not-an-ip", "X-Forwarded-For": "198.51.100.99"},
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        assert stream_api._client_ip() == "127.0.0.1"
+
+
 def test_returns_local_proxy_url_for_muxed_mp4():
     info = {
         "title": "Example",
@@ -124,6 +145,13 @@ def test_media_proxy_forwards_range_and_streams_partial_response():
 def test_expired_stream_token_is_rejected():
     response = stream_api.app.test_client().get("/media/not-a-real-token")
     assert response.status_code == 410
+
+
+def test_no_compatible_format_returns_422_instead_of_extractor_error():
+    context = mocked_downloader({"title": "No matching format", "formats": []})
+    with patch.object(stream_api.yt_dlp, "YoutubeDL", return_value=context):
+        response = stream_api.app.test_client().get("/api/stream/dQw4w9WgXcQ")
+    assert response.status_code == 422
 
 
 def test_rejects_videos_without_muxed_mp4():
