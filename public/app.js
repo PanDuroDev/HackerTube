@@ -18,6 +18,8 @@ const state = {
   byId: new Map(),
   hnVideos: null,
   hnVideosPromise: null,
+  hnRelated: null,
+  hnRelatedPromise: null,
   hnById: new Map(),
   hnSearchIndex: new Map(),
   hnExisting: null,
@@ -643,6 +645,25 @@ async function loadHNExisting() {
   return state.hnExistingPromise;
 }
 
+async function loadHNRelated() {
+  if (!state.hnRelatedPromise) {
+    state.hnRelatedPromise = fetchJson("data/hacker-news/related.json").then((records) => {
+      state.hnRelated = records;
+      return records;
+    });
+  }
+  return state.hnRelatedPromise;
+}
+
+function hnAttributionHTML() {
+  return `<p class="hn-attribution">
+    Dataset: <a href="https://hackertube.org/" target="_blank" rel="noopener noreferrer">HackerTube</a>,
+    derived from <a href="https://huggingface.co/datasets/open-index/hacker-news" target="_blank" rel="noopener noreferrer">open-index/hacker-news</a>.
+    Licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener noreferrer">ODC-By 1.0</a>.
+    Hacker News comments remain the work of their authors.
+  </p>`;
+}
+
 async function loadHNMentions(videoId) {
   if (!videoId || !videoId[0]) return [];
   const prefix = videoId[0];
@@ -773,6 +794,7 @@ async function renderHackerNews(query = "") {
       </div>
       ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : '<div class="empty"><strong>No matches</strong><p>Try another search phrase.</p></div>'}
       ${list.length > state.hnLimit ? `<div class="more"><button class="btn" data-hn-more>Show more (${list.length - state.hnLimit})</button></div>` : ""}
+      ${hnAttributionHTML()}
     </section>`;
     syncSidebar();
   } catch (error) {
@@ -787,7 +809,7 @@ async function renderHNWatch(videoId) {
     await loadHNVideos();
     const video = state.hnById.get(videoId) || (await loadHNExisting())[videoId];
     if (!video) return renderNotFound();
-    const comments = await loadHNMentions(videoId);
+    const [comments, related] = await Promise.all([loadHNMentions(videoId), loadHNRelated()]);
     if (location.hash !== `#/hn-watch/${encodeURIComponent(videoId)}`) return;
     document.title = `${video.title} — HackerTube`;
     const hn = video.hn || {};
@@ -798,6 +820,10 @@ async function renderHNWatch(videoId) {
     const quote = video.quote?.text
       ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
       : "";
+    const relatedCards = (related[videoId] || [])
+      .map((item) => state.hnById.get(item.vid) || state.hnExisting?.[item.vid])
+      .filter(Boolean)
+      .slice(0, 8);
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
         <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
@@ -819,7 +845,13 @@ async function renderHNWatch(videoId) {
         ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
         <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments)}</section>
       </div>
-      <aside class="watch-side"><h2 class="section-title">Source</h2><p class="hn-summary">This record comes from the HackerTube export of Hacker News recommendations.</p><a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} Hacker News</a></aside>
+      <aside class="watch-side">
+        <h2 class="section-title">Related HackerTube picks</h2>
+        <div class="related-grid">${relatedCards.map(hnCard).join("") || '<p class="count">No related videos available.</p>'}</div>
+        <h2 class="section-title">Source</h2>
+        <a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} Hacker News</a>
+        ${hnAttributionHTML()}
+      </aside>
     </section>`;
     syncSidebar();
   } catch (error) {
