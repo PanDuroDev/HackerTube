@@ -68,6 +68,22 @@ a { color: inherit; }
 button, input, select { font: inherit; color: inherit; }
 img { max-width: 100%; }
 
+.skip-link {
+  position: fixed;
+  top: 8px;
+  inset-inline-start: 8px;
+  z-index: 1000;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--strong);
+  color: var(--on-strong);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform .15s ease;
+}
+
+.skip-link:focus-visible { transform: translateY(0); }
+
 :focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
