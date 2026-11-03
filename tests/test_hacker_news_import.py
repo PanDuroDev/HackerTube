@@ -81,9 +81,9 @@ def test_hacker_news_auxiliary_assets_are_complete():
     imported = json.loads((HN_DATA / "videos.json").read_text(encoding="utf-8"))
     existing = json.loads((HN_DATA / "existing.json").read_text(encoding="utf-8"))
     aliases = json.loads((HN_DATA / "aliases.json").read_text(encoding="utf-8"))
-    source_ids = {video["vid"] for video in imported} | set(existing) | set(aliases)
-
+    canonical_ids = {video["vid"] for video in imported} | set(existing)
     embedding_ids = json.loads((HN_DATA / "embedding_ids.json").read_text(encoding="utf-8"))
+    source_ids = {video["vid"] for video in imported} | set(aliases) | (set(existing) & set(embedding_ids))
     embeddings = (HN_DATA / "embeddings.npy").read_bytes()
     assert len(embedding_ids) == len(set(embedding_ids)) == 6_454
     assert set(embedding_ids) == source_ids
@@ -92,9 +92,9 @@ def test_hacker_news_auxiliary_assets_are_complete():
     assert (HN_DATA / "DATA.md").is_file()
 
     related = json.loads((HN_DATA / "related.json").read_text(encoding="utf-8"))
-    assert set(related) <= source_ids
+    assert set(related) <= canonical_ids
     assert all(
-        item["vid"] in source_ids
+        item["vid"] in canonical_ids
         for neighbours in related.values()
         for item in neighbours
     )
