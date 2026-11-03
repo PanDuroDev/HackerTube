@@ -295,6 +295,7 @@ main {
 
 .filter-btn { gap: 6px; }
 .filter-btn .ic { width: 16px; height: 16px; }
+.refresh-btn .ic { width: 16px; height: 16px; }
 
 .filter-btn.on {
   border-color: var(--strong);

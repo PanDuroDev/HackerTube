@@ -62,7 +62,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -77,8 +77,7 @@ function createHarness() {
   };
 }
 
-function sampleHNVideo(id = "hn123", overrides = {}) {
-  return {
+function sampleHNVideo(id = "hn123", overrides = {}) {  return {
     vid: id,
     title: "Hacker News sample video",
     channel: "Sample channel",
@@ -696,4 +695,63 @@ test("HN filter panel exposes scope, recommendation, type, level, shelf life, ar
     assert.match(html, new RegExp(`data-select-toggle="${name}"`));
   }
   assert.match(html, /data-hn-clear/);
+});
+
+function sampleMainVideo(id, overrides = {}) {
+  return {
+    id,
+    title: `${id} video`,
+    channel: `Channel ${id}`,
+    channel_id: `channel_${id}`,
+    views: 100,
+    year: 2024,
+    topics: ["web"],
+    level: "any",
+    kind: "tutorial",
+    lang: "en",
+    score: 1,
+    duration: 300,
+    ...overrides,
+  };
+}
+
+test("Home For you uses the personalized order while Best sorts by score", () => {
+  const harness = createHarness();
+  const low = sampleMainVideo("low", { title: "Low score video", score: 1 });
+  const high = sampleMainVideo("high", { title: "High score video", score: 9 });
+  harness.api.state.videos = [low, high];
+  harness.api.state.homeOrder = [low, high];
+  harness.api.state.homeStale = false;
+
+  harness.api.ui.sort = "foryou";
+  harness.api.renderFeed({ type: "all" });
+  let html = harness.view.innerHTML;
+  assert.ok(html.includes("data-refresh-home"));
+  assert.ok(html.indexOf("Low score video") < html.indexOf("High score video"));
+
+  harness.api.ui.sort = "best";
+  harness.api.renderFeed({ type: "all" });
+  html = harness.view.innerHTML;
+  assert.ok(html.indexOf("High score video") < html.indexOf("Low score video"));
+});
+
+test("Home order keeps first-page channel diversity and invalidates after watching", () => {
+  const harness = createHarness();
+  const videos = Array.from({ length: 40 }, (_, index) => sampleMainVideo(`v${index}`, {
+    channel: `Channel ${index % 20}`,
+    channel_id: `channel_${index % 20}`,
+    topics: [`topic${index}`],
+  }));
+  harness.api.state.videos = videos;
+  const order = harness.api.buildHomeOrder(videos, () => 0.5);
+
+  assert.equal(order.length, videos.length);
+  const firstPageCounts = new Map();
+  for (const video of order.slice(0, 36)) {
+    firstPageCounts.set(video.channel_id, (firstPageCounts.get(video.channel_id) || 0) + 1);
+  }
+  assert.ok([...firstPageCounts.values()].every((count) => count <= 2));
+
+  harness.api.markSeen("v0");
+  assert.equal(harness.api.state.homeStale, true);
 });

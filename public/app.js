@@ -68,6 +68,7 @@ const state = {
   scope: { type: "all" },
   current: null,
   homeOrder: [],
+  homeStale: false,
   builtin: [],
   builtinIds: null,
   showAllPlaylists: false,
@@ -383,7 +384,7 @@ function render() {
   ui.open = false;
 
   if (!seg || seg === "home") {
-    resetFilters();
+    resetFilters("foryou");
     if (pendingTopic) {
       ui.topics = new Set([pendingTopic]);
       pendingTopic = null;
@@ -511,10 +512,10 @@ function hasFilters() {
   return filterCount() > 0;
 }
 
-function resetFilters() {
+function resetFilters(sort = "best") {
   ui.topics.clear();
   ui.level = ui.kind = ui.duration = ui.year = ui.channel = ui.lang = "";
-  ui.sort = "best";
+  ui.sort = sort;
   ui.limit = pageSize();
 }
 
@@ -561,7 +562,7 @@ function sorter(sort) {
 
 // Build a local interest profile from explicit actions and recent viewing.
 // All signals stay in localStorage; no account or remote tracking is involved.
-function buildHomeOrder(videos) {
+function buildHomeOrder(videos, random = Math.random) {
   const byId = new Map(videos.map((video) => [video.id, video]));
   const topicWeights = new Map();
   const channelWeights = new Map();
@@ -617,7 +618,7 @@ function buildHomeOrder(videos) {
     const weight = Math.exp(utility);
     return {
       video,
-      key: -Math.log(Math.max(Math.random(), Number.EPSILON)) / weight,
+      key: -Math.log(Math.max(random(), Number.EPSILON)) / weight,
     };
   }).sort((a, b) => a.key - b.key).map(({ video }) => video);
 
@@ -662,6 +663,18 @@ function buildHomeOrder(videos) {
   return order;
 }
 
+function ensureHomeOrder() {
+  if (!state.homeOrder.length || state.homeStale) {
+    state.homeOrder = buildHomeOrder(state.videos);
+    state.homeStale = false;
+  }
+  return state.homeOrder;
+}
+
+function invalidateHomeOrder() {
+  state.homeStale = true;
+}
+
 /* ---------- Feed ---------- */
 
 function renderFeed(scope) {
@@ -669,8 +682,9 @@ function renderFeed(scope) {
   if (scope.q !== undefined) $("#q").value = scope.q;
   else if (scope.type !== "search") $("#q").value = "";
   let list = filtered(scope);
-  if (scope.type === "all" && ui.sort === "best" && state.homeOrder.length) {
-    const rank = new Map(state.homeOrder.map((video, index) => [video.id, index]));
+  if (scope.type === "all" && ui.sort === "foryou") {
+    const order = ensureHomeOrder();
+    const rank = new Map(order.map((video, index) => [video.id, index]));
     list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
   }
   const shown = list.slice(0, ui.limit);
@@ -680,6 +694,7 @@ function renderFeed(scope) {
   view.innerHTML = `<section class="feed">
     <div class="feed-head">
       ${title ? `<h1>${esc(title)}</h1>` : ""}
+      ${scope.type === "all" ? `<button class="btn refresh-btn" data-refresh-home>${icon("refresh")} Refresh</button>` : ""}
       <button class="btn filter-btn ${hasFilters() ? "on" : ""}" data-filter-toggle aria-expanded="${ui.open}">
         ${icon("filter")} Filters${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
       </button>
@@ -697,6 +712,13 @@ function filtersPanel() {
   const topics = state.meta.topics
     .map((t) => `<button class="chip ${ui.topics.has(t.id) ? "on" : ""}" data-topic="${t.id}" aria-pressed="${ui.topics.has(t.id)}">${esc(state.topicLabels[t.id] || t.id)}</button>`)
     .join("");
+  const sortOptions = [
+    ["newest", "Newest"],
+    ["views", "Most viewed"],
+    ["longest", "Longest"],
+    ["shortest", "Shortest"],
+  ];
+  if (state.scope?.type === "all") sortOptions.unshift(["foryou", "For you"]);
   const selects = [
     field("channel", "Channel", "All channels", state.meta.channels.map((c) => [c.id, c.name]), ui.channel),
     field("lang", "Language", "All languages", [["ar", "Arabic"], ["en", "English"]], ui.lang),
@@ -704,7 +726,7 @@ function filtersPanel() {
     field("kind", "Type", "All types", Object.entries(KIND_LABELS), ui.kind),
     field("duration", "Duration", "Any length", [["short", "Under 5 min"], ["mid", "5–20 min"], ["long", "20–60 min"], ["xl", "Over 1 hour"]], ui.duration),
     field("year", "Year", "Any year", years.map((y) => [y, String(y)]), ui.year),
-    field("sort", "Sort", "Best", [["newest", "Newest"], ["views", "Most viewed"], ["longest", "Longest"], ["shortest", "Shortest"]], ui.sort),
+    field("sort", "Sort", "Best", sortOptions, ui.sort),
   ].join("");
   return `<div class="filters">
     <div class="filter-group">
@@ -1067,6 +1089,7 @@ function shared(a, b) {
 function markSeen(id) {
   state.seen = [id, ...state.seen.filter((x) => x !== id)].slice(0, 50);
   storeSet(STORE.seen, state.seen);
+  invalidateHomeOrder();
 }
 
 /* ---------- Hacker News recommendations ---------- */
@@ -1605,6 +1628,7 @@ function addToPlaylist(plId, videoId) {
   }
   pl.ids.push(videoId);
   savePlaylists();
+  invalidateHomeOrder();
   toast(`Added to “${pl.name}”`, "playlists");
   syncSidebar();
 }
@@ -1820,6 +1844,14 @@ function onViewClick(e) {
     return;
   }
 
+  if (e.target.closest("[data-refresh-home]")) {
+    state.homeOrder = buildHomeOrder(state.videos);
+    state.homeStale = false;
+    renderFeed(state.scope);
+    toast("Feed refreshed");
+    return;
+  }
+
   if (e.target.closest("[data-filter-toggle]")) {
     ui.open = !ui.open;
     renderFeed(state.scope);
@@ -1935,7 +1967,7 @@ function onViewClick(e) {
   }
 
   if (e.target.closest("[data-clear]")) {
-    resetFilters();
+    resetFilters(state.scope.type === "all" ? "foryou" : "best");
     renderFeed(state.scope);
     return;
   }
@@ -2032,6 +2064,7 @@ function toggleAct(act) {
   if (on) set.add(id);
   else set.delete(id);
   storeSet(act === "like" ? STORE.likes : STORE.later, [...set]);
+  invalidateHomeOrder();
   document.querySelectorAll(`[data-act="${act}"]`).forEach((b) => {
     b.classList.toggle("on", on);
     b.setAttribute("aria-pressed", String(on));
@@ -2047,6 +2080,7 @@ function toggleLater(id) {
   if (on) state.saved.add(id);
   else state.saved.delete(id);
   storeSet(STORE.later, [...state.saved]);
+  invalidateHomeOrder();
   document.querySelectorAll(`[data-later-toggle="${id}"]`).forEach((b) => {
     b.classList.toggle("on", on);
     b.setAttribute("aria-pressed", String(on));
@@ -2070,6 +2104,7 @@ function removeItem(kind, id, plId) {
   storeSet(STORE.likes, [...state.likes]);
   storeSet(STORE.later, [...state.saved]);
   storeSet(STORE.seen, state.seen);
+  invalidateHomeOrder();
   syncSidebar();
   render();
   toast("Removed", "close");
@@ -2090,6 +2125,7 @@ async function clearCollection(kind) {
   storeSet(STORE.seen, state.seen);
   storeSet(STORE.likes, [...state.likes]);
   storeSet(STORE.later, [...state.saved]);
+  invalidateHomeOrder();
   syncSidebar();
   render();
   toast(`Cleared ${label}`, "trash");
@@ -2107,6 +2143,7 @@ async function deletePlaylist(id) {
 
   state.playlists = state.playlists.filter((p) => p.id !== id);
   savePlaylists();
+  invalidateHomeOrder();
   syncSidebar();
   if ((location.hash || "#/").startsWith("#/playlist/")) location.hash = "#/playlists";
   else render();
@@ -2127,6 +2164,8 @@ async function resetAll() {
   state.seen = [];
   state.playlists = [];
   state.settings = Object.assign({}, DEFAULTS);
+  state.homeOrder = [];
+  state.homeStale = true;
   ui.limit = pageSize();
   applyTheme("dark");
   storeSet(STORE.settings, state.settings);
