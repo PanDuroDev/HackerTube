@@ -63,7 +63,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -987,4 +987,31 @@ test("language selection lives in Settings and uses site-styled buttons", () => 
   assert.match(view.innerHTML, /data-locale-pref="ar"/);
   assert.match(view.innerHTML, /class="active"[^>]*data-locale-pref="en"|data-locale-pref="en"[^>]*class="active"/);
   assert.doesNotMatch(view.innerHTML, /localeSelect/);
+});
+
+test("route skeletons match the current page instead of showing feed cards everywhere", () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+
+  location.hash = "#/settings";
+  api.renderRouteSkeleton();
+  assert.match(view.innerHTML, /skeleton-settings/);
+  assert.doesNotMatch(view.innerHTML, /skeleton-card-grid/);
+
+  location.hash = "#/";
+  api.renderRouteSkeleton();
+  assert.match(view.innerHTML, /skeleton-card-grid/);
+
+  location.hash = "#/watch/video123";
+  api.renderRouteSkeleton();
+  assert.match(view.innerHTML, /skeleton-watch/);
+  assert.match(view.innerHTML, /sk-player/);
+
+  location.hash = "#/playlists";
+  api.renderRouteSkeleton();
+  assert.match(view.innerHTML, /skeleton-playlist-grid/);
+
+  location.hash = "#/categories";
+  api.renderRouteSkeleton();
+  assert.match(view.innerHTML, /skeleton-tile-grid/);
 });
