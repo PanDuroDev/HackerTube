@@ -406,45 +406,106 @@ function sorter(sort) {
 
 /* ---------- Feed discovery ---------- */
 
-// Weighted random ranking keeps stronger videos more likely while changing the
-// homepage on each fresh load. The first page limits channel repetition and
-// avoids immediately repeating the previous homepage session.
+// Build a local interest profile from explicit actions and recent viewing.
+// All signals stay in localStorage; no account or remote tracking is involved.
 function buildHomeOrder(videos) {
-  const recent = new Set(storeGet(STORE.homeRecent, []));
-  const ranked = videos
-    .map((video) => ({
-      video,
-      key: -Math.log(Math.max(Math.random(), Number.EPSILON)) / (0.5 + Math.max(0, Number(video.score) || 0)),
-    }))
-    .sort((a, b) => a.key - b.key)
-    .map(({ video }) => video);
+  const byId = new Map(videos.map((video) => [video.id, video]));
+  const topicWeights = new Map();
+  const channelWeights = new Map();
+  const languageWeights = new Map();
+  const signals = new Set();
 
-  const fresh = ranked.filter((video) => !recent.has(video.id));
-  const previous = ranked.filter((video) => recent.has(video.id));
-  const firstPage = [];
-  const channelCounts = new Map();
-
-  for (const video of fresh) {
-    if (firstPage.length >= pageSize()) break;
-    const count = channelCounts.get(video.channel_id) || 0;
-    if (count >= 2) continue;
-    firstPage.push(video);
-    channelCounts.set(video.channel_id, count + 1);
-  }
-
-  if (firstPage.length < pageSize()) {
-    for (const video of previous) {
-      if (firstPage.length >= pageSize()) break;
-      const count = channelCounts.get(video.channel_id) || 0;
-      if (count >= 2) continue;
-      firstPage.push(video);
-      channelCounts.set(video.channel_id, count + 1);
+  function addSignal(id, weight) {
+    const video = byId.get(id);
+    if (!video) return;
+    signals.add(id);
+    for (const topic of video.topics || []) {
+      topicWeights.set(topic, (topicWeights.get(topic) || 0) + weight);
     }
+    channelWeights.set(video.channel_id, (channelWeights.get(video.channel_id) || 0) + weight);
+    languageWeights.set(video.lang, (languageWeights.get(video.lang) || 0) + weight);
   }
 
-  const selected = new Set(firstPage.map((video) => video.id));
+  for (const id of state.likes) addSignal(id, 3.2);
+  for (const id of state.saved) addSignal(id, 1.9);
+  for (const playlist of state.playlists) {
+    for (const id of playlist.ids) addSignal(id, 2.1);
+  }
+  const history = state.seen.slice(0, 30);
+  history.forEach((id, index) => {
+    addSignal(id, 1.25 * (1 - index / Math.max(30, history.length)));
+  });
+
+  const maxTopic = Math.max(1, ...topicWeights.values());
+  const maxChannel = Math.max(1, ...channelWeights.values());
+  const maxLanguage = Math.max(1, ...languageWeights.values());
+  const profileStrength = Math.min(1, signals.size / 8);
+  const previousHome = new Set(storeGet(STORE.homeRecent, []));
+  const recentlyWatched = new Set(history.slice(0, 12));
+
+  // Weighted random sampling preserves discovery while letting quality and
+  // local interests influence the odds instead of imposing a rigid ranking.
+  const ranked = videos.map((video) => {
+    const topicAffinity = Math.min(1.5, (video.topics || []).reduce(
+      (sum, topic) => sum + (topicWeights.get(topic) || 0) / maxTopic, 0
+    ));
+    const channelAffinity = (channelWeights.get(video.channel_id) || 0) / maxChannel;
+    const languageAffinity = (languageWeights.get(video.lang) || 0) / maxLanguage;
+    const quality = Math.max(0, Number(video.score) || 0);
+    const qualityBoost = Math.min(0.7, quality * 0.075);
+    const seenPenalty = recentlyWatched.has(video.id) ? 0.48 : 0;
+    const repeatPenalty = previousHome.has(video.id) ? 0.42 : 0;
+    const interestBoost = profileStrength * (
+      topicAffinity * 0.82 + languageAffinity * 0.18 + channelAffinity * 0.1
+    );
+    const utility = Math.max(-1, Math.min(1.5,
+      qualityBoost + interestBoost - seenPenalty - repeatPenalty
+    ));
+    const weight = Math.exp(utility);
+    return {
+      video,
+      key: -Math.log(Math.max(Math.random(), Number.EPSILON)) / weight,
+    };
+  }).sort((a, b) => a.key - b.key).map(({ video }) => video);
+
+  // Greedy diversity constraints keep the first screen from being dominated
+  // by one creator or topic. Relax them only if the catalog cannot fill it.
+  const target = pageSize();
+  const firstPage = [];
+  const selected = new Set();
+  const channelCounts = new Map();
+  const topicCounts = new Map();
+  const topicLimit = Math.max(5, Math.ceil(target / 4));
+
+  function pick(video, channelLimit, enforceTopicLimit) {
+    if (selected.has(video.id)) return false;
+    if ((channelCounts.get(video.channel_id) || 0) >= channelLimit) return false;
+    const primaryTopic = video.topics?.[0] || "";
+    if (enforceTopicLimit && primaryTopic &&
+        (topicCounts.get(primaryTopic) || 0) >= topicLimit) return false;
+    selected.add(video.id);
+    firstPage.push(video);
+    channelCounts.set(video.channel_id, (channelCounts.get(video.channel_id) || 0) + 1);
+    if (primaryTopic) topicCounts.set(primaryTopic, (topicCounts.get(primaryTopic) || 0) + 1);
+    return true;
+  }
+
+  for (const video of ranked) {
+    if (firstPage.length >= target) break;
+    if (previousHome.has(video.id) || recentlyWatched.has(video.id)) continue;
+    pick(video, 2, true);
+  }
+  for (const video of ranked) {
+    if (firstPage.length >= target) break;
+    pick(video, 2, true);
+  }
+  for (const video of ranked) {
+    if (firstPage.length >= target) break;
+    pick(video, 3, false);
+  }
+
   const order = [...firstPage, ...ranked.filter((video) => !selected.has(video.id))];
-  storeSet(STORE.homeRecent, order.slice(0, pageSize()).map((video) => video.id));
+  storeSet(STORE.homeRecent, firstPage.map((video) => video.id));
   return order;
 }
 
