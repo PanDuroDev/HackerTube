@@ -253,7 +253,7 @@ async function init() {
       await setLocale(next, { persist: true, updateUrl: true, reload: true });
     } catch {
       event.target.value = state.locale;
-      toast("Could not load that language.", "info");
+      toast(tr("toasts.languageLoadFailed", "Could not load that language."), "info");
     }
   });
   $("#searchForm").addEventListener("submit", (e) => {
@@ -2415,7 +2415,7 @@ function onViewClick(e) {
     state.homeOrder = buildHomeOrder(state.videos);
     state.homeStale = false;
     renderFeed(state.scope);
-    toast("Feed refreshed");
+    toast(tr("toasts.feedRefreshed", "Feed refreshed"));
     return;
   }
 
@@ -2709,7 +2709,7 @@ function toggleAct(act) {
     const label = act === "like" ? (on ? tr("watch.liked", "Liked") : tr("watch.like", "Like")) : (on ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later"));
     b.innerHTML = `${icon(act === "like" ? "liked" : "later")} <span>${label}</span>`;
   });
-  toast(on ? (act === "like" ? tr("watch.liked", "Liked") : tr("watch.addToWatchLater", "Added to Watch later")) : tr("dialogs.removed", "Removed"), on ? (act === "like" ? "liked" : "later") : "close");
+  toast(on ? (act === "like" ? tr("watch.liked", "Liked") : tr("watch.addedToWatchLater", "Added to Watch later")) : tr("dialogs.removed", "Removed"), on ? (act === "like" ? "liked" : "later") : "close");
   syncSidebar();
 }
 
@@ -2725,7 +2725,7 @@ function toggleLater(id) {
     b.setAttribute("aria-label", on ? tr("watch.removeFromWatchLater", "Remove from Watch later") : tr("watch.addToWatchLater", "Add to Watch later"));
   });
   syncSidebar();
-  toast(on ? tr("watch.addToWatchLater", "Added to Watch later") : tr("watch.removeFromWatchLater", "Removed from Watch later"), on ? "later" : "close");
+  toast(on ? tr("watch.addedToWatchLater", "Added to Watch later") : tr("watch.removedFromWatchLater", "Removed from Watch later"), on ? "later" : "close");
   if ((location.hash || "#/") === "#/later") render();
 }
 

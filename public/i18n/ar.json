@@ -319,7 +319,9 @@
     "yearsAgo": "قبل {count} سنوات",
     "loadError": "تعذّر تحميل هذا الفيديو.",
     "unknownChannel": "قناة غير معروفة",
-    "continueWatching": "متابعة المشاهدة"
+    "continueWatching": "متابعة المشاهدة",
+    "addedToWatchLater": "أُضيف إلى المشاهدة لاحقاً",
+    "removedFromWatchLater": "أُزيل من المشاهدة لاحقاً"
   },
   "collections": {
     "likedEmpty": "لا توجد فيديوهات معجب بها بعد.",
@@ -353,5 +355,9 @@
     "deleteAria": "حذف قائمة التشغيل",
     "emptyLabel": "فارغة",
     "created": "أُنشئت «{name}»"
+  },
+  "toasts": {
+    "feedRefreshed": "تم تحديث التوصيات",
+    "languageLoadFailed": "تعذّر تحميل هذه اللغة."
   }
 }
