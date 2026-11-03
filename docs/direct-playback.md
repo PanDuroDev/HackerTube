@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 Start the API in the first PowerShell window:
 
 ```powershell
-$env:HT_ALLOWED_ORIGINS = "http://127.0.0.1:8080"
+$env:HT_ALLOWED_ORIGINS = "http://localhost:8080,http://127.0.0.1:8080"
 $env:HT_TRUST_CLOUDFLARE_IP = "false"
 $env:HT_MAX_CONCURRENT_STREAMS = "2"
 python -m flask --app stream_api run --host 127.0.0.1 --port 8787
