@@ -176,6 +176,7 @@ def _muxed_mp4_candidates(info: dict) -> list[dict]:
 
 @app.route("/api/stream/<video_id>", methods=["GET", "OPTIONS"])
 def stream(video_id: str):
+    """Extract a muxed MP4 and return a short-lived URL served by the media proxy."""
     if request.method == "OPTIONS":
         return ("", 204)
     if not VIDEO_ID_RE.fullmatch(video_id):
