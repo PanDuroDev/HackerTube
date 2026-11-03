@@ -13,10 +13,12 @@ const APP_SOURCE = fs.readFileSync(
 
 function createHarness() {
   const view = { innerHTML: "", addEventListener() {} };
+  const searchInput = { value: "" };
   const storage = new Map();
   const document = {
     title: "",
     querySelector(selector) {
+      if (selector === "#q") return searchInput;
       return selector === "#view" ? view : null;
     },
     querySelectorAll() {
@@ -60,7 +62,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -75,7 +77,7 @@ function createHarness() {
   };
 }
 
-function sampleHNVideo(id = "hn123") {
+function sampleHNVideo(id = "hn123", overrides = {}) {
   return {
     vid: id,
     title: "Hacker News sample video",
@@ -84,8 +86,12 @@ function sampleHNVideo(id = "hn123") {
     primary_topic: "AI",
     recommenders: 4,
     hn: { recommenders: 4 },
-    categories: [],
+    categories: [{ id: "software-engineering", name: "Software engineering", area: "software", area_name: "Software Engineering & Languages" }],
     tags: [],
+    content_type: "talk",
+    level: "general",
+    shelf_life: "evergreen",
+    ...overrides,
   };
 }
 
@@ -585,4 +591,109 @@ test("HN comment partitions use a lowercase, case-insensitive prefix", async () 
   const comments = await harness.api.loadHNMentions("AbCdEfGhIjK");
   assert.equal(comments.length, 0);
   assert.deepEqual(requested, ["data/hacker-news/mentions/a.json.gz"]);
+});
+
+test("HN cards label score-zero videos as discussed", () => {
+  const { api } = createHarness();
+  const discussed = sampleHNVideo("discussed123", {
+    score: 0,
+    recommenders: 0,
+    hn: { recommenders: 0 },
+  });
+  const markup = api.card(discussed);
+
+  assert.ok(markup.includes("Discussed"));
+  assert.ok(!markup.includes("HN 0.0"));
+  assert.ok(markup.includes("Discussed, not recommended"));
+});
+
+test("HN list defaults to programming scope and can switch to All HN", async () => {
+  const harness = createHarness();
+  harness.location.hash = "#/hacker-news";
+  const software = sampleHNVideo("software1", { title: "Software engineering video" });
+  const comedy = sampleHNVideo("comedy1", {
+    title: "Stand-up comedy video",
+    categories: [{
+      id: "standup-sketch-comedy",
+      name: "Stand-up & sketch comedy",
+      area: "arts-entertainment",
+      area_name: "Arts, Comedy, Music & Film",
+    }],
+  });
+  setVideoLoader(harness, [software, comedy]);
+
+  await harness.api.renderHackerNews("");
+  assert.match(harness.view.innerHTML, /Software engineering video/);
+  assert.doesNotMatch(harness.view.innerHTML, /Stand-up comedy video/);
+  assert.match(harness.view.innerHTML, /1 video/);
+
+  harness.api.state.hnFilters.scope = "all";
+  await harness.api.renderHackerNews("");
+  assert.match(harness.view.innerHTML, /Software engineering video/);
+  assert.match(harness.view.innerHTML, /Stand-up comedy video/);
+  assert.match(harness.view.innerHTML, /2 videos/);
+});
+
+test("HN recommendation filtering and score sorting work together", async () => {
+  const harness = createHarness();
+  harness.location.hash = "#/hacker-news";
+  const top = sampleHNVideo("top123", {
+    title: "Top recommended video",
+    score: 9,
+    recommenders: 9,
+    hn: { recommenders: 9, mentions: 10 },
+  });
+  const lower = sampleHNVideo("lower123", {
+    title: "Lower recommended video",
+    score: 2,
+    recommenders: 1,
+    hn: { recommenders: 1, mentions: 50 },
+  });
+  const discussed = sampleHNVideo("discussed123", {
+    title: "Discussed-only video",
+    score: 0,
+    recommenders: 0,
+    hn: { recommenders: 0 },
+  });
+  setVideoLoader(harness, [lower, top, discussed]);
+
+  await harness.api.renderHackerNews("");
+  const sortedHtml = harness.view.innerHTML;
+  assert.ok(sortedHtml.indexOf("Top recommended video") < sortedHtml.indexOf("Lower recommended video"));
+  assert.match(sortedHtml, /Discussed-only video/);
+
+  harness.api.state.hnFilters.sort = "recommenders";
+  await harness.api.renderHackerNews("");
+  assert.ok(harness.view.innerHTML.indexOf("Top recommended video") < harness.view.innerHTML.indexOf("Lower recommended video"));
+
+  harness.api.state.hnFilters.sort = "mentions";
+  await harness.api.renderHackerNews("");
+  assert.ok(harness.view.innerHTML.indexOf("Lower recommended video") < harness.view.innerHTML.indexOf("Top recommended video"));
+
+  harness.api.state.hnFilters.sort = "best";
+  harness.api.state.hnFilters.recommendation = "recommended";
+  await harness.api.renderHackerNews("");
+  assert.match(harness.view.innerHTML, /Top recommended video/);
+  assert.doesNotMatch(harness.view.innerHTML, /Discussed-only video/);
+
+  harness.api.state.hnFilters.recommendation = "discussed";
+  await harness.api.renderHackerNews("");
+  assert.match(harness.view.innerHTML, /Discussed-only video/);
+  assert.doesNotMatch(harness.view.innerHTML, /Top recommended video/);
+});
+
+test("HN filter panel exposes scope, recommendation, type, level, shelf life, area, and sort", async () => {
+  const harness = createHarness();
+  harness.location.hash = "#/hacker-news";
+  setVideoLoader(harness, [sampleHNVideo("software1")]);
+  harness.api.state.hnUiOpen = true;
+  await harness.api.renderHackerNews("");
+  const html = harness.view.innerHTML;
+
+  assert.match(html, /data-hn-scope="programming"/);
+  assert.match(html, /data-hn-scope="all"/);
+  for (const name of ["recommendation", "contentType", "level", "shelfLife", "area", "sort"]) {
+    assert.match(html, new RegExp(`data-select-toggle="${name}"`));
+  }
+  assert.match(html, /data-hn-clear/);
 });
