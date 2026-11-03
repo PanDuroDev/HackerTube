@@ -921,13 +921,8 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
   };
 
   player.addEventListener("error", () => fallback(new Error("The browser could not play the extracted stream.")), { once: true });
-  player.addEventListener("canplay", () => {
-    clearTimeout(mediaTimeout);
-    status.remove();
-    if (autoplay) {
-      player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
-    }
-  }, { once: true });
+  player.addEventListener("loadedmetadata", () => status.remove(), { once: true });
+  player.addEventListener("canplay", () => clearTimeout(mediaTimeout), { once: true });
 
   const controller = new AbortController();
   const fetchTimeout = setTimeout(() => controller.abort(), 25000);
@@ -944,6 +939,9 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
     if (location.hash !== routeHash || !player.isConnected) return;
     player.src = new URL(payload.url, STREAM_API_BASE_URL).href;
     player.load();
+    if (autoplay) {
+      player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
+    }
     mediaTimeout = setTimeout(
       () => fallback(new Error("The stream did not become playable in time.")),
       35000,
