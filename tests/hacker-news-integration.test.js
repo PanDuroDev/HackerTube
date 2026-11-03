@@ -466,12 +466,24 @@ test("single-video HN playlist uses custom player controls and keeps autoplay en
 test("YouTube control preference restores native controls without custom controls", () => {
   const { api } = createHarness();
   const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  assert.ok(customMarkup.includes("controls=0"));
+  const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(customSrc, "custom mode should render an iframe source");
+  const customParams = new URL(customSrc).searchParams;
+  assert.equal(customParams.get("controls"), "0");
+  assert.equal(customParams.get("fs"), "0", "YouTube fullscreen control should be hidden");
+  assert.equal(customParams.get("disablekb"), "1", "YouTube keyboard controls should be disabled");
+  assert.equal(customParams.get("iv_load_policy"), "3", "video annotations should be disabled");
   assert.ok(customMarkup.includes('data-youtube-toggle'));
 
   api.state.settings.customYoutubeControls = false;
   const nativeMarkup = api.youtubeIframeMarkup("video123", "Test video");
-  assert.ok(nativeMarkup.includes("controls=1"));
+  const nativeSrc = nativeMarkup.match(/src="([^"]+)"/)?.[1];
+  assert.ok(nativeSrc, "native mode should render an iframe source");
+  const nativeParams = new URL(nativeSrc).searchParams;
+  assert.equal(nativeParams.get("controls"), "1");
+  assert.equal(nativeParams.get("fs"), "1");
+  assert.equal(nativeParams.get("disablekb"), "0");
+  assert.equal(nativeParams.get("iv_load_policy"), "1");
   assert.ok(!nativeMarkup.includes("data-youtube-toggle"));
   assert.ok(!nativeMarkup.includes('id="youtube-player"'));
 });
