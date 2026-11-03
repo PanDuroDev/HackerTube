@@ -57,6 +57,14 @@
       "few": "{count} فيديوهات",
       "many": "{count} فيديو",
       "other": "{count} فيديو"
+    },
+    "playlists": {
+      "zero": "لا توجد قوائم",
+      "one": "قائمة تشغيل واحدة",
+      "two": "قائمتا تشغيل",
+      "few": "{count} قوائم تشغيل",
+      "many": "{count} قائمة تشغيل",
+      "other": "{count} قائمة تشغيل"
     }
   },
   "filters": {
@@ -322,5 +330,28 @@
     "historyHint": "تظهر الفيديوهات التي تفتحها هنا. يُحتفظ بآخر 50 فيديو في متصفحك.",
     "clearAll": "مسح الكل",
     "browseVideos": "تصفح الفيديوهات"
+  },
+  "playlists": {
+    "createPlaceholder": "اسم قائمة التشغيل الجديدة",
+    "create": "إنشاء",
+    "fromCreators": "من صنّاع المحتوى",
+    "of": "من {total}",
+    "searchPlaceholder": "ابحث في قوائم صنّاع المحتوى",
+    "yourPlaylists": "قوائمك",
+    "emptyTitle": "لا توجد قوائم تشغيل بعد",
+    "emptyHint": "أنشئ قائمة ثم أضف إليها فيديوهات من أي صفحة مشاهدة.",
+    "emptyCreator": "لا توجد قوائم مطابقة",
+    "emptyCreatorHint": "جرّب عنواناً أو قناة مختلفة.",
+    "emptyPlaylist": "قائمة التشغيل فارغة",
+    "emptyPlaylistHint": "أضف فيديوهات من صفحة المشاهدة عبر «إضافة إلى قائمة».",
+    "emptyBuiltin": "لا يوجد شيء من هذه القائمة في الفهرس",
+    "emptyBuiltinHint": "قد تكون فيديوهاتها قصيرة أو خاصة أو خارج الفهرس الحالي.",
+    "allPlaylists": "كل القوائم",
+    "play": "تشغيل",
+    "playAll": "تشغيل الكل",
+    "delete": "حذف قائمة التشغيل",
+    "deleteAria": "حذف قائمة التشغيل",
+    "emptyLabel": "فارغة",
+    "created": "أُنشئت «{name}»"
   }
 }
