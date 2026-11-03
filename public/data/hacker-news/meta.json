@@ -14,11 +14,11 @@
   "related_video_records": 3777,
   "taxonomy_areas": 16,
   "taxonomy_categories": 150,
-  "mention_partitions": 64,
+  "mention_partitions": 38,
   "embedding_rows": 6454,
   "embedding_dimensions": 384,
   "embedding_dtype": "float16",
   "embedding_model": "BAAI/bge-small-en-v1.5",
   "deduplication": "Exact YouTube video ID, then normalized title+channel against the main catalog and within this source archive.",
-  "comments_format": "Gzip-compressed JSON objects partitioned by the first YouTube ID character."
+  "comments_format": "Gzip-compressed JSON objects partitioned by the case-insensitive first YouTube ID character."
 }
