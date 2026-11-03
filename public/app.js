@@ -190,10 +190,30 @@ function applyTheme(pref) {
 }
 
 function setSidebar(open) {
-  if (open) document.body.classList.remove("side-collapsed");
-  $("#sidebar").classList.toggle("open", open);
-  $("#scrim").hidden = !open;
-  $("#menuBtn").setAttribute("aria-expanded", String(open));
+  const mobile = matchMedia("(max-width: 980px)").matches;
+  const sidebar = $("#sidebar");
+
+  if (mobile) {
+    if (open) document.body.classList.remove("side-collapsed");
+    sidebar.classList.toggle("open", open);
+    sidebar.setAttribute("aria-hidden", String(!open));
+    sidebar.inert = !open;
+    $("#scrim").hidden = !open;
+    document.body.classList.toggle("menu-open", open);
+
+    if (open) sidebar.querySelector(".side-close")?.focus();
+    else if (sidebar.contains(document.activeElement)) $("#menuBtn").focus();
+
+    $("#menuBtn").setAttribute("aria-expanded", String(open));
+    return;
+  }
+
+  sidebar.classList.remove("open");
+  sidebar.removeAttribute("aria-hidden");
+  sidebar.inert = false;
+  $("#scrim").hidden = true;
+  document.body.classList.remove("menu-open");
+  $("#menuBtn").setAttribute("aria-expanded", String(!document.body.classList.contains("side-collapsed")));
 }
 
 /* ---------- Routing ---------- */
@@ -252,6 +272,10 @@ function renderSidebar() {
     ["settings", "#/settings", "settings", "Settings"],
   ];
   $("#sidebar").innerHTML = `
+    <div class="side-head">
+      <span class="side-heading">Menu</span>
+      <button class="icon-btn side-close" type="button" aria-label="Close menu">${icon("close")}</button>
+    </div>
     <nav class="side-nav">
       ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span><span class="side-count" data-count="${key}"></span></a>`).join("")}
     </nav>
@@ -260,6 +284,10 @@ function renderSidebar() {
     <p class="side-foot">${videos(state.meta.total)} · ${state.meta.channels.length} channels</p>`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
+    if (e.target.closest(".side-close")) {
+      setSidebar(false);
+      return;
+    }
     const a = e.target.closest("[data-nav]");
     if (!a) return;
     const target = a.getAttribute("href");
