@@ -1,3 +1,4 @@
+import threading
 from unittest.mock import MagicMock, patch
 
 import stream_api
@@ -197,3 +198,70 @@ def test_disallowed_origin_gets_no_cors_permission():
         "/health", headers={"Origin": "https://evil.example"}
     )
     assert "Access-Control-Allow-Origin" not in response.headers
+
+
+def test_stream_token_does_not_outlive_signed_upstream_url():
+    now = 1_800_000_000
+    with (
+        patch.object(stream_api, "STREAM_TTL", 21_600),
+        patch.object(stream_api.time, "time", return_value=now),
+        patch.object(stream_api.time, "monotonic", return_value=100.0),
+    ):
+        token = stream_api._remember_stream(f"{VIDEO_URL}&expire={now + 120}", {})
+        assert stream_api._streams[token][0] == 220.0
+
+
+def test_media_proxy_limits_concurrent_streams_and_releases_slot_on_close():
+    semaphore = threading.BoundedSemaphore(1)
+    first_token = stream_api._remember_stream(VIDEO_URL, {})
+    second_token = stream_api._remember_stream(VIDEO_URL, {})
+    upstream = MagicMock()
+    upstream.status = 200
+    upstream.headers = {"Content-Type": "video/mp4"}
+    client = stream_api.app.test_client()
+
+    with (
+        patch.object(stream_api, "_stream_slots", semaphore),
+        patch.object(stream_api.urllib.request, "urlopen", return_value=upstream),
+    ):
+        first_response = client.get(f"/media/{first_token}", buffered=False)
+        assert first_response.status_code == 200
+
+        blocked_response = client.get(f"/media/{second_token}")
+        assert blocked_response.status_code == 503
+        assert blocked_response.headers["Retry-After"] == "5"
+
+        first_response.close()
+        assert semaphore.acquire(blocking=False)
+        semaphore.release()
+
+    upstream.close.assert_called_once()
+
+
+def test_head_and_upstream_errors_release_concurrency_slots():
+    semaphore = threading.BoundedSemaphore(1)
+    head_token = stream_api._remember_stream(VIDEO_URL, {})
+    error_token = stream_api._remember_stream(VIDEO_URL, {})
+    upstream = MagicMock()
+    upstream.status = 200
+    upstream.headers = {"Content-Type": "video/mp4"}
+    client = stream_api.app.test_client()
+
+    with patch.object(stream_api, "_stream_slots", semaphore):
+        with patch.object(stream_api.urllib.request, "urlopen", return_value=upstream):
+            head_response = client.head(f"/media/{head_token}")
+        assert head_response.status_code == 200
+        assert semaphore.acquire(blocking=False)
+        semaphore.release()
+
+        with patch.object(
+            stream_api.urllib.request,
+            "urlopen",
+            side_effect=OSError("upstream unavailable"),
+        ):
+            error_response = client.get(f"/media/{error_token}")
+        assert error_response.status_code == 502
+        assert semaphore.acquire(blocking=False)
+        semaphore.release()
+
+    upstream.close.assert_called_once()
