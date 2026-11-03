@@ -9,6 +9,28 @@ const TOPIC_LABELS = {
   ai: "AI", data: "Data Analysis", algorithms: "Algorithms", cs: "Computer Science",
   testing: "Testing", networking: "Networking", tools: "Dev Tools",
 };
+const TOPIC_SEARCH_ALIASES = {
+  python: "py بايثون",
+  javascript: "js جافاسكربت جافا سكريبت nodejs",
+  web: "frontend front end تطوير الويب",
+  php: "لارافيل",
+  java: "جافا",
+  cpp: "c++ cplusplus c plus plus سي بلس بلس",
+  csharp: "c# c sharp dotnet .net سي شارب",
+  mobile: "android ios flutter kotlin اندرويد كوتلن",
+  database: "sql mysql postgres mongodb داتا بيز قواعد البيانات",
+  linux: "لينكس اوبونتو",
+  devops: "cloud kubernetes docker ديفوبس",
+  git: "github جيت",
+  security: "cyber hacking cybersecurity امن سيبراني",
+  ai: "machine learning deep learning artificial intelligence ml ذكاء اصطناعي تعلم الاله",
+  data: "data science data analysis تحليل البيانات علم البيانات",
+  algorithms: "data structures هياكل البيانات داتا ستركتشر",
+  cs: "computer science علوم الحاسوب علوم الحاسب",
+  testing: "qa tests اختبار",
+  networking: "شبكات",
+  tools: "ide editors ادوات المطور",
+};
 const DEFAULTS = { pageSize: 36, hideSeen: false };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
@@ -16,6 +38,7 @@ const state = {
   videos: [],
   meta: null,
   byId: new Map(),
+  searchEngine: null,
   hnVideos: null,
   hnVideosPromise: null,
   hnRelated: null,
@@ -23,7 +46,7 @@ const state = {
   hnAliases: null,
   hnAliasesPromise: null,
   hnById: new Map(),
-  hnSearchIndex: new Map(),
+  hnSearchEngine: null,
   hnExisting: null,
   hnExistingPromise: null,
   hnMentionPartitions: new Map(),
@@ -139,6 +162,22 @@ async function init() {
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, TOPIC_LABELS[t.id] || t.label]));
+    state.searchEngine = new window.HackerTubeSearch.SearchIndex(videos, (video) => ({
+      title: video.title,
+      channel: video.channel,
+      topics: (video.topics || []).map((topic) => [
+        topic,
+        TOPIC_LABELS[topic] || topic,
+        TOPIC_SEARCH_ALIASES[topic] || "",
+      ].join(" ")).join(" "),
+      metadata: [
+        KIND_LABELS[video.kind],
+        LEVEL_LABELS[video.level],
+        video.lang === "ar" ? "Arabic عربي" : "English",
+        video.year,
+      ].join(" "),
+      id: video.id,
+    }));
     state.longCount = videos.filter((v) => v.duration >= 1200).length;
     renderSidebar();
     addEventListener("hashchange", () => {
@@ -415,31 +454,34 @@ function resetFilters() {
 }
 
 function filtered(scope) {
-  const q = normalizeAr(scope.q || "");
-  const tokens = q ? q.split(" ") : [];
-  return state.videos
-    .filter((v) => {
-      if (scope.minDuration && v.duration < scope.minDuration) return false;
-      if (scope.channel && v.channel_id !== scope.channel) return false;
-      if (scope.kind && v.kind !== scope.kind) return false;
-      if (tokens.length && !tokens.every((t) => v.search.includes(t))) return false;
-      if (ui.topics.size && !v.topics.some((t) => ui.topics.has(t))) return false;
-      if (ui.lang && v.lang !== ui.lang) return false;
-      if (ui.level && v.level !== ui.level) return false;
-      if (ui.kind && v.kind !== ui.kind) return false;
-      if (ui.year && v.year !== Number(ui.year)) return false;
-      if (ui.channel && v.channel_id !== ui.channel) return false;
-      if (ui.duration) {
-        const d = v.duration;
-        if (ui.duration === "short" && d >= 300) return false;
-        if (ui.duration === "mid" && (d < 300 || d > 1200)) return false;
-        if (ui.duration === "long" && (d <= 1200 || d > 3600)) return false;
-        if (ui.duration === "xl" && d <= 3600) return false;
-      }
-      if (state.settings.hideSeen && state.seen.includes(v.id) && scope.type !== "history") return false;
-      return true;
-    })
-    .sort(sorter(ui.sort));
+  const q = String(scope.q || "").trim();
+  // SearchIndex covers the complete catalog; pagination happens only when rendering.
+  const source = q && state.searchEngine
+    ? state.searchEngine.search(q).map((result) => result.item)
+    : state.videos;
+  const results = source.filter((v) => {
+    if (scope.minDuration && v.duration < scope.minDuration) return false;
+    if (scope.channel && v.channel_id !== scope.channel) return false;
+    if (scope.kind && v.kind !== scope.kind) return false;
+    if (ui.topics.size && !v.topics.some((t) => ui.topics.has(t))) return false;
+    if (ui.lang && v.lang !== ui.lang) return false;
+    if (ui.level && v.level !== ui.level) return false;
+    if (ui.kind && v.kind !== ui.kind) return false;
+    if (ui.year && v.year !== Number(ui.year)) return false;
+    if (ui.channel && v.channel_id !== ui.channel) return false;
+    if (ui.duration) {
+      const d = v.duration;
+      if (ui.duration === "short" && d >= 300) return false;
+      if (ui.duration === "mid" && (d < 300 || d > 1200)) return false;
+      if (ui.duration === "long" && (d <= 1200 || d > 3600)) return false;
+      if (ui.duration === "xl" && d <= 3600) return false;
+    }
+    if (state.settings.hideSeen && state.seen.includes(v.id) && scope.type !== "history") return false;
+    return true;
+  });
+  // Keep relevance order for the default "Best" sort. Explicit sort modes still win.
+  if (!q || ui.sort !== "best") results.sort(sorter(ui.sort));
+  return results;
 }
 
 function sorter(sort) {
@@ -902,20 +944,24 @@ async function loadHNVideos() {
     state.hnVideosPromise = fetchJson("data/hacker-news/videos.json").then((records) => {
       state.hnVideos = records;
       state.hnById = new Map(records.map((record) => [record.vid, record]));
-      state.hnSearchIndex = new Map(records.map((record) => [
-        record.vid,
-        normalizeAr([
-          record.title, record.channel, record.summary, record.why_hn,
-          record.primary_topic, ...(record.tags || []),
-          ...(record.categories || []).map((category) => category.name),
-        ].join(" ")),
-      ]));
+      state.hnSearchEngine = new window.HackerTubeSearch.SearchIndex(records, (record) => ({
+        title: record.title,
+        channel: record.channel,
+        summary: record.summary,
+        why_hn: record.why_hn,
+        primary_topic: record.primary_topic,
+        tags: (record.tags || []).join(" "),
+        categories: (record.categories || []).map((category) =>
+          [category.name, category.id].filter(Boolean).join(" ")
+        ).join(" "),
+        id: record.vid,
+      }));
       return records;
     }).catch((error) => {
       state.hnVideosPromise = null;
       state.hnVideos = null;
       state.hnById = new Map();
-      state.hnSearchIndex = new Map();
+      state.hnSearchEngine = null;
       throw error;
     });
   }
@@ -1104,12 +1150,9 @@ async function renderHackerNews(query = "") {
   try {
     const records = await loadHNVideos();
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
-    const normalized = normalizeAr(query);
-    const tokens = normalized ? normalized.split(" ").filter(Boolean) : [];
-    const list = records.filter((record) => {
-      const text = state.hnSearchIndex.get(record.vid) || "";
-      return tokens.every((token) => text.includes(token));
-    });
+    const list = query
+      ? state.hnSearchEngine.search(query).map((result) => result.item)
+      : records;
     const shown = list.slice(0, state.hnLimit);
     view.innerHTML = `<section class="feed">
       <div class="feed-head">
