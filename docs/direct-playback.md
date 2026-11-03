@@ -49,7 +49,7 @@ Cloudflare prints a temporary HTTPS address ending in `.trycloudflare.com`. Keep
 4. Paste the temporary `https://….trycloudflare.com` address into **Stream API URL** and select **Save**.
 5. Open a video. The HTML5 player will use the local API through the tunnel.
 
-To return to the default Render endpoint, clear the Stream API URL field and save it.
+To return to the default Render endpoint, clear the Stream API URL field and save it. The default Render backend is not currently deployed in this account, so direct playback will remain unavailable until that service is deployed.
 
 ## Important limitations and safety
 
