@@ -73,6 +73,8 @@ let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
+let themeChangeVersion = 0;
+
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
@@ -270,8 +272,6 @@ function toast(message, kind = "check") {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
 }
-
-let themeChangeVersion = 0;
 
 function applyTheme(pref) {
   const root = document.documentElement;
