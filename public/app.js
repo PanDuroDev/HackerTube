@@ -693,27 +693,69 @@ function thumbSrc(id) {
   return `https://i.ytimg.com/vi/${id}/hq${(n % 3) + 1}.jpg`;
 }
 
+function videoWatchHref(video) {
+  return video.id
+    ? `#/watch/${video.id}`
+    : `#/hn-watch/${encodeURIComponent(video.vid)}`;
+}
+
 function card(v, opts = {}) {
-  const later = state.saved.has(v.id);
+  const id = v.id || v.vid;
+  const hn = opts.hn || (!v.id && v.vid ? v : null);
+  const later = state.saved.has(id);
   const remove = opts.remove
-    ? `<button class="card-x" data-remove="${opts.remove}" data-id="${v.id}"${opts.playlist ? ` data-pl="${opts.playlist}"` : ""} aria-label="Remove">${icon("close")}</button>`
+    ? `<button class="card-x" data-remove="${opts.remove}" data-id="${id}"${opts.playlist ? ` data-pl="${opts.playlist}"` : ""} aria-label="Remove">${icon("close")}</button>`
     : "";
-  const topic = v.topics[0] ? ` · ${esc(state.topicLabels[v.topics[0]] || v.topics[0])}` : "";
+  const topicId = v.topics?.[0];
+  const topic = topicId ? ` · ${esc(state.topicLabels[topicId] || topicId)}` : "";
+  const channel = v.channel || "Unknown channel";
+  const channelHTML = v.channel_id
+    ? `<a class="card-sub" href="#/channel/${v.channel_id}">${esc(channel)}</a>`
+    : `<div class="card-sub">${esc(channel)}</div>`;
+  const hnRecommenders = Number(hn?.hn?.recommenders || hn?.recommenders || 0);
+  const hnMeta = hn
+    ? `${hnRecommenders ? `${hnRecommenders} recommenders` : "Discussed, not recommended"} · ${esc(hn.primary_topic || "Hacker News pick")}`
+    : `${compact.format(v.views || 0)} views${v.year ? ` · ${v.year}` : ""}${topic}`;
+  const badge = hn ? `HN ${Number(hn.score || 0).toFixed(1)}` : fmtDuration(v.duration);
+  const watchHref = videoWatchHref(v);
   return `<article class="card">
     <div class="thumb">
-      <a class="thumb-link" href="#/watch/${v.id}" aria-label="${esc(v.title)}">
-        <img src="${thumbSrc(v.id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
+      <a class="thumb-link" href="${watchHref}" aria-label="${esc(v.title)}">
+        <img src="${thumbSrc(id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
       </a>
-      <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${v.id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
+      <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
       ${remove}
-      <span class="dur">${fmtDuration(v.duration)}</span>
+      <span class="dur">${badge}</span>
     </div>
     <div class="card-info">
-      <a class="card-title" href="#/watch/${v.id}">${esc(v.title)}</a>
-      <a class="card-sub" href="#/channel/${v.channel_id}">${esc(v.channel)}</a>
-      <div class="card-sub">${compact.format(v.views)} views${v.year ? ` · ${v.year}` : ""}${topic}</div>
+      <a class="card-title" href="${watchHref}">${esc(v.title)}</a>
+      ${channelHTML}
+      <div class="card-sub">${hnMeta}</div>
     </div>
   </article>`;
+}
+
+function watchActionsHTML(videoId) {
+  const liked = state.likes.has(videoId);
+  const later = state.saved.has(videoId);
+  const playlistPanel = state.playlists.length
+    ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
+    : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
+  return `<div class="actions watch-actions">
+    <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
+      aria-label="More video actions" aria-controls="watchActionItems" aria-expanded="false">
+      ${icon("more")} <span>More</span>
+    </button>
+    <div class="watch-action-items" id="watchActionItems">
+      <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+      <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+      <details class="drop">
+        <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
+        <div class="drop-panel">${playlistPanel}</div>
+      </details>
+      <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+    </div>
+  </div>`;
 }
 
 function emptyState() {
@@ -752,12 +794,7 @@ async function renderWatch(id, playlistId = null) {
     .filter((x) => x.id !== v.id && x.topics.some((t) => v.topics.includes(t)))
     .sort((a, b) => shared(b, v) - shared(a, v) || b.score - a.score)
     .slice(0, 8);
-  const liked = state.likes.has(id);
-  const later = state.saved.has(id);
   const ch = state.channels.get(v.channel_id);
-  const playlistPanel = state.playlists.length
-    ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
-    : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
   const playerParams = new URLSearchParams({
     enablejsapi: "1",
     origin: location.origin,
@@ -784,21 +821,7 @@ async function renderWatch(id, playlistId = null) {
           <span class="avatar" id="watch-avatar">${esc(v.channel.trim().charAt(0))}</span>
           <span class="watch-channel-text"><b id="watch-channel-name">${esc(v.channel)}</b><small id="watch-channel-count">${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
         </a>
-        <div class="actions watch-actions">
-          <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
-            aria-label="More video actions" aria-controls="watchActionItems" aria-expanded="false">
-            ${icon("more")} <span>More</span>
-          </button>
-          <div class="watch-action-items" id="watchActionItems">
-            <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-            <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
-            <details class="drop">
-              <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
-              <div class="drop-panel">${playlistPanel}</div>
-            </details>
-            <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
-          </div>
-        </div>
+        ${watchActionsHTML(id)}
       </div>
       <div class="watch-meta">
         <span>${icon("eye")} ${compact.format(v.views)} views</span>
@@ -1152,21 +1175,8 @@ async function renderHNEvidence(videoId) {
 }
 
 function hnCard(video) {
-  const recommenders = Number(video.hn?.recommenders || 0);
-  const recommendationLabel = recommenders ? `${recommenders} recommenders` : "Discussed, not recommended";
-  return `<article class="card hn-card">
-    <div class="thumb">
-      <a class="thumb-link" href="#/hn-watch/${encodeURIComponent(video.vid)}" aria-label="${esc(video.title)}">
-        <img src="${thumbSrc(video.vid)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${video.vid}/hqdefault.jpg'">
-      </a>
-      <span class="dur">HN ${Number(video.score || 0).toFixed(1)}</span>
-    </div>
-    <div class="card-info">
-      <a class="card-title" href="#/hn-watch/${encodeURIComponent(video.vid)}">${esc(video.title)}</a>
-      <div class="card-sub">${esc(video.channel || "Unknown channel")}</div>
-      <div class="card-sub">${recommendationLabel} · ${esc(video.primary_topic || "Hacker News pick")}</div>
-    </div>
-  </article>`;
+  const mainVideo = state.byId.get(video.vid);
+  return card(mainVideo || video, { hn: video });
 }
 
 async function renderHackerNews(query = "") {
@@ -1221,6 +1231,8 @@ async function renderHNWatch(requestedVideoId) {
       location.hash = `#/hn-watch/${encodeURIComponent(videoId)}`;
       return;
     }
+    state.current = videoId;
+    markSeen(videoId);
     const commentsUnavailable = commentResult === null;
     const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
@@ -1238,7 +1250,7 @@ async function renderHNWatch(requestedVideoId) {
         <h1 class="watch-title">${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
-          <div class="actions"><a class="btn" href="https://www.youtube.com/watch?v=${video.vid}" target="_blank" rel="noopener noreferrer">${icon("external")} YouTube</a></div>
+          ${watchActionsHTML(videoId)}
         </div>
         ${hnDescriptionHTML(video, mainVideo)}
         ${quote}
@@ -1266,21 +1278,34 @@ const COLLECTIONS = {
   history: { title: "History", set: null, empty: "Nothing watched yet.", hint: "Videos you open show up here. The last 50 are kept in your browser." },
 };
 
-function renderCollection(kind) {
+async function renderCollection(kind) {
   const cfg = COLLECTIONS[kind];
+  const routeHash = location.hash;
+  const ids = kind === "history" ? [...state.seen] : [...cfg.set()];
+  if (ids.some((id) => !state.byId.has(id) && !state.hnById.has(id))) {
+    try { await loadHNVideos(); } catch { /* Keep available main-catalog entries visible. */ }
+  }
+  if (location.hash !== routeHash) return;
   const list = kind === "history"
-    ? state.seen.map((id) => state.byId.get(id)).filter(Boolean)
-    : state.videos.filter((v) => cfg.set().has(v.id));
+    ? ids.map(videoById).filter(Boolean)
+    : [
+        ...state.videos.filter((video) => cfg.set().has(video.id)),
+        ...ids.filter((id) => !state.byId.has(id)).map(videoById).filter(Boolean),
+      ];
   document.title = `${cfg.title} — HackerTube`;
   const clear = list.length ? `<button class="btn" data-clear-collection="${kind}">${icon("trash")} Clear all</button>` : "";
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${cfg.title}</h1><span class="count">${videos(list.length)}</span></div>
     ${clear ? `<div class="head-tools">${clear}</div>` : ""}
     ${list.length
-      ? `<div class="grid">${list.map((v) => card(v, { remove: kind })).join("")}</div>`
+      ? `<div class="grid">${list.map((video) => card(video, { remove: kind })).join("")}</div>`
       : `<div class="empty"><strong>${cfg.empty}</strong><p>${cfg.hint}</p><a class="btn" href="#/">Browse videos</a></div>`}
   </section>`;
   syncSidebar();
+}
+
+function videoById(id) {
+  return state.byId.get(id) || state.hnById.get(id) || state.hnExisting?.[id] || null;
 }
 
 /* ---------- Categories ---------- */
@@ -1334,7 +1359,15 @@ function addToPlaylist(plId, videoId) {
   syncSidebar();
 }
 
-function renderPlaylists() {
+async function renderPlaylists() {
+  const routeHash = location.hash;
+  const hasHnOnlyVideos = state.playlists.some((playlist) =>
+    playlist.ids.some((id) => !state.byId.has(id))
+  );
+  if (hasHnOnlyVideos) {
+    try { await loadHNVideos(); } catch { /* Playlist metadata still renders without HN thumbnails. */ }
+  }
+  if (location.hash !== routeHash) return;
   document.title = "Playlists — HackerTube";
   const total = state.builtin.length + state.playlists.length;
   const creators = state.showAllPlaylists ? state.builtin : state.builtin.slice(0, 24);
@@ -1394,7 +1427,7 @@ async function renderBuiltinPlaylist(id) {
 }
 
 function playlistCard(p) {
-  const first = p.ids.map((id) => state.byId.get(id)).find(Boolean);
+  const first = p.ids.map(videoById).find(Boolean);
   return `<article class="pl-card">
     <a class="pl-cover" href="#/playlist/${p.id}" aria-label="${esc(p.name)}">
       ${first ? `<img src="${thumbSrc(first.id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${first.id}/hqdefault.jpg'">` : icon("playlists")}
@@ -1407,15 +1440,20 @@ function playlistCard(p) {
   </article>`;
 }
 
-function renderPlaylist(id) {
+async function renderPlaylist(id) {
   const pl = playlistById(id);
   if (!pl) return renderNotFound();
-  const list = pl.ids.map((vid) => state.byId.get(vid)).filter(Boolean);
+  const routeHash = location.hash;
+  if (pl.ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId))) {
+    try { await loadHNVideos(); } catch { /* Keep available main-catalog entries visible. */ }
+  }
+  if (location.hash !== routeHash) return;
+  const list = pl.ids.map(videoById).filter(Boolean);
   document.title = `${pl.name} — HackerTube`;
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(pl.name)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}">${icon("play")} Play</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="${videoWatchHref(list[0])}">${icon("play")} Play</a>` : ""}
       <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} Delete playlist</button>
     </div>
     ${list.length
