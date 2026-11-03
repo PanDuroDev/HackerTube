@@ -69,6 +69,7 @@ async function init() {
     if (e.key === "Escape") {
       setSidebar(false);
       closeSelects();
+      closeWatchActionMenu(true);
     }
     if (e.key === "Tab" && matchMedia("(max-width: 980px)").matches && $("#sidebar").classList.contains("open")) {
       const focusable = $("#sidebar").querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
@@ -100,6 +101,7 @@ async function init() {
   view.addEventListener("submit", onViewSubmit);
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".select")) closeSelects();
+    if (!e.target.closest(".watch-actions")) closeWatchActionMenu();
   });
 
   try {
@@ -558,14 +560,20 @@ function renderWatch(id) {
           <span class="avatar">${esc(v.channel.trim().charAt(0))}</span>
           <span class="watch-channel-text"><b>${esc(v.channel)}</b><small>${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
         </a>
-        <div class="actions">
-          <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-          <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
-          <details class="drop">
-            <summary class="btn">${icon("playlists")} Add to playlist</summary>
-            <div class="drop-panel">${playlistPanel}</div>
-          </details>
-          <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+        <div class="actions watch-actions">
+          <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
+            aria-label="More video actions" aria-controls="watchActionItems" aria-expanded="false">
+            ${icon("more")} <span>More</span>
+          </button>
+          <div class="watch-action-items" id="watchActionItems">
+            <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+            <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+            <details class="drop">
+              <summary class="btn">${icon("playlists")} Add to playlist</summary>
+              <div class="drop-panel">${playlistPanel}</div>
+            </details>
+            <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+          </div>
         </div>
       </div>
       <div class="watch-meta">
@@ -804,6 +812,17 @@ function renderNotFound() {
 /* ---------- Events ---------- */
 
 function onViewClick(e) {
+  const actionsToggle = e.target.closest("[data-watch-actions-toggle]");
+  if (actionsToggle) {
+    const actions = actionsToggle.closest(".watch-actions");
+    const open = !actions.classList.contains("menu-open");
+    actions.classList.toggle("menu-open", open);
+    actionsToggle.setAttribute("aria-expanded", String(open));
+    return;
+  }
+
+  if (e.target.closest(".watch-action-items a")) closeWatchActionMenu(true);
+
   const goto = e.target.closest("[data-goto-topic]");
   if (goto) {
     pendingTopic = goto.dataset.gotoTopic;
@@ -888,6 +907,7 @@ function onViewClick(e) {
 
   const add = e.target.closest("[data-add-playlist]");
   if (add) {
+    closeWatchActionMenu(true);
     addToPlaylist(add.dataset.addPlaylist, state.current);
     const details = add.closest("details");
     if (details) details.removeAttribute("open");
@@ -925,7 +945,19 @@ function onViewClick(e) {
   }
 
   const act = e.target.closest("[data-act]");
-  if (act) toggleAct(act.dataset.act);
+  if (act) {
+    closeWatchActionMenu(true);
+    toggleAct(act.dataset.act);
+  }
+}
+
+function closeWatchActionMenu(restoreFocus = false) {
+  const actions = document.querySelector(".watch-actions.menu-open");
+  if (!actions) return;
+  actions.classList.remove("menu-open");
+  const toggle = actions.querySelector("[data-watch-actions-toggle]");
+  toggle?.setAttribute("aria-expanded", "false");
+  if (restoreFocus) toggle?.focus();
 }
 
 function onViewChange(e) {
