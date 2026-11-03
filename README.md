@@ -61,9 +61,18 @@ pipeline/        Fetching (API/yt-dlp/YouTube.js), classification, and data gene
 pipeline/ytjs/   YouTube.js fallback
 public/          Static website (HTML/CSS/JS, no frontend framework)
 public/search.js Local indexing, weighted search, synonyms, prefixes, and limited typo correction
-public/data/     Generated catalog, Hacker News data, comments, relationships, and embeddings
+public/data/     Generated catalog, Hacker News data, comments, relationships, and fast preview
+data/hacker-news/ Source-only taxonomy and embedding assets (not deployed)
 tests/           Tests for normalization, classification, sources, and data
 \`\`\`
+
+## Performance
+
+- Hacker News renders a small `videos-preview.json` first, then loads the full catalog in the background.
+- Search indexes are built on first search (or during idle time), not during the initial render.
+- The main catalog omits the unused precomputed `search` string.
+- Embedding and taxonomy assets live in `data/hacker-news/` and are excluded from the Pages artifact; `hackertube-data.zip` stays at the repository root and is not deployed either.
+- Budget: first page under 2 seconds on a typical broadband connection; first HN cards from the preview without waiting for the full catalog.
 
 ## Known limitations
 

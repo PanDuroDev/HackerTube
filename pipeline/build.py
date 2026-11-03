@@ -9,7 +9,6 @@ from pathlib import Path
 
 from .classify import TOPIC_LABELS, classify, is_episode
 from .config import CHANNEL_LANG, MIN_DURATION
-from .normalize import normalize_ar
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
@@ -64,9 +63,7 @@ def build_records(payloads: list[dict]) -> list[dict]:
             if not prev or rec["views"] > prev["views"]:
                 records[rec["id"]] = rec
 
-    # حقول البحث بعد التصنيف
-    for rec in records.values():
-        rec["search"] = normalize_ar(f"{rec['title']} {rec['channel']}")
+    # حقول البحث تُبنى في الواجهة من العنوان والقناة والمواضيع.
 
     # حلقة من سلسلة بلا كلمة مفتاحية: خذ الموضوع الغالب للقناة
     tagged = Counter()

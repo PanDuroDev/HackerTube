@@ -7,6 +7,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAIN_VIDEOS = ROOT / "public" / "data" / "videos.json"
 HN_DATA = ROOT / "public" / "data" / "hacker-news"
+HN_ASSETS = ROOT / "data" / "hacker-news"
+PROGRAMMING_AREAS = {
+    "software",
+    "systems-security",
+    "ai-data",
+    "math-theory",
+    "hardware",
+    "computing-history-culture",
+    "design-graphics-media",
+    "games",
+}
 
 
 def normalized(value):
@@ -102,14 +113,17 @@ def test_hacker_news_auxiliary_assets_are_complete():
     existing = json.loads((HN_DATA / "existing.json").read_text(encoding="utf-8"))
     aliases = json.loads((HN_DATA / "aliases.json").read_text(encoding="utf-8"))
     canonical_ids = {video["vid"] for video in imported} | set(existing)
-    embedding_ids = json.loads((HN_DATA / "embedding_ids.json").read_text(encoding="utf-8"))
+    embedding_ids = json.loads((HN_ASSETS / "embedding_ids.json").read_text(encoding="utf-8"))
     source_ids = {video["vid"] for video in imported} | set(aliases) | (set(existing) & set(embedding_ids))
-    embeddings = (HN_DATA / "embeddings.npy").read_bytes()
+    embeddings = (HN_ASSETS / "embeddings.npy").read_bytes()
     assert len(embedding_ids) == len(set(embedding_ids)) == 6_454
     assert set(embedding_ids) == source_ids
     assert embeddings.startswith(bytes([0x93]) + b"NUMPY")
     assert len(embeddings) > 4_000_000
     assert (HN_DATA / "DATA.md").is_file()
+    assert not (HN_DATA / "embeddings.npy").exists()
+    assert not (HN_DATA / "embedding_ids.json").exists()
+    assert not (HN_DATA / "taxonomy.json").exists()
 
     related = json.loads((HN_DATA / "related.json").read_text(encoding="utf-8"))
     assert set(related) <= canonical_ids
@@ -122,7 +136,7 @@ def test_hacker_news_auxiliary_assets_are_complete():
     meta = json.loads((HN_DATA / "meta.json").read_text(encoding="utf-8"))
     assert meta["embedding_rows"] == 6_454
     assert meta["embedding_dimensions"] == 384
-    taxonomy = json.loads((HN_DATA / "taxonomy.json").read_text(encoding="utf-8"))
+    taxonomy = json.loads((HN_ASSETS / "taxonomy.json").read_text(encoding="utf-8"))
     taxonomy_areas = taxonomy.get("areas", [])
     taxonomy_categories = sum(len(area.get("categories", [])) for area in taxonomy_areas)
     assert len(taxonomy_areas) == meta["taxonomy_areas"] == 16
@@ -132,3 +146,22 @@ def test_hacker_news_auxiliary_assets_are_complete():
     assert "## Published layout" in published_docs
     assert "`videos.json`" in published_docs
     assert "`mentions/<prefix>.json.gz`" in published_docs
+
+
+def test_hacker_news_preview_is_programming_only_and_score_sorted():
+    imported = json.loads((HN_DATA / "videos.json").read_text(encoding="utf-8"))
+    preview = json.loads((HN_DATA / "videos-preview.json").read_text(encoding="utf-8"))
+    meta = json.loads((HN_DATA / "meta.json").read_text(encoding="utf-8"))
+    imported_ids = {video["vid"] for video in imported}
+
+    assert len(preview) == meta["preview_videos"] == 36
+    assert all(video["vid"] in imported_ids for video in preview)
+    assert all(
+        any(category.get("area") in PROGRAMMING_AREAS for category in video.get("categories") or [])
+        for video in preview
+    )
+    scores = [float(video.get("score") or 0) for video in preview]
+    assert scores == sorted(scores, reverse=True)
+    published_docs = (HN_DATA / "DATA.md").read_text(encoding="utf-8")
+    assert "`videos-preview.json`" in published_docs
+    assert "data/hacker-news/" in published_docs

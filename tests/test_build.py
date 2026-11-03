@@ -70,11 +70,6 @@ def test_channel_language_wins_over_title():
     assert meta["languages"] == {"en": 1}
 
 
-def test_search_text_is_normalized():
-    records = build_records([payload([entry("a", "دورة بايثون")])])
-    assert records[0]["search"] == "دوره بايثون قناه تجريبيه"
-
-
 def test_playlists_keep_only_indexed_videos(tmp_path):
     import json
 
