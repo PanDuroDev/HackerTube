@@ -2034,9 +2034,9 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
 /* ---------- Collections ---------- */
 
 const COLLECTIONS = {
-  liked: { title: "Liked", set: () => state.likes, empty: "No liked videos yet.", hint: "Use the Like button on any video." },
-  later: { title: "Watch later", set: () => state.saved, empty: "Watch later is empty.", hint: "Use the clock icon on any card or the Watch later button." },
-  history: { title: "History", set: null, empty: "Nothing watched yet.", hint: "Videos you open show up here. The last 50 are kept in your browser." },
+  liked: { titleKey: "nav.liked", title: "Liked", set: () => state.likes, emptyKey: "collections.likedEmpty", empty: "No liked videos yet.", hintKey: "collections.likedHint", hint: "Use the Like button on any video." },
+  later: { titleKey: "nav.later", title: "Watch later", set: () => state.saved, emptyKey: "collections.watchLaterEmpty", empty: "Watch later is empty.", hintKey: "collections.watchLaterHint", hint: "Use the clock icon on any card or the Watch later button." },
+  history: { titleKey: "nav.history", title: "History", set: null, emptyKey: "collections.historyEmpty", empty: "Nothing watched yet.", hintKey: "collections.historyHint", hint: "Videos you open show up here. The last 50 are kept in your browser." },
 };
 
 async function renderCollection(kind) {
@@ -2055,18 +2055,21 @@ async function renderCollection(kind) {
         ...state.videos.filter((video) => cfg.set().has(video.id)),
         ...ids.filter((id) => !state.byId.has(id)).map(videoById).filter(Boolean),
       ];
-  document.title = `${cfg.title} — HackerTube`;
+  const collectionTitle = tr(cfg.titleKey, cfg.title);
+  const collectionEmpty = tr(cfg.emptyKey, cfg.empty);
+  const collectionHint = tr(cfg.hintKey, cfg.hint);
+  document.title = `${collectionTitle} — HackerTube`;
   const continueList = kind === "history"
     ? ids.map(videoById).filter((video) => video && progressFor(video.id || video.vid)).slice(0, 6)
     : [];
-  const clear = list.length ? `<button class="btn" data-clear-collection="${kind}">${icon("trash")} Clear all</button>` : "";
+  const clear = list.length ? `<button class="btn" data-clear-collection="${kind}">${icon("trash")} ${tr("collections.clearAll", "Clear all")}</button>` : "";
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>${cfg.title}</h1><span class="count">${videos(list.length)}</span></div>
-    ${continueList.length ? `<section class="continue-watching"><h2 class="section-title">Continue watching</h2><div class="grid">${continueList.map((video) => card(video)).join("")}</div></section>` : ""}
+    <div class="feed-head"><h1>${collectionTitle}</h1><span class="count">${videos(list.length)}</span></div>
+    ${continueList.length ? `<section class="continue-watching"><h2 class="section-title">${tr("watch.continueWatching", "Continue watching")}</h2><div class="grid">${continueList.map((video) => card(video)).join("")}</div></section>` : ""}
     ${clear ? `<div class="head-tools">${clear}</div>` : ""}
     ${list.length
       ? `<div class="grid">${list.map((video) => card(video, { remove: kind })).join("")}</div>`
-      : `<div class="empty"><strong>${cfg.empty}</strong><p>${cfg.hint}</p><a class="btn" href="#/">Browse videos</a></div>`}
+      : `<div class="empty"><strong>${collectionEmpty}</strong><p>${collectionHint}</p><a class="btn" href="#/">${tr("collections.browseVideos", "Browse videos")}</a></div>`}
   </section>`;
   syncSidebar();
 }

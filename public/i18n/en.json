@@ -306,6 +306,17 @@
     "thisYear": "this year",
     "yearsAgo": "{count} years ago",
     "loadError": "Could not load this video.",
-    "unknownChannel": "Unknown channel"
+    "unknownChannel": "Unknown channel",
+    "continueWatching": "Continue watching"
+  },
+  "collections": {
+    "likedEmpty": "No liked videos yet.",
+    "likedHint": "Use the Like button on any video.",
+    "watchLaterEmpty": "Watch later is empty.",
+    "watchLaterHint": "Use the clock icon on any card or the Watch later button.",
+    "historyEmpty": "Nothing watched yet.",
+    "historyHint": "Videos you open show up here. The last 50 are kept in your browser.",
+    "clearAll": "Clear all",
+    "browseVideos": "Browse videos"
   }
 }
