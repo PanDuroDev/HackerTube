@@ -43,14 +43,12 @@ BGUTIL_SERVER_HOME = Path(os.environ.get(
     "HT_BGUTIL_SERVER_HOME",
     Path(__file__).resolve().parent / "vendor" / "bgutil-ytdlp-pot-provider" / "server",
 )).expanduser().resolve()
+BGUTIL_NODE_SCRIPT = BGUTIL_SERVER_HOME / "build" / "generate_once.js"
 
 
 def _bgutil_provider_ready() -> bool:
-    """Return whether the bundled BgUtils script and its Deno runtime are available."""
-    return bool(
-        shutil.which("deno")
-        and (BGUTIL_SERVER_HOME / "src" / "generate_once.ts").is_file()
-    )
+    """Return whether the bundled BgUtils script and its Node.js runtime are available."""
+    return bool(shutil.which("node") and BGUTIL_NODE_SCRIPT.is_file())
 
 _requests: dict[str, deque[float]] = defaultdict(deque)
 _rate_lock = threading.Lock()
@@ -248,7 +246,7 @@ def stream(video_id: str):
             if not candidates and provider_ready:
                 # mweb needs PO Tokens for some YouTube sessions. The BgUtils
                 # script provider generates them on demand using the bundled
-                # Deno runtime; the extraction semaphore keeps this work serial.
+                # Node.js runtime; the extraction semaphore keeps this work serial.
                 mweb_options = {
                     **options,
                     "extractor_args": {
