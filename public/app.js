@@ -1067,29 +1067,59 @@ function hnCommentsHTML(comments, unavailable = false) {
     </article>`).join("")}</div>`;
 }
 
-function hnContextHTML(video, comments, commentsUnavailable = false) {
+function hnDescriptionHTML(video, mainVideo = null) {
   const hn = video.hn || {};
+  const metadata = [];
+  const views = Number(mainVideo?.views);
+  const year = Number(mainVideo?.year);
+
+  if (Number.isFinite(views) && views > 0) {
+    metadata.push(`${compact.format(views)} views`);
+  }
+  if (Number.isInteger(year) && year >= 1900 && year <= new Date().getFullYear()) {
+    const yearsAgo = new Date().getFullYear() - year;
+    metadata.push(yearsAgo === 0 ? "this year" : `${yearsAgo} ${yearsAgo === 1 ? "year" : "years"} ago`);
+  }
+  if (!(Number.isFinite(views) && views > 0) && Number(hn.mentions) > 0) {
+    metadata.push(`${Number(hn.mentions)} HN mentions`);
+  }
+  if (Number(hn.recommenders) > 0) {
+    metadata.push(`${Number(hn.recommenders)} recommenders`);
+  }
+
+  const contentType = String(video.content_type || (mainVideo?.kind ? KIND_LABELS[mainVideo.kind] || mainVideo.kind : "")).trim();
+  if (contentType) metadata.push(contentType.toLowerCase());
+  if (video.shelf_life) metadata.push(String(video.shelf_life).toLowerCase());
+
+  const categories = (video.categories || []).map((category) => {
+    const label = String(category.name || category.id || "").trim();
+    if (!label) return "";
+    const query = category.name || category.id || label;
+    return `<a class="hn-tag hn-tag-category" href="#/hacker-news/${esc(encodeURIComponent(query))}">${esc(label)}</a>`;
+  }).join("");
+  const tags = (video.tags || []).map((tag) => {
+    const label = String(tag || "").replace(/^#+/, "").trim();
+    if (!label) return "";
+    return `<a class="hn-tag hn-tag-topic" href="#/hacker-news/${esc(encodeURIComponent(label))}">#${esc(label)}</a>`;
+  }).join("");
+  const tagLinks = categories + tags;
+
+  return `<div class="hn-desc">
+    ${metadata.length ? `<div class="hn-top-line">${metadata.map(esc).join(" · ")}</div>` : ""}
+    ${video.summary ? `<p>${esc(video.summary)}</p>` : ""}
+    ${video.why_hn ? `<p class="hn-desc-why">${esc(video.why_hn)}</p>` : ""}
+    ${tagLinks ? `<div class="hn-desc-tags">${tagLinks}</div>` : ""}
+  </div>`;
+}
+
+function hnContextHTML(video, comments, commentsUnavailable = false, mainVideo = null) {
   const quote = video.quote?.text
     ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
     : "";
-  const categories = (video.categories || []).map((category) =>
-    `<span class="hn-tag">${esc(category.name)}</span>`).join("");
-  const tags = (video.tags || []).map((tag) =>
-    `<span class="hn-tag">${esc(tag)}</span>`).join("");
   return `
     <section class="hn-context">
-      <h2 class="section-title">Hacker News context</h2>
-      ${video.summary ? `<p class="hn-summary">${esc(video.summary)}</p>` : ""}
-      ${video.why_hn ? `<p class="hn-why"><b>Why it is recommended:</b> ${esc(video.why_hn)}</p>` : ""}
-      <div class="hn-stats">
-        <span><b>${Number(hn.recommenders || 0)}</b> recommenders</span>
-        <span><b>${Number(hn.rec_months || 0)}</b> recommendation months</span>
-        <span><b>${Number(hn.mentions || comments.length || 0)}</b> archived comments</span>
-        <span><b>${Number(video.score || 0).toFixed(1)}</b> HN score</span>
-      </div>
+      ${hnDescriptionHTML(video, mainVideo)}
       ${quote}
-      ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
-      ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
       ${hnAttributionHTML()}
     </section>
     <section class="hn-discussion">
@@ -1111,7 +1141,7 @@ async function renderHNEvidence(videoId) {
     const target = $("#hn-evidence");
     if (!target || state.current !== videoId) return;
     target.hidden = false;
-    target.innerHTML = hnContextHTML(video, comments || [], comments === null);
+    target.innerHTML = hnContextHTML(video, comments || [], comments === null, state.byId.get(videoId));
   } catch (error) {
     const target = $("#hn-evidence");
     if (target && state.current === videoId) {
@@ -1178,7 +1208,7 @@ async function renderHNWatch(requestedVideoId) {
     const aliases = await loadHNAliases();
     if (location.hash !== requestedRoute) return;
     const videoId = aliases[requestedVideoId] || requestedVideoId;
-    const [records, existing, related, commentResult] = await Promise.all([
+    const [, existing, related, commentResult] = await Promise.all([
       loadHNVideos(),
       loadHNExisting(),
       loadHNRelated(),
@@ -1194,11 +1224,7 @@ async function renderHNWatch(requestedVideoId) {
     const commentsUnavailable = commentResult === null;
     const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
-    const hn = video.hn || {};
-    const categories = (video.categories || []).map((category) =>
-      `<span class="hn-tag">${esc(category.name)}</span>`).join("");
-    const tags = (video.tags || []).map((tag) =>
-      `<span class="hn-tag">${esc(tag)}</span>`).join("");
+    const mainVideo = state.byId.get(videoId);
     const quote = video.quote?.text
       ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
       : "";
@@ -1206,7 +1232,6 @@ async function renderHNWatch(requestedVideoId) {
       .map((item) => state.hnById.get(item.vid) || existing[item.vid])
       .filter(Boolean)
       .slice(0, 8);
-    const isRecommended = Number(hn.recommenders || 0) > 0;
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
         <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
@@ -1215,17 +1240,8 @@ async function renderHNWatch(requestedVideoId) {
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
           <div class="actions"><a class="btn" href="https://www.youtube.com/watch?v=${video.vid}" target="_blank" rel="noopener noreferrer">${icon("external")} YouTube</a></div>
         </div>
-        <div class="hn-stats">
-          <span><b>${Number(hn.recommenders || 0)}</b> recommenders</span>
-          <span><b>${Number(hn.rec_months || 0)}</b> recommendation months</span>
-          <span><b>${Number(hn.mentions || comments.length || 0)}</b> archived comments</span>
-          <span><b>${Number(video.score || 0).toFixed(1)}</b> HN score</span>
-        </div>
-        ${video.summary ? `<section class="hn-context"><h2 class="section-title">Summary</h2><p class="hn-summary">${esc(video.summary)}</p></section>` : ""}
-        ${video.why_hn ? `<section class="hn-context"><h2 class="section-title">${isRecommended ? "Why Hacker News recommends it" : "Why Hacker News mentioned it"}</h2><p class="hn-summary">${esc(video.why_hn)}</p></section>` : ""}
+        ${hnDescriptionHTML(video, mainVideo)}
         ${quote}
-        ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
-        ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
         <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments, commentsUnavailable)}</section>
       </div>
       <aside class="watch-side">
