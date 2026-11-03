@@ -71,6 +71,7 @@ const state = {
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
 let playlistPlayer = null;
+let youtubePlayerPoll = null;
 let youtubeApiPromise = null;
 const DEFAULT_STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
 
@@ -377,6 +378,8 @@ function setSidebar(open) {
 /* ---------- Routing ---------- */
 
 function render() {
+  clearInterval(youtubePlayerPoll);
+  youtubePlayerPoll = null;
   if (playlistPlayer) {
     playlistPlayer.destroy();
     playlistPlayer = null;
@@ -929,11 +932,12 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   syncSidebar();
   renderHNEvidence(id);
   if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash, autoplay);
-  else if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+  else startYouTubePlayer(v.id, queue, playlistId, routeHash, autoplay);
 }
 
 function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   const params = new URLSearchParams({
+    controls: "0",
     enablejsapi: "1",
     origin: location.origin,
     rel: "0",
@@ -941,11 +945,26 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   });
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
-  return `<iframe ${queue && queue.length > 1 ? 'id="youtube-player"' : ""}
-    src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
-    title="${esc(title)}" loading="lazy" allowfullscreen
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  return `<div class="youtube-player-frame">
+    <iframe id="youtube-player"
+      src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
+      title="${esc(title)}" loading="lazy" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+  <div class="native-controls youtube-controls" aria-label="Custom video controls">
+    <button class="native-control-btn" type="button" data-youtube-toggle aria-label="Play">Play</button>
+    <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-youtube-seek aria-label="Seek" disabled>
+    <output class="native-time" data-youtube-time>0:00 / 0:00</output>
+    <button class="native-control-btn" type="button" data-youtube-mute aria-label="Mute">Mute</button>
+    <input class="native-volume" type="range" min="0" max="100" value="100" step="1" data-youtube-volume aria-label="Volume">
+    <label class="youtube-speed-label">Speed
+      <select class="youtube-speed" data-youtube-speed aria-label="Playback speed">
+        <option value="1">1×</option>
+      </select>
+    </label>
+    <button class="native-control-btn" type="button" data-youtube-fullscreen aria-label="Fullscreen">Full</button>
+  </div>`;
 }
 
 function formatPlayerTime(seconds) {
@@ -955,6 +974,97 @@ function formatPlayerTime(seconds) {
   const minutes = Math.floor((total % 3600) / 60);
   const remaining = String(total % 60).padStart(2, "0");
   return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${remaining}` : `${minutes}:${remaining}`;
+}
+
+function attachYouTubePlayerControls(player, YT) {
+  const container = player.getIframe()?.closest(".player") || $(".player");
+  const toggle = container?.querySelector("[data-youtube-toggle]");
+  const seek = container?.querySelector("[data-youtube-seek]");
+  const time = container?.querySelector("[data-youtube-time]");
+  const mute = container?.querySelector("[data-youtube-mute]");
+  const volume = container?.querySelector("[data-youtube-volume]");
+  const speed = container?.querySelector("[data-youtube-speed]");
+  const fullscreen = container?.querySelector("[data-youtube-fullscreen]");
+  if (!container || !toggle || !seek || !time || !mute || !volume || !speed || !fullscreen) return;
+
+  const update = () => {
+    const duration = Math.max(0, Number(player.getDuration()) || 0);
+    const current = Math.max(0, Number(player.getCurrentTime()) || 0);
+    const playerState = player.getPlayerState();
+    const playing = playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING;
+    const muted = player.isMuted();
+    toggle.textContent = playing ? "Pause" : "Play";
+    toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
+    seek.disabled = duration <= 0;
+    if (document.activeElement !== seek && duration > 0) {
+      seek.value = String(Math.min(1000, Math.round(current / duration * 1000)));
+    }
+    time.textContent = `${formatPlayerTime(current)} / ${formatPlayerTime(duration)}`;
+    mute.textContent = muted ? "Unmute" : "Mute";
+    mute.setAttribute("aria-label", muted ? "Unmute" : "Mute");
+    volume.value = String(muted ? 0 : Math.max(0, Math.min(100, player.getVolume())));
+    const activeRate = Number(player.getPlaybackRate()) || 1;
+    if ([...speed.options].some((option) => Number(option.value) === activeRate)) {
+      speed.value = String(activeRate);
+    }
+  };
+
+  toggle.addEventListener("click", () => {
+    const playerState = player.getPlayerState();
+    if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+    update();
+  });
+  seek.addEventListener("change", () => {
+    const duration = Number(player.getDuration()) || 0;
+    if (duration > 0) player.seekTo(duration * Number(seek.value) / 1000, true);
+    update();
+  });
+  mute.addEventListener("click", () => {
+    if (player.isMuted()) player.unMute();
+    else player.mute();
+    update();
+  });
+  volume.addEventListener("input", () => {
+    const nextVolume = Number(volume.value);
+    player.setVolume(nextVolume);
+    if (nextVolume === 0) player.mute();
+    else if (player.isMuted()) player.unMute();
+    update();
+  });
+  speed.addEventListener("change", () => {
+    player.setPlaybackRate(Number(speed.value));
+    update();
+  });
+  fullscreen.addEventListener("click", () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      container.requestFullscreen?.().catch(() => toast("Fullscreen is unavailable.", "info"));
+    }
+  });
+
+  const rates = player.getAvailablePlaybackRates?.() || [1];
+  speed.innerHTML = rates.map((rate) =>
+    `<option value="${Number(rate)}">${Number(rate)}×</option>`
+  ).join("");
+  speed.disabled = rates.length <= 1;
+  update();
+
+  clearInterval(youtubePlayerPoll);
+  youtubePlayerPoll = setInterval(update, 500);
+}
+
+function restoreYouTubeNativeControls(container) {
+  const frame = container?.querySelector("#youtube-player");
+  if (!frame) return;
+  const url = new URL(frame.src);
+  url.searchParams.set("controls", "1");
+  frame.src = url.href;
+  container.querySelector(".youtube-controls")?.remove();
 }
 
 function attachNativePlayerControls(player) {
@@ -1065,7 +1175,7 @@ function fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error = nu
   const container = $(".player");
   if (!container || location.hash !== routeHash) return;
   container.innerHTML = youtubeIframeMarkup(video.id, video.title, queue);
-  if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+  startYouTubePlayer(video.id, queue, playlistId, routeHash);
   if (error) toast("Direct playback unavailable. Using YouTube player.", "info");
 }
 
@@ -1085,16 +1195,19 @@ function loadYouTubeIframeApi() {
   return youtubeApiPromise;
 }
 
-async function startPlaylistPlayer(queue, playlistId, routeHash) {
+async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
   try {
     const YT = await loadYouTubeIframeApi();
-    if (location.hash !== routeHash || !$("#youtube-player")) return;
+    if (location.hash !== routeHash || !playerFrame.isConnected) return;
     playlistPlayer = new YT.Player(playerFrame, {
       events: {
         onReady(event) {
-          if (location.hash === routeHash) event.target.loadPlaylist(queue, 0, 0);
+          if (location.hash !== routeHash) return;
+          attachYouTubePlayerControls(event.target, YT);
+          if (queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
+          else if (autoplay) event.target.playVideo();
         },
         onStateChange(event) {
           if (event.data !== YT.PlayerState.PLAYING) return;
@@ -1106,14 +1219,9 @@ async function startPlaylistPlayer(queue, playlistId, routeHash) {
       },
     });
   } catch {
-    if (location.hash !== routeHash || !$("#youtube-player")) return;
-    const params = new URLSearchParams({
-      rel: "0",
-      autoplay: "1",
-      playsinline: "1",
-      playlist: queue.slice(1).join(","),
-    });
-    playerFrame.src = `https://www.youtube-nocookie.com/embed/${queue[0]}?${params}`;
+    if (location.hash !== routeHash || !playerFrame.isConnected) return;
+    restoreYouTubeNativeControls(playerFrame.closest(".player"));
+    toast("Custom controls could not load. Using YouTube controls.", "info");
   }
 }
 
@@ -1533,8 +1641,8 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     syncSidebar();
     if (state.settings.nativePlayer) {
       startNativePlayer({ id: video.vid, title: video.title }, queue, playlistId, routeHash, autoplay);
-    } else if (queue.length > 1) {
-      startPlaylistPlayer(queue, playlistId, routeHash);
+    } else {
+      startYouTubePlayer(video.vid, queue, playlistId, routeHash, autoplay && queue.length <= 1);
     }
   } catch (error) {
     if (location.hash !== routeHash) return;
