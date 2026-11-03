@@ -1117,24 +1117,28 @@ async function renderHackerNews(query = "") {
 }
 
 async function renderHNWatch(requestedVideoId) {
+  const requestedRoute = `#/hn-watch/${encodeURIComponent(requestedVideoId)}`;
   document.title = "Hacker News video — HackerTube";
   view.innerHTML = '<section class="watch"><div class="watch-main"><p class="count">Loading video and archived comments…</p></div></section>';
   try {
     const aliases = await loadHNAliases();
+    if (location.hash !== requestedRoute) return;
     const videoId = aliases[requestedVideoId] || requestedVideoId;
-    const [records, existing, related, comments] = await Promise.all([
+    const [records, existing, related, commentResult] = await Promise.all([
       loadHNVideos(),
       loadHNExisting(),
       loadHNRelated(),
-      loadHNMentions(videoId),
+      loadHNMentions(videoId).catch(() => null),
     ]);
+    if (location.hash !== requestedRoute) return;
     const video = state.hnById.get(videoId) || existing[videoId];
     if (!video) return renderNotFound();
     if (requestedVideoId !== videoId) {
       location.hash = `#/hn-watch/${encodeURIComponent(videoId)}`;
       return;
     }
-    if (location.hash !== `#/hn-watch/${encodeURIComponent(videoId)}`) return;
+    const commentsUnavailable = commentResult === null;
+    const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
     const hn = video.hn || {};
     const categories = (video.categories || []).map((category) =>
@@ -1168,7 +1172,7 @@ async function renderHNWatch(requestedVideoId) {
         ${quote}
         ${categories ? `<div class="hn-tags">${categories}</div>` : ""}
         ${tags ? `<div class="hn-tags">${tags}</div>` : ""}
-        <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments)}</section>
+        <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments, commentsUnavailable)}</section>
       </div>
       <aside class="watch-side">
         <h2 class="section-title">Related HackerTube picks</h2>
@@ -1180,6 +1184,7 @@ async function renderHNWatch(requestedVideoId) {
     </section>`;
     syncSidebar();
   } catch (error) {
+    if (location.hash !== requestedRoute) return;
     view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
   }
 }
