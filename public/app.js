@@ -30,6 +30,7 @@ const state = {
 };
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
+let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
@@ -69,9 +70,24 @@ async function init() {
       setSidebar(false);
       closeSelects();
     }
+    if (e.key === "Tab" && matchMedia("(max-width: 980px)").matches && $("#sidebar").classList.contains("open")) {
+      const focusable = $("#sidebar").querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    }
   });
   addEventListener("resize", () => {
-    if (!matchMedia("(max-width: 980px)").matches) setSidebar(false);
+    const nextMobileLayout = matchMedia("(max-width: 980px)").matches;
+    if (nextMobileLayout === isMobileLayout) return;
+    isMobileLayout = nextMobileLayout;
+    setSidebar(false);
   });
   if (matchMedia("(prefers-color-scheme: dark)").addEventListener) {
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
@@ -209,6 +225,7 @@ function setSidebar(open) {
     return;
   }
 
+  if (sidebar.contains(document.activeElement)) $("#menuBtn").focus();
   sidebar.classList.remove("open");
   sidebar.removeAttribute("aria-hidden");
   sidebar.inert = false;
