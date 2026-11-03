@@ -35,7 +35,8 @@ const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const SITE_URL = "https://pandurodev.github.io/HackerTube/";
 const SORT_VALUES = new Set(["foryou", "best", "newest", "views", "longest", "shortest"]);
-const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent", progress: "ht_progress" };
+const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent", progress: "ht_progress", locale: "ht_locale" };
+const I18N = window.HackerTubeI18n || null;
 
 const state = {
   videos: [],
@@ -75,6 +76,7 @@ const state = {
   current: null,
   homeOrder: [],
   homeStale: false,
+  locale: "en",
   builtin: [],
   builtinIds: null,
   playlistQuery: "",
@@ -94,7 +96,16 @@ let confirmationResolver = null;
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
 const icon = (name) => `<svg class="ic" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
-const videos = (n) => `${n} ${n === 1 ? "video" : "videos"}`;
+function tr(key, fallbackText, params) {
+  if (!I18N) return fallbackText;
+  const value = I18N.t(key, params || {});
+  return value === key ? fallbackText : value;
+}
+
+function videos(n) {
+  if (I18N) return I18N.formatCount("counts.videos", n, { count: I18N.formatNumber(n) });
+  return `${n} ${n === 1 ? "video" : "videos"}`;
+}
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 init();
@@ -143,8 +154,56 @@ function warmSearchIndex() {
   }
 }
 
+function initialLocale() {
+  if (!I18N) return "en";
+  const requested = new URLSearchParams(location.search).get("lang");
+  if (requested && I18N.hasLocale(requested)) return requested;
+  const saved = storeGet(STORE.locale, "");
+  if (saved && I18N.hasLocale(saved)) return saved;
+  if (typeof navigator !== "undefined") {
+    for (const candidate of navigator.languages || [navigator.language || ""]) {
+      const base = String(candidate || "").toLowerCase().split("-")[0];
+      if (I18N.hasLocale(base)) return base;
+    }
+  }
+  return "en";
+}
+
+function renderLocalePicker() {
+  const select = $("#localeSelect");
+  if (!select || !I18N) return;
+  select.innerHTML = I18N.locales()
+    .map(({ code, name }) => `<option value="${code}">${esc(name)}</option>`)
+    .join("");
+  select.value = state.locale;
+}
+
+async function setLocale(code, { persist = false, updateUrl = false, reload = false } = {}) {
+  if (!I18N) return;
+  const next = await I18N.loadLocale(code);
+  state.locale = next;
+  const meta = I18N.localeMeta(next);
+  document.documentElement.lang = meta.lang;
+  document.documentElement.dir = meta.dir;
+  I18N.applyStaticTranslations(document);
+  renderLocalePicker();
+  if (persist) storeSet(STORE.locale, next);
+  if (updateUrl) {
+    const url = new URL(location.href);
+    if (next === "en") url.searchParams.delete("lang");
+    else url.searchParams.set("lang", next);
+    history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+  if (reload) location.reload();
+}
+
 async function init() {
   applyTheme(state.theme);
+  try {
+    await setLocale(initialLocale(), { persist: true, updateUrl: false });
+  } catch {
+    state.locale = "en";
+  }
   if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
   $("#menuBtn").addEventListener("click", () => {
     if (matchMedia("(max-width: 980px)").matches) setSidebar(!$("#sidebar").classList.contains("open"));
@@ -162,6 +221,16 @@ async function init() {
   });
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+  });
+  $("#localeSelect")?.addEventListener("change", async (event) => {
+    const next = event.target.value;
+    if (!I18N || next === state.locale) return;
+    try {
+      await setLocale(next, { persist: true, updateUrl: true, reload: true });
+    } catch {
+      event.target.value = state.locale;
+      toast("Could not load that language.", "info");
+    }
   });
   $("#searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -426,7 +495,7 @@ function applyTheme(pref) {
   if (meta) meta.content = dark ? "#0f0f0f" : "#ffffff";
   const btn = $("#themeBtn");
   btn.innerHTML = icon(dark ? "sun" : "moon");
-  btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  btn.setAttribute("aria-label", dark ? tr("header.switchLight", "Switch to light theme") : tr("header.switchDark", "Switch to dark theme"));
   storeSet(STORE.theme, pref);
 }
 
@@ -485,12 +554,12 @@ function render() {
   if (seg === "longs") {
     resetFilters();
     applyFeedParams(params);
-    return renderFeed({ type: "longs", title: "Long videos", minDuration: 1200 });
+    return renderFeed({ type: "longs", title: tr("pages.longs", "Long videos"), minDuration: 1200 });
   }
   if (seg === "search") {
     resetFilters();
     applyFeedParams(params);
-    return renderFeed({ type: "search", q: arg, title: `Results for “${arg}”` });
+    return renderFeed({ type: "search", q: arg, title: tr("pages.searchResults", `Results for “${arg}”`, { query: arg }) });
   }
   if (seg === "channel") {
     const ch = state.channels.get(arg);
@@ -519,26 +588,26 @@ function render() {
 
 function renderSidebar() {
   const nav = [
-    ["home", "#/", "home", "Home"],
-    ["longs", "#/longs", "longs", "Longs"],
-    ["liked", "#/liked", "liked", "Liked"],
-    ["history", "#/history", "history", "History"],
-    ["later", "#/later", "later", "Watch later"],
-    ["categories", "#/categories", "categories", "Categories"],
-    ["playlists", "#/playlists", "playlists", "Playlists"],
-    ["hacker-news", "#/hacker-news", "categories", "Hacker News"],
-    ["settings", "#/settings", "settings", "Settings"],
+    ["home", "#/", "home", tr("nav.home", "Home")],
+    ["longs", "#/longs", "longs", tr("nav.longs", "Longs")],
+    ["liked", "#/liked", "liked", tr("nav.liked", "Liked")],
+    ["history", "#/history", "history", tr("nav.history", "History")],
+    ["later", "#/later", "later", tr("nav.later", "Watch later")],
+    ["categories", "#/categories", "categories", tr("nav.categories", "Categories")],
+    ["playlists", "#/playlists", "playlists", tr("nav.playlists", "Playlists")],
+    ["hacker-news", "#/hacker-news", "categories", tr("nav.hackerNews", "Hacker News")],
+    ["settings", "#/settings", "settings", tr("nav.settings", "Settings")],
   ];
   $("#sidebar").innerHTML = `
     <div class="side-head">
-      <span class="side-heading">Menu</span>
+      <span class="side-heading">${tr("sidebar.menu", "Menu")}</span>
       <button class="icon-btn side-close" type="button" aria-label="Close menu">${icon("close")}</button>
     </div>
     <nav class="side-nav">
       ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span><span class="side-count" data-count="${key}"></span></a>`).join("")}
     </nav>
-    <div class="side-title">Explore</div>
-    <a class="side-link" data-nav="channels" href="#/channels" title="Channels">${icon("channels")}<span>Channels</span><span class="side-count" data-count="channels"></span></a>
+    <div class="side-title">${tr("sidebar.explore", "Explore")}</div>
+    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span><span class="side-count" data-count="channels"></span></a>
     <p class="side-foot">${videos(state.meta.total)} · ${state.meta.channels.length} channels</p>`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
@@ -825,10 +894,10 @@ function renderFeed(scope) {
   }
   const shown = list.slice(0, ui.limit);
   const title = scope.title || "";
-  const pageTitle = title ? `${title} — HackerTube` : "HackerTube";
+  const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
   const description = title
     ? `${videos(list.length)} in ${title} on HackerTube.`
-    : `An index of ${videos(state.meta?.total || list.length)} programming videos in Arabic and English.`;
+    : tr("app.description", `An index of ${videos(state.meta?.total || list.length)} programming videos in Arabic and English.`);
   setPageMeta({ title: pageTitle, description, canonical: SITE_URL + feedHashFromState() });
 
   view.innerHTML = `<section class="feed">
@@ -1793,7 +1862,7 @@ function hnListMarkup(source, total, { query = "", partial = false } = {}) {
     : `${videos(list.length)}${list.length !== total ? ` · ${total} total` : ""}`;
   return `<section class="feed">
     <div class="feed-head">
-      <div><h1>Hacker News</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
+      <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1><p class="hn-intro">Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.</p></div>
       <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
         ${icon("filter")} Filters${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
       </button>
@@ -1816,7 +1885,7 @@ async function renderHackerNews(query = "", params = null) {
     state.hnLimit = pageSize();
   }
   $("#q").value = query;
-  document.title = "Hacker News recommendations — HackerTube";
+  document.title = tr("pages.hackerNewsTitle", "Hacker News recommendations — HackerTube");
   setPageMeta({
     title: document.title,
     description: "Programming videos recommended and discussed in Hacker News comments, with archived discussion context.",
@@ -1986,7 +2055,7 @@ function videoById(id) {
 /* ---------- Categories ---------- */
 
 function renderCategories() {
-  document.title = "Categories — HackerTube";
+  document.title = `${tr("pages.categories", "Categories")} — HackerTube`;
   setPageMeta({
     title: document.title,
     description: `Browse ${state.meta.topics.length} programming topics across the HackerTube catalog.`,
@@ -1994,7 +2063,7 @@ function renderCategories() {
   });
   const topics = [...state.meta.topics].sort((a, b) => b.count - a.count);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>Categories</h1><span class="count">${topics.length} topics</span></div>
+    <div class="feed-head"><h1>${tr("pages.categories", "Categories")}</h1><span class="count">${topics.length} topics</span></div>
     <div class="topic-grid">
       ${topics.map((t) => `<a class="topic-card" href="#/?topics=${encodeURIComponent(t.id)}" data-goto-topic="${t.id}">
         <span class="topic-name">${esc(state.topicLabels[t.id] || t.id)}</span>
@@ -2081,7 +2150,7 @@ async function renderPlaylists() {
     try { await Promise.all([loadHNVideos(), loadHNExisting()]); } catch { /* Render available playlist data even if a source fails. */ }
   }
   if (location.hash !== routeHash) return;
-  document.title = "Playlists — HackerTube";
+  document.title = `${tr("pages.playlists", "Playlists")} — HackerTube`;
   setPageMeta({
     title: document.title,
     description: `Browse ${state.builtin.length} creator playlists and your own saved playlists.`,
@@ -2096,7 +2165,7 @@ async function renderPlaylists() {
     .sort((a, b) => String(a[1]).localeCompare(String(b[1]), undefined, { numeric: true }));
   const isFiltered = Boolean(state.playlistQuery.trim() || state.playlistChannel);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>Playlists</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
+    <div class="feed-head"><h1>${tr("pages.playlists", "Playlists")}</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
     <form class="create-pl" data-create-playlist>
       <input name="name" placeholder="New playlist name" maxlength="40" required aria-label="New playlist name">
       <button class="btn primary" type="submit">${icon("plus")} Create</button>
@@ -2201,13 +2270,13 @@ async function renderPlaylist(id) {
 /* ---------- Settings ---------- */
 
 function renderSettings() {
-  document.title = "Settings — HackerTube";
+  document.title = `${tr("pages.settings", "Settings")} — HackerTube`;
   const s = state.settings;
   const seg = [["light", "Light", "sun"], ["dark", "Dark", "moon"], ["system", "System", "monitor"]]
     .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${icon(ic)} ${label}</button>`)
     .join("");
   view.innerHTML = `<section class="settings">
-    <div class="feed-head"><h1>Settings</h1></div>
+    <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
       <h2>${icon("sun")} Appearance</h2>
       <div class="segmented" role="group" aria-label="Theme">${seg}</div>
@@ -2268,7 +2337,7 @@ function renderSettings() {
 /* ---------- Channels ---------- */
 
 function renderChannels() {
-  document.title = "Channels — HackerTube";
+  document.title = `${tr("pages.channels", "Channels")} — HackerTube`;
   const cards = state.meta.channels
     .map((c) => `<a class="channel-card" href="#/channel/${c.id}">
       <span class="avatar">${esc(c.name.trim().charAt(0))}</span>
@@ -2276,15 +2345,15 @@ function renderChannels() {
     </a>`)
     .join("");
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>Channels</h1><span class="count">${state.meta.channels.length} channels</span></div>
+    <div class="feed-head"><h1>${tr("pages.channels", "Channels")}</h1><span class="count">${state.meta.channels.length} channels</span></div>
     <div class="channel-grid">${cards}</div>
   </section>`;
   syncSidebar();
 }
 
 function renderNotFound() {
-  document.title = "Not found — HackerTube";
-  view.innerHTML = `<div class="empty"><strong>Not found</strong><p>This video or channel is not in the index.</p><a class="btn" href="#/">Back to Home</a></div>`;
+  document.title = `${tr("pages.notFound", "Not found")} — HackerTube`;
+  view.innerHTML = `<div class="empty"><strong>${tr("pages.notFound", "Not found")}</strong><p>This video or channel is not in the index.</p><a class="btn" href="#/">Back to Home</a></div>`;
   syncSidebar();
 }
 

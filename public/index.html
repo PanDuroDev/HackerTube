@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>HackerTube — programming videos in Arabic and English</title>
-<meta name="description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date.">
+<title data-i18n="app.title">HackerTube — programming videos in Arabic and English</title>
+<meta name="description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date." data-i18n-attr="content:app.description">
 <link rel="canonical" href="https://pandurodev.github.io/HackerTube/">
 <meta property="og:site_name" content="HackerTube">
-<meta property="og:title" content="HackerTube — programming videos in Arabic and English">
-<meta property="og:description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date.">
+<meta property="og:title" content="HackerTube — programming videos in Arabic and English" data-i18n-attr="content:app.title">
+<meta property="og:description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date." data-i18n-attr="content:app.description">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pandurodev.github.io/HackerTube/">
 <meta property="og:image" content="">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="HackerTube — programming videos in Arabic and English">
-<meta name="twitter:description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date.">
+<meta name="twitter:title" content="HackerTube — programming videos in Arabic and English" data-i18n-attr="content:app.title">
+<meta name="twitter:description" content="An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date." data-i18n-attr="content:app.description">
 <meta name="twitter:image" content="">
 <meta name="theme-color" content="#0f0f0f">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Cpath d='M26 20l18 12-18 12z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=28">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 
-<a class="skip-link" href="#view">Skip to content</a>
+<a class="skip-link" href="#view" data-i18n="skipToContent">Skip to content</a>
 <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-home" viewBox="0 0 24 24"><path fill="currentColor" d="M20 11v8c-.046 1.146-.853 1.954-2 2h-5v-7c-.031-.544-.431-1-1-1s-.969.456-1 1v7H6c-1.146-.046-1.954-.854-2-2v-8h-.997l-.227-.024c-.62-.136-.961-.867-.669-1.432c.077-.15.154-.225.281-.335l8.384-6.521c.422-.297.892-.461 1.414-.413c.392.037.723.189 1.042.413l8.384 6.521c.621.538.466 1.58-.388 1.767l-.227.024Z"/></symbol>
   <symbol id="i-longs" viewBox="0 0 24 24"><path fill="currentColor" d="M10.451 22.386c-3.449-.509-6.486-2.781-7.964-5.937q-.316-.676-.534-1.389c-.238-.783-.423-1.531.245-2.156c.326-.305.782-.45 1.224-.391c.519.069.976.416 1.181.897c.118.279.159.585.251.874c.191.598.458 1.172.793 1.704c.331.526.727 1.01 1.176 1.439c3.37 3.213 8.875 2.582 11.438-1.297c2.178-3.295 1.394-7.761-1.76-10.131a7.5 7.5 0 0 0-1.623-.928l-.594-.218c-.56-.178-1.103-.227-1.48-.725c-.852-1.127.175-2.638 1.528-2.368c1.647.328 3.312 1.229 4.571 2.328c4.893 4.271 4.763 11.933-.258 16.042a10.5 10.5 0 0 1-3.738 1.962a10.6 10.6 0 0 1-4.456.294M13.5 11.378l2.561 2.561l.192.235c.805 1.217-.467 2.765-1.817 2.216a1.5 1.5 0 0 1-.496-.33l-3-3l-.188-.228c-.17-.255-.237-.531-.252-.832V7c.028-.625.376-1.183.977-1.407c1.012-.376 1.977.371 2.023 1.407Zm-8.897-.789c-.695 1.635-3.207.9-2.843-.921c.101-.505.227-1.066.624-1.43c.83-.762 2.219-.334 2.475.763c.106.452-.046.9-.173 1.331Zm1.669-3.488c-1.185.85-2.78-.363-2.282-1.733c.155-.426.547-.786.87-1.067c.229-.199.488-.336.789-.383c1.034-.161 1.93.805 1.692 1.824c-.114.489-.488.827-.841 1.158Zm3.249-2.213c-1.763.214-2.38-2.33-.62-2.923c.488-.165 1.037-.335 1.551-.173c1.074.34 1.395 1.756.573 2.526c-.338.317-.803.409-1.239.514Z"/></symbol>
@@ -63,7 +63,7 @@
 
 <header class="topbar">
   <div class="top-start">
-    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-expanded="true">
+    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-expanded="true" data-i18n-attr="aria-label:header.menu">
       <svg class="ic" aria-hidden="true"><use href="#i-menu"></use></svg>
     </button>
     <a class="brand" href="#/">
@@ -73,23 +73,24 @@
   </div>
 
   <form class="search" id="searchForm" role="search">
-    <input id="q" type="search" placeholder="Search videos, channels, topics" autocomplete="off" aria-label="Search">
-    <button type="submit" aria-label="Search">
+    <input id="q" type="search" placeholder="Search videos, channels, topics" autocomplete="off" aria-label="Search" data-i18n-attr="placeholder:header.searchPlaceholder,aria-label:header.search">
+    <button type="submit" aria-label="Search" data-i18n-attr="aria-label:header.search">
       <svg class="ic" aria-hidden="true"><use href="#i-search"></use></svg>
     </button>
   </form>
 
   <div class="top-end">
-    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+    <select id="localeSelect" class="locale-select" aria-label="Language" data-i18n-attr="aria-label:header.language"></select>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" data-i18n-attr="aria-label:header.toggleTheme">
       <svg class="ic" aria-hidden="true"><use href="#i-moon"></use></svg>
     </button>
   </div>
 </header>
 
-<button class="scrim" id="scrim" type="button" aria-label="Close menu" hidden></button>
+<button class="scrim" id="scrim" type="button" aria-label="Close menu" hidden data-i18n-attr="aria-label:header.closeMenu"></button>
 
 <div class="layout">
-  <aside class="side" id="sidebar" aria-label="Navigation"></aside>
+  <aside class="side" id="sidebar" aria-label="Navigation" data-i18n-attr="aria-label:sidebar.navigation"></aside>
   <main id="view" tabindex="-1">
     <div class="skeleton-grid" aria-hidden="true">
       <div class="sk"></div><div class="sk"></div><div class="sk"></div>
@@ -104,12 +105,12 @@
       <div class="confirm-icon" aria-hidden="true">
         <svg class="ic"><use href="#i-trash"></use></svg>
       </div>
-      <h2 class="confirm-title" id="confirmTitle">Confirm action</h2>
+      <h2 class="confirm-title" id="confirmTitle" data-i18n="confirm.title">Confirm action</h2>
     </div>
     <p class="confirm-message" id="confirmMessage"></p>
     <div class="confirm-actions">
-      <button class="btn" id="confirmCancel" type="button" autofocus>Cancel</button>
-      <button class="btn danger" id="confirmAccept" type="button">Delete</button>
+      <button class="btn" id="confirmCancel" type="button" autofocus data-i18n="confirm.cancel">Cancel</button>
+      <button class="btn danger" id="confirmAccept" type="button" data-i18n="confirm.delete">Delete</button>
     </div>
   </div>
 </dialog>
@@ -118,8 +119,9 @@
   <span class="toast-ic" aria-hidden="true"></span>
   <span class="toast-msg"></span>
 </div>
-<noscript><p style="padding:24px">This site needs JavaScript to show and filter the index.</p></noscript>
+<noscript><p style="padding:24px" data-i18n="noscript">This site needs JavaScript to show and filter the index.</p></noscript>
+<script src="i18n.js?v=1"></script>
 <script src="search.js?v=3"></script>
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 </body>
 </html>

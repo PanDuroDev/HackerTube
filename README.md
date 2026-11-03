@@ -15,6 +15,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 - Keyboard-accessible filter menus, Arabic language/direction metadata, a skip link, and active navigation state.
 - Watch progress with resume and Continue watching, optional autoplay-next, and video descriptions when the catalog provides them.
 - Description/tag-aware classification, explicit **Unspecified** levels, and description-based language detection with channel fallback.
+- An English/Arabic UI locale foundation with `?lang`, a persisted language picker, RTL direction, and locale-aware plural/number helpers.
 - A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate. The Hacker News page supports programming/all scope, recommendation status, content type, level, shelf life, area filters, and sorting.
 - A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
 - Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.
@@ -35,6 +36,12 @@ python -m http.server 8080 -d public
 No application server or database is required. The website is made of static files and JSON data.
 
 Video playback uses the official YouTube embedded player with its built-in controls.
+
+## UI languages
+
+The UI locale can be selected from the header picker or with `?lang=ar`. The choice is stored locally and sets `<html lang>`/`dir`. Phase 1 translates the static shell, navigation, and core page headings; the remaining application strings and the full Arabic translation are tracked in #69.
+
+Content language is separate from UI locale: video titles and channel names keep their source language and direction.
 
 ## Build the data
 
@@ -66,6 +73,7 @@ pipeline/        Fetching (API/yt-dlp/YouTube.js), classification, and data gene
 pipeline/ytjs/   YouTube.js fallback
 public/          Static website (HTML/CSS/JS, no frontend framework)
 public/search.js Local indexing, weighted search, synonyms, prefixes, and limited typo correction
+public/i18n/     UI locale dictionaries and runtime (English, Arabic)
 public/data/     Generated catalog, Hacker News data, comments, relationships, and fast preview
 data/hacker-news/ Source-only taxonomy and embedding assets (not deployed)
 tests/           Tests for normalization, classification, sources, and data
