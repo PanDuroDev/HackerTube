@@ -1194,9 +1194,18 @@ function loadYouTubeIframeApi() {
   if (youtubeApiPromise) return youtubeApiPromise;
   youtubeApiPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+    const readinessTimeout = setTimeout(() => {
+      youtubeApiPromise = null;
+      reject(new Error("The YouTube player API did not become ready in time"));
+    }, 35000);
+
+    window.onYouTubeIframeAPIReady = () => {
+      clearTimeout(readinessTimeout);
+      resolve(window.YT);
+    };
     script.src = "https://www.youtube.com/iframe_api";
     script.onerror = () => {
+      clearTimeout(readinessTimeout);
       youtubeApiPromise = null;
       reject(new Error("Could not load the YouTube player API"));
     };
