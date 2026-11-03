@@ -244,7 +244,8 @@
     "deleteAll": "Delete all",
     "note": "Stored in this browser only. No account, no tracking.",
     "saved": "Saved",
-    "playlistsHint": "{count} saved"
+    "playlistsHint": "{count} saved",
+    "language": "Language"
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",

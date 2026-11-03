@@ -193,15 +193,6 @@ function initialLocale() {
   return "en";
 }
 
-function renderLocalePicker() {
-  const select = $("#localeSelect");
-  if (!select || !I18N) return;
-  select.innerHTML = I18N.locales()
-    .map(({ code, name }) => `<option value="${code}">${esc(name)}</option>`)
-    .join("");
-  select.value = state.locale;
-}
-
 async function setLocale(code, { persist = false, updateUrl = false, reload = false } = {}) {
   if (!I18N) return;
   const next = await I18N.loadLocale(code);
@@ -210,7 +201,6 @@ async function setLocale(code, { persist = false, updateUrl = false, reload = fa
   document.documentElement.lang = meta.lang;
   document.documentElement.dir = meta.dir;
   I18N.applyStaticTranslations(document);
-  renderLocalePicker();
   if (persist) storeSet(STORE.locale, next);
   if (updateUrl) {
     const url = new URL(location.href);
@@ -245,16 +235,6 @@ async function init() {
   });
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
-  });
-  $("#localeSelect")?.addEventListener("change", async (event) => {
-    const next = event.target.value;
-    if (!I18N || next === state.locale) return;
-    try {
-      await setLocale(next, { persist: true, updateUrl: true, reload: true });
-    } catch {
-      event.target.value = state.locale;
-      toast(tr("toasts.languageLoadFailed", "Could not load that language."), "info");
-    }
   });
   $("#searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -2306,11 +2286,19 @@ function renderSettings() {
   const seg = [["light", tr("settings.light", "Light"), "sun"], ["dark", tr("settings.dark", "Dark"), "moon"], ["system", tr("settings.system", "System"), "monitor"]]
     .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${icon(ic)} ${label}</button>`)
     .join("");
+  const locales = I18N ? I18N.locales() : [{ code: "en", name: "English" }, { code: "ar", name: "العربية" }];
+  const localeSeg = locales
+    .map(({ code, name }) => `<button type="button" data-locale-pref="${esc(code)}" lang="${esc(code)}" class="${state.locale === code ? "active" : ""}" aria-pressed="${state.locale === code}">${esc(name)}</button>`)
+    .join("");
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
       <h2>${icon("sun")} ${tr("settings.appearance", "Appearance")}</h2>
       <div class="segmented" role="group" aria-label="${tr("settings.appearance", "Appearance")}">${seg}</div>
+    </div>
+    <div class="settings-group">
+      <h2>${icon("language")} ${tr("settings.language", "Language")}</h2>
+      <div class="segmented" role="group" aria-label="${tr("settings.language", "Language")}">${localeSeg}</div>
     </div>
     <div class="settings-group">
       <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
@@ -2560,6 +2548,17 @@ function onViewClick(e) {
   if (themePref) {
     applyTheme(themePref.dataset.themePref);
     renderSettings();
+    return;
+  }
+
+  const localePref = e.target.closest("[data-locale-pref]");
+  if (localePref) {
+    const next = localePref.dataset.localePref;
+    if (next && next !== state.locale) {
+      setLocale(next, { persist: true, updateUrl: true, reload: true }).catch(() => {
+        toast(tr("toasts.languageLoadFailed", "Could not load that language."), "info");
+      });
+    }
     return;
   }
 

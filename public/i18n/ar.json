@@ -252,7 +252,8 @@
     "deleteAll": "حذف الكل",
     "note": "محفوظ في هذا المتصفح فقط. بلا حساب أو تتبع.",
     "saved": "تم الحفظ",
-    "playlistsHint": "{count} محفوظة"
+    "playlistsHint": "{count} محفوظة",
+    "language": "اللغة"
   },
   "dialogs": {
     "clearTitle": "مسح {label}؟",
