@@ -1,10 +1,10 @@
 # Direct playback setup
 
-HackerTube is a static site. The optional HTML5 player needs a separate Python API because `yt-dlp` cannot run inside a static GitHub Pages site or a Cloudflare Worker.
+HackerTube is a static site. The optional HTML5 player needs a separate Python API because `yt-dlp` cannot run inside GitHub Pages.
 
-The YouTube iframe remains the default. Direct playback is an optional test feature.
+The YouTube iframe remains the default and works without this API. Direct playback is optional and can be tested locally on your own Windows PC.
 
-## Windows: run the API locally
+## Run the API locally
 
 Open PowerShell in the HackerTube repository directory.
 
@@ -14,47 +14,51 @@ Install the Python dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Configure the API for requests coming through Cloudflare Tunnel:
+Start the API in the first PowerShell window:
 
 ```powershell
-$env:HT_ALLOWED_ORIGINS = "https://pandurodev.github.io,http://localhost:8080,http://127.0.0.1:8080"
-$env:HT_TRUST_CLOUDFLARE_IP = "true"
+$env:HT_ALLOWED_ORIGINS = "http://127.0.0.1:8080"
+$env:HT_TRUST_CLOUDFLARE_IP = "false"
 $env:HT_MAX_CONCURRENT_STREAMS = "2"
 python -m flask --app stream_api run --host 127.0.0.1 --port 8787
 ```
 
-Keep this terminal open. The API should respond locally at `http://127.0.0.1:8787/health` with:
+Keep this window open. Check that [http://127.0.0.1:8787/health](http://127.0.0.1:8787/health) returns:
 
 ```json
 {"status":"ok"}
 ```
 
-## Expose the local API temporarily
+## Run the website locally
 
-Install `cloudflared` from the [official download instructions](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
-
-Open a second PowerShell window and run:
+Open a second PowerShell window in the same repository directory:
 
 ```powershell
-cloudflared tunnel --url http://127.0.0.1:8787
+python -m http.server 8080 --bind 127.0.0.1 --directory public
 ```
 
-Cloudflare prints a temporary HTTPS address ending in `.trycloudflare.com`. Keep this terminal open too. Quick Tunnels do not need a Cloudflare account, a domain, or a payment card. The address is temporary and changes when the tunnel is restarted. See the [official Quick Tunnel documentation](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). This serves the frontend only on your own PC.
 
-## Connect HackerTube
+## Connect the player
 
-1. Open [HackerTube](https://pandurodev.github.io/HackerTube/).
-2. Open **Settings**.
-3. Enable **Direct video playback**.
-4. Paste the temporary `https://….trycloudflare.com` address into **Stream API URL** and select **Save**.
-5. Open a video. The HTML5 player will use the local API through the tunnel.
+1. Open **Settings** in the local HackerTube page.
+2. Enable **Direct video playback**.
+3. Set **Stream API URL** to `http://127.0.0.1:8787`.
+4. Save the setting and open a video.
 
-To return to the default Render endpoint, clear the Stream API URL field and save it. The default Render backend is not currently deployed in this account, so direct playback will remain unavailable until that service is deployed.
+The browser now sends extraction and media requests to the local Python API. The YouTube iframe remains the fallback. Keep both PowerShell windows open while testing. Press Ctrl+C in each window to stop its process.
 
-## Important limitations and safety
+## Why this is local-only
 
-- This is a development/test setup, not permanent hosting. The API and tunnel work only while both PowerShell processes and your PC remain running.
-- Anyone who obtains the temporary tunnel URL can send requests to the API. Treat the URL as private: do not post it publicly, commit it to Git, or share it in screenshots. Stop the tunnel after testing.
-- The API has request-rate and concurrent-stream limits. Keep the local concurrency limit low and do not use this setup for public traffic.
-- Do not expose Flask on `0.0.0.0` or open a router port. The instructions bind it to `127.0.0.1`; Cloudflare Tunnel creates the outbound connection.
-- Quick Tunnels have no uptime guarantee and are intended for testing. For permanent public playback, use a properly hosted backend.
+A local API is suitable for testing, but it does not provide a public backend for the GitHub Pages website. Visitors to the public site cannot use the API running on your PC.
+
+Do not expose this video proxy through a Cloudflare Tunnel or another public tunnel unless the provider explicitly permits this kind of video delivery. Cloudflare's policy says public-hostname Tunnel traffic on Free, Pro, and Business plans is subject to its video-delivery restrictions. Cloudflare identifies Stream as its video delivery product and Stream Delivery as an Enterprise-only option. Quick Tunnels are intended for testing and development, not production hosting. See [Cloudflare's video-delivery policy](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/delivering-videos-with-cloudflare/) and [Quick Tunnel limitations](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+
+For a public HTML5 playback backend, use a hosting provider and plan whose terms explicitly allow proxying and delivering these video streams. The configured API URL must be HTTPS and must allow browser requests from the HackerTube site.
+
+## Safety and limitations
+
+- Bind the API and local website to `127.0.0.1` as shown. Do not bind the API to `0.0.0.0` or open router ports.
+- Do not publish the local API URL as a public endpoint. It is intended only for requests from your own browser on the same PC.
+- The API extracts temporary YouTube media URLs and proxies the media; it does not store or re-upload video files.
+- Playback may still fall back to YouTube when a video is restricted, has no compatible progressive MP4, or cannot be extracted.
