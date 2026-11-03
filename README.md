@@ -30,7 +30,7 @@ python -m http.server 8080 -d public
 
 No application server or database is required. The website is made of static files and JSON data.
 
-Optional HTML5 direct playback uses a separate Python API. The YouTube iframe remains the default. To test direct playback without a hosted API, run the API locally and expose it temporarily with a Cloudflare Quick Tunnel. See [Direct playback setup](docs/direct-playback.md).
+Optional HTML5 direct playback uses a separate Python API. The YouTube iframe remains the default. For local testing, run both the site and API on your own PC. Do not expose the video proxy through a public Cloudflare Tunnel; see [Direct playback setup](docs/direct-playback.md).
 
 ## Build the data
 
