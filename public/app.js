@@ -1308,7 +1308,18 @@ async function renderHNWatch(requestedVideoId) {
     const isRecommended = Number(hn.recommenders || 0) > 0;
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
-        <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        <div class="player">${state.settings.nativePlayer
+          ? `<video id="native-video-player" playsinline preload="metadata" aria-label="${esc(video.title)}"></video>
+            <div class="native-controls" id="native-player-controls" aria-label="Video controls">
+              <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
+              <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
+              <output class="native-time" data-player-time>0:00 / 0:00</output>
+              <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
+              <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
+              <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
+            </div>
+            <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
+          : `<iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`}</div>
         <h1 class="watch-title">${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
@@ -1336,6 +1347,9 @@ async function renderHNWatch(requestedVideoId) {
       </aside>
     </section>`;
     syncSidebar();
+    if (state.settings.nativePlayer) {
+      startNativePlayer({ id: video.vid, title: video.title }, [], null, requestedRoute);
+    }
   } catch (error) {
     if (location.hash !== requestedRoute) return;
     view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
