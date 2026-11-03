@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false };
+const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, streamApiUrl: "" };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -72,7 +72,19 @@ const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", yea
 let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
-const STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
+const DEFAULT_STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
+
+function getStreamApiBaseUrl() {
+  const configured = String(state.settings.streamApiUrl || "").trim();
+  if (!configured) return DEFAULT_STREAM_API_BASE_URL;
+  try {
+    const url = new URL(configured);
+    const isLocalHttp = url.protocol === "http:"
+      && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (url.protocol === "https:" || isLocalHttp) return url.origin;
+  } catch {}
+  return DEFAULT_STREAM_API_BASE_URL;
+}
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
 
@@ -944,10 +956,11 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
   player.addEventListener("loadedmetadata", () => status.remove(), { once: true });
   player.addEventListener("canplay", () => clearTimeout(mediaTimeout), { once: true });
 
+  const streamApiBaseUrl = getStreamApiBaseUrl();
   const controller = new AbortController();
   const fetchTimeout = setTimeout(() => controller.abort(), 25000);
   try {
-    const response = await fetch(`${STREAM_API_BASE_URL}/api/stream/${encodeURIComponent(video.id)}`, {
+    const response = await fetch(`${streamApiBaseUrl}/api/stream/${encodeURIComponent(video.id)}`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
       signal: controller.signal,
@@ -957,7 +970,7 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
       throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
     }
     if (location.hash !== routeHash || !player.isConnected) return;
-    player.src = new URL(payload.url, STREAM_API_BASE_URL).href;
+    player.src = new URL(payload.url, streamApiBaseUrl).href;
     player.load();
     if (autoplay) {
       player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
@@ -1637,6 +1650,14 @@ function renderSettings() {
         <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
         <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
       </label>
+      <div class="setting-row">
+        <span class="row-ic">${icon("settings")}</span>
+        <span class="setting-text"><b>Stream API URL</b><small>Paste the HTTPS URL from your running Cloudflare Quick Tunnel. Leave blank to use the default Render endpoint.</small></span>
+        <form class="setting-api-form" data-stream-api-form>
+          <input type="url" name="streamApiUrl" value="${esc(s.streamApiUrl || "")}" placeholder="https://example.trycloudflare.com" autocomplete="url" spellcheck="false" aria-label="Stream API base URL">
+          <button class="btn" type="submit">Save</button>
+        </form>
+      </div>
     </div>
     <div class="settings-group">
       <h2>${icon("database")} Data</h2>
@@ -1877,6 +1898,49 @@ function onViewChange(e) {
 }
 
 function onViewSubmit(e) {
+  const streamApiForm = e.target.closest("[data-stream-api-form]");
+  if (streamApiForm) {
+    e.preventDefault();
+    const input = streamApiForm.elements.streamApiUrl;
+    const value = input.value.trim();
+    if (!value) {
+      delete state.settings.streamApiUrl;
+      storeSet(STORE.settings, state.settings);
+      renderSettings();
+      toast("Using the default stream API");
+      return;
+    }
+
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      toast("Enter a valid stream API URL.", "info");
+      input.focus();
+      return;
+    }
+    const isLocalHttp = url.protocol === "http:"
+      && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (
+      (url.protocol !== "https:" && !isLocalHttp)
+      || url.username
+      || url.password
+      || url.pathname !== "/"
+      || url.search
+      || url.hash
+    ) {
+      toast("Use an HTTPS base URL without a path or credentials.", "info");
+      input.focus();
+      return;
+    }
+
+    state.settings.streamApiUrl = url.origin;
+    storeSet(STORE.settings, state.settings);
+    renderSettings();
+    toast("Stream API URL saved");
+    return;
+  }
+
   const form = e.target.closest("[data-create-playlist]");
   if (!form) return;
   e.preventDefault();
