@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, customYoutubeControls: true, streamApiUrl: "" };
+const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, customYoutubeControls: true, hideYoutubeOverlays: false, streamApiUrl: "" };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -937,6 +937,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
 
 function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   const customControls = state.settings.customYoutubeControls !== false;
+  const hideOverlays = customControls && state.settings.hideYoutubeOverlays === true;
   const params = new URLSearchParams({
     controls: customControls ? "0" : "1",
     disablekb: customControls ? "1" : "0",
@@ -958,7 +959,18 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
 
   if (!customControls) return iframe;
 
-  return `<div class="youtube-player-frame">${iframe}</div>
+  const frameClass = hideOverlays
+    ? "youtube-player-frame youtube-player-frame--cropped"
+    : "youtube-player-frame";
+  const startOverlay = hideOverlays
+    ? `<button class="youtube-start-overlay" type="button" data-youtube-start disabled
+        aria-label="Preparing video"
+        style="--youtube-poster: url('https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg')">
+        <span class="youtube-start-play" aria-hidden="true">${icon("play")}</span>
+      </button>`
+    : "";
+
+  return `<div class="${frameClass}">${iframe}${startOverlay}</div>
   <div class="native-controls youtube-controls" aria-label="Custom video controls">
     <button class="native-control-btn" type="button" data-youtube-toggle aria-label="Play">Play</button>
     <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-youtube-seek aria-label="Seek" disabled>
@@ -993,6 +1005,16 @@ function attachYouTubePlayerControls(player, YT) {
   const speed = container?.querySelector("[data-youtube-speed]");
   const fullscreen = container?.querySelector("[data-youtube-fullscreen]");
   if (!container || !toggle || !seek || !time || !mute || !volume || !speed || !fullscreen) return;
+
+  const startOverlay = container.querySelector("[data-youtube-start]");
+  if (startOverlay) {
+    startOverlay.disabled = false;
+    startOverlay.setAttribute("aria-label", "Play video");
+    startOverlay.addEventListener("click", () => {
+      if (player.getPlayerState() === YT.PlayerState.ENDED) player.seekTo(0, true);
+      player.playVideo();
+    });
+  }
 
   const update = () => {
     const duration = Math.max(0, Number(player.getDuration()) || 0);
@@ -1074,6 +1096,9 @@ function restoreYouTubeNativeControls(container) {
   url.searchParams.set("fs", "1");
   url.searchParams.set("iv_load_policy", "1");
   frame.src = url.href;
+  const playerFrame = container.querySelector(".youtube-player-frame");
+  playerFrame?.classList.remove("youtube-player-frame--cropped");
+  playerFrame?.querySelector("[data-youtube-start]")?.remove();
   container.querySelector(".youtube-controls")?.remove();
 }
 
@@ -1231,6 +1256,18 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           else if (autoplay) event.target.playVideo();
         },
         onStateChange(event) {
+          const startOverlay = playerFrame.closest(".player")?.querySelector("[data-youtube-start]");
+          if (startOverlay) {
+            if (event.data === YT.PlayerState.PLAYING) {
+              startOverlay.hidden = true;
+            } else if (
+              event.data === YT.PlayerState.CUED
+              || event.data === YT.PlayerState.ENDED
+              || event.data === YT.PlayerState.UNSTARTED
+            ) {
+              startOverlay.hidden = false;
+            }
+          }
           if (event.data !== YT.PlayerState.PLAYING) return;
           const playingId = event.target.getVideoData()?.video_id;
           if (playingId && playingId !== state.current && queue.includes(playingId)) {
@@ -1904,6 +1941,11 @@ function renderSettings() {
         <input class="switch" type="checkbox" data-setting="customYoutubeControls" ${s.customYoutubeControls !== false ? "checked" : ""}>
       </label>
       <label class="setting-row">
+        <span class="row-ic">${icon("settings")}</span>
+        <span class="setting-text"><b>Hide YouTube overlays (experimental)</b><small>Crop the iframe's top and bottom UI and replace its initial play overlay. Intended for landscape 16:9 videos; portrait videos and Shorts may be cropped. Requires custom controls.</small></span>
+        <input class="switch" type="checkbox" data-setting="hideYoutubeOverlays" ${s.hideYoutubeOverlays ? "checked" : ""} ${s.customYoutubeControls === false ? "disabled" : ""}>
+      </label>
+      <label class="setting-row">
         <span class="row-ic">${icon("play")}</span>
         <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
         <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
@@ -2145,7 +2187,7 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
-    if (["nativePlayer", "customYoutubeControls"].includes(key) && (
+    if (["nativePlayer", "customYoutubeControls", "hideYoutubeOverlays"].includes(key) && (
       location.hash.startsWith("#/watch/") || location.hash.startsWith("#/hn-watch/")
     )) render();
     if (key === "hideSeen" || key === "pageSize") {
