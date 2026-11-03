@@ -98,11 +98,55 @@ def test_get_json_does_not_retry_4xx(monkeypatch):
     def fake(url, timeout=20):
         calls["n"] += 1
         raise urllib.error.HTTPError(
-            url, 403, "quota", {}, io.BytesIO(b'{"error":{"message":"quota"}}')
+            url, 403, "quota", {}, io.BytesIO(b'{"error":{"message":"quota","errors":[{"reason":"quotaExceeded"}]}}')
         )
 
     monkeypatch.setattr(sources.urllib.request, "urlopen", fake)
     monkeypatch.setattr(sources.time, "sleep", lambda seconds: None)
-    with pytest.raises(FetchError, match="HTTP 403"):
+    with pytest.raises(FetchError, match="HTTP 403") as raised:
         sources._get_json("http://test")
+    assert raised.value.status == 403
+    assert raised.value.reason == "quotaExceeded"
     assert calls["n"] == 1
+
+
+def test_api_marks_completed_live_stream(monkeypatch):
+    responses = iter([
+        {"items": [{
+            "contentDetails": {"relatedPlaylists": {"uploads": "UU1"}},
+            "snippet": {"title": "Test"},
+        }]},
+        {"items": [{"contentDetails": {"videoId": "archived-live"}}]},
+        {"items": [{
+            "id": "archived-live",
+            "snippet": {"title": "Live recording", "liveBroadcastContent": "none"},
+            "contentDetails": {"duration": "PT20M"},
+            "liveStreamingDetails": {
+                "actualStartTime": "2026-01-01T10:00:00Z",
+                "actualEndTime": "2026-01-01T11:00:00Z",
+            },
+        }]},
+    ])
+    monkeypatch.setattr(sources, "_api_get", lambda endpoint, params: next(responses))
+    result = sources.fetch_with_api("UC1", "Test", 1, "key")
+    assert result["entries"][0]["id"] == "archived-live"
+    assert result["entries"][0]["is_broadcast"] is True
+
+
+def test_ytdlp_marks_archived_live_stream(monkeypatch):
+    import json
+    from types import SimpleNamespace
+    payload = {
+        "channel": "Test",
+        "entries": [
+            {"id": "archived-live", "title": "Live recording", "duration": 1200,
+             "live_status": "was_live", "was_live": True},
+            {"id": "normal", "title": "Regular video", "duration": 1200,
+             "live_status": "not_live"},
+        ],
+    }
+    completed = SimpleNamespace(returncode=0, stdout=json.dumps(payload).encode(), stderr=b"")
+    monkeypatch.setattr(sources.subprocess, "run", lambda *args, **kwargs: completed)
+    result = sources.fetch_with_ytdlp("UC1", "Test", 10)
+    assert result["entries"][0]["is_broadcast"] is True
+    assert result["entries"][1]["is_broadcast"] is False
