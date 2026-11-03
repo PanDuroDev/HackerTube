@@ -59,6 +59,7 @@ def test_hacker_news_comments_are_complete_and_partitioned():
     canonical_ids = {video["vid"] for video in imported} | set(existing)
     comment_count = 0
     partition_ids = set()
+    comments_by_video = {}
     alias_comments = 0
 
     for path in (HN_DATA / "mentions").glob("*.json.gz"):
@@ -69,6 +70,7 @@ def test_hacker_news_comments_are_complete_and_partitioned():
             assert video_id in canonical_ids
             assert isinstance(comments, list)
             partition_ids.add(video_id)
+            comments_by_video.setdefault(video_id, []).extend(comments)
             comment_count += len(comments)
             for comment in comments:
                 if "original_vid" in comment:
@@ -79,6 +81,14 @@ def test_hacker_news_comments_are_complete_and_partitioned():
     meta = json.loads((HN_DATA / "meta.json").read_text(encoding="utf-8"))
     assert comment_count == meta["mentions"] == 39_834
     assert alias_comments > 0
+    canonical_records = imported + list(existing.values())
+    assert {
+        video["vid"] if "vid" in video else video["id"]
+        for video in canonical_records
+    } == canonical_ids
+    for video in canonical_records:
+        video_id = video.get("vid", video.get("id"))
+        assert video.get("hn", {}).get("mentions") == len(comments_by_video.get(video_id, []))
     assert len(list((HN_DATA / "mentions").glob("*.json.gz"))) == meta["mention_partitions"]
     assert partition_ids
 
@@ -108,6 +118,13 @@ def test_hacker_news_auxiliary_assets_are_complete():
     meta = json.loads((HN_DATA / "meta.json").read_text(encoding="utf-8"))
     assert meta["embedding_rows"] == 6_454
     assert meta["embedding_dimensions"] == 384
-    assert meta["taxonomy_areas"] == 16
-    assert meta["taxonomy_categories"] == 150
+    taxonomy = json.loads((HN_DATA / "taxonomy.json").read_text(encoding="utf-8"))
+    taxonomy_areas = taxonomy.get("areas", [])
+    taxonomy_categories = sum(len(area.get("categories", [])) for area in taxonomy_areas)
+    assert len(taxonomy_areas) == meta["taxonomy_areas"] == 16
+    assert taxonomy_categories == meta["taxonomy_categories"] == 150
     assert meta["data_license"] == "ODC-By 1.0"
+    published_docs = (HN_DATA / "DATA.md").read_text(encoding="utf-8")
+    assert "## Published layout" in published_docs
+    assert "`videos.json`" in published_docs
+    assert "`mentions/<prefix>.json.gz`" in published_docs
