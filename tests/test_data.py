@@ -43,3 +43,17 @@ def test_site_payload_budget():
     assert not (hn_dir / "taxonomy.json").exists()
     assert (assets / "embeddings.npy").is_file()
     assert (assets / "taxonomy.json").is_file()
+
+
+
+def test_sitemap_and_robots_are_generated():
+    sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
+    robots = (ROOT / "public" / "robots.txt").read_text(encoding="utf-8")
+
+    assert sitemap.startswith('<?xml version="1.0" encoding="UTF-8"?>')
+    assert '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' in sitemap
+    assert "https://pandurodev.github.io/HackerTube/#/watch/" in sitemap
+    assert "https://pandurodev.github.io/HackerTube/#/hn-watch/" in sitemap
+    assert "https://pandurodev.github.io/HackerTube/#/?topics=web" in sitemap
+    assert "Sitemap: https://pandurodev.github.io/HackerTube/sitemap.xml" in robots
+    assert "User-agent: *" in robots
