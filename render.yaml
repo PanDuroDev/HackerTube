@@ -11,3 +11,5 @@ services:
         value: 3.12.8
       - key: HT_ALLOWED_ORIGINS
         value: https://pandurodev.github.io,http://localhost:8080,http://127.0.0.1:8080
+      - key: HT_TRUST_CLOUDFLARE_IP
+        value: "true"
