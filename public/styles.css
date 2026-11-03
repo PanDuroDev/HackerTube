@@ -1320,3 +1320,13 @@ a.card-sub:hover { color: var(--text); }
 .hn-why { color: var(--muted); font-size: 13px; }
 .hn-source-link { display: inline-block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .hn-watch .watch-main { min-width: 0; }
+
+.hn-attribution {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.hn-attribution a { color: var(--text); text-underline-offset: 2px; }
