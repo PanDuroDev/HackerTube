@@ -566,13 +566,13 @@ function renderWatch(id) {
             ${icon("more")} <span>More</span>
           </button>
           <div class="watch-action-items" id="watchActionItems">
-            <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-            <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+            <button class="btn watch-action-item ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+            <button class="btn watch-action-item ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
             <details class="drop">
-              <summary class="btn">${icon("playlists")} Add to playlist</summary>
+              <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span></summary>
               <div class="drop-panel">${playlistPanel}</div>
             </details>
-            <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+            <a class="btn watch-action-item watch-action-item--external" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
           </div>
         </div>
       </div>

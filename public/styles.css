@@ -1281,16 +1281,64 @@ a.card-sub:hover { color: var(--text); }
     background: var(--bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
   }
-  .watch-action-items > .btn,
-  .watch-action-items > .drop,
-  .watch-action-items > .drop > summary {
+  .watch-action-items > .watch-action-item,
+  .watch-action-items > .drop > .watch-action-item {
     display: flex;
+    align-items: center;
     width: 100%;
+    height: auto;
+    min-height: 44px;
     justify-content: flex-start;
+    gap: 12px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: start;
+    text-decoration: none;
+  }
+  .watch-action-items .watch-action-item .ic {
+    width: 20px;
+    height: 20px;
+  }
+  .watch-action-items .watch-action-item:hover,
+  .watch-action-items .watch-action-item:focus-visible {
+    background: var(--soft-2);
+  }
+  .watch-action-items .watch-action-item:active {
+    transform: none;
+  }
+  .watch-action-items .watch-action-item[aria-pressed="true"] {
+    color: var(--accent);
+    background: var(--soft);
+  }
+  .watch-action-items .watch-action-item[aria-pressed="true"]::after {
+    content: "✓";
+    margin-inline-start: auto;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .watch-action-items > .watch-action-item--external {
+    min-height: 48px;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
   }
   .watch-action-items > .drop {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
+  }
+  .watch-action-items > .drop > .watch-action-item::after {
+    content: "⌄";
+    margin-inline-start: auto;
+    color: var(--muted);
+    font-size: 16px;
   }
   .watch-action-items .drop-panel {
     position: static;
