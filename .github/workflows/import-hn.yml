@@ -1,0 +1,45 @@
+name: Build Hacker News catalog data
+
+on:
+  push:
+    branches:
+      - feat/hacker-news-catalog
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/hacker-news-catalog
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate deduplicated Hacker News data
+        run: python -m pipeline.import_hacker_news
+
+      - name: Install test dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Check frontend syntax
+        run: node --check public/app.js
+
+      - name: Commit generated data to the feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/hacker-news
+          if git diff --cached --quiet; then
+            echo "No generated data changes."
+          else
+            git commit -m "data: preserve complete Hacker News export"
+            git push origin HEAD:feat/hacker-news-catalog
+          fi
