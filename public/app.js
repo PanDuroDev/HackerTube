@@ -96,10 +96,16 @@ let confirmationResolver = null;
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
 const icon = (name) => `<svg class="ic" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+function interpolateFallback(text, params) {
+  return String(text).replace(/\{(\w+)\}/g, (match, key) => (
+    params && Object.prototype.hasOwnProperty.call(params, key) ? String(params[key]) : match
+  ));
+}
+
 function tr(key, fallbackText, params) {
-  if (!I18N) return fallbackText;
+  if (!I18N) return interpolateFallback(fallbackText, params);
   const value = I18N.t(key, params || {});
-  return value === key ? fallbackText : value;
+  return value === key ? interpolateFallback(fallbackText, params) : value;
 }
 
 function videos(n) {
@@ -114,7 +120,12 @@ function kindLabel(kind) {
 function levelLabel(level) {
   return tr(`levels.${level}`, LEVEL_LABELS[level] || level);
 }
-const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const compact = {
+  format(value) {
+    if (I18N) return I18N.formatNumber(value, { notation: "compact", maximumFractionDigits: 1 });
+    return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+  },
+};
 
 init();
 
@@ -1067,11 +1078,11 @@ function card(v, opts = {}) {
   const hn = opts.hn || (!v.id && v.vid ? v : null);
   const later = state.saved.has(id);
   const remove = opts.remove
-    ? `<button class="card-x" data-remove="${opts.remove}" data-id="${id}"${opts.playlist ? ` data-pl="${opts.playlist}"` : ""} aria-label="Remove">${icon("close")}</button>`
+    ? `<button class="card-x" data-remove="${opts.remove}" data-id="${id}"${opts.playlist ? ` data-pl="${opts.playlist}"` : ""} aria-label="${tr("watch.remove", "Remove")}">${icon("close")}</button>`
     : "";
   const topicId = v.topics?.[0];
   const topic = topicId ? ` · ${esc(state.topicLabels[topicId] || topicId)}` : "";
-  const channel = v.channel || "Unknown channel";
+  const channel = v.channel || tr("watch.unknownChannel", "Unknown channel");
   const channelHTML = v.channel_id
     ? `<a class="card-sub" href="#/channel/${v.channel_id}"${langAttrs(channel)}>${esc(channel)}</a>`
     : `<div class="card-sub"${langAttrs(channel)}>${esc(channel)}</div>`;
@@ -1081,7 +1092,7 @@ function card(v, opts = {}) {
   const recommenderLabel = tr("hn.recommenders", `${hnRecommenders} recommenders`, { count: I18N ? I18N.formatNumber(hnRecommenders) : hnRecommenders });
   const hnMeta = hn
     ? `${hnRecommenders ? recommenderLabel : tr("hn.discussedNotRecommended", "Discussed, not recommended")} · ${esc(hn.primary_topic || tr("hn.pick", "Hacker News pick"))}`
-    : `${compact.format(v.views || 0)} views${v.year ? ` · ${v.year}` : ""}${topic}`;
+    : `${tr("watch.views", "{count} views", { count: compact.format(v.views || 0) })}${v.year ? ` · ${v.year}` : ""}${topic}`;
   const badge = hn
     ? (hnScore > 0 || hnRecommenders > 0 ? `HN ${hnScore.toFixed(1)}` : tr("hn.discussed", "Discussed"))
     : fmtDuration(v.duration);
@@ -1094,10 +1105,10 @@ function card(v, opts = {}) {
       <a class="thumb-link" href="${watchHref}" aria-label="${esc(v.title)}">
         <img src="${thumbSrc(id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
       </a>
-      <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? "Remove from Watch later" : "Add to Watch later"}" title="Watch later">${icon("later")}</button>
+      <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? tr("watch.removeFromWatchLater", "Remove from Watch later") : tr("watch.addToWatchLater", "Add to Watch later")}" title="${tr("watch.watchLater", "Watch later")}">${icon("later")}</button>
       ${remove}
       <span class="dur"${badgeTitle ? ` title="${esc(badgeTitle)}"` : ""}>${badge}</span>
-      ${progress ? `<span class="card-progress" title="Resume at ${fmtDuration(progress.position)}"><i style="width:${Math.round(progress.ratio * 100)}%"></i></span>` : ""}
+      ${progress ? `<span class="card-progress" title="${tr("watch.resumeAt", "Resume at {time}", { time: fmtDuration(progress.position) })}"><i style="width:${Math.round(progress.ratio * 100)}%"></i></span>` : ""}
     </div>
     <div class="card-info">
       <a class="card-title" href="${watchHref}"${langAttrs(v.title)}>${esc(v.title)}</a>
@@ -1120,26 +1131,26 @@ function watchActionsHTML(videoId) {
   const later = state.saved.has(videoId);
   const progress = progressFor(videoId);
   const resume = progress
-    ? `<button class="btn resume-btn" type="button" data-resume="${esc(videoId)}">${icon("play")} Resume at ${fmtDuration(progress.position)}</button>`
+    ? `<button class="btn resume-btn" type="button" data-resume="${esc(videoId)}">${icon("play")} ${tr("watch.resumeAt", "Resume at {time}", { time: fmtDuration(progress.position) })}</button>`
     : "";
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
-    : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
+    : `<p>${tr("watch.noPlaylists", "No playlists yet.")}</p><a href="#/playlists">${tr("watch.createPlaylistFirst", "Create one first")}</a>`;
   return `<div class="actions watch-actions">
     ${resume}
     <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
-      aria-label="More video actions" aria-controls="watchActionItems" aria-expanded="false">
-      ${icon("more")} <span>More</span>
+      aria-label="${tr("watch.moreActions", "More video actions")}" aria-controls="watchActionItems" aria-expanded="false">
+      ${icon("more")} <span>${tr("watch.more", "More")}</span>
     </button>
     <div class="watch-action-items" id="watchActionItems">
-      <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-      <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+      <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? tr("watch.liked", "Liked") : tr("watch.like", "Like")}</span></button>
+      <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later")}</span></button>
       <details class="drop">
-        <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
+        <summary class="btn watch-action-item">${icon("playlists")} <span>${tr("watch.addToPlaylist", "Add to playlist")}</span>${icon("down-small-fill")}</summary>
         <div class="drop-panel">${playlistPanel}</div>
       </details>
-      <button class="btn watch-action-item" type="button" data-share>${icon("share")} <span>Share</span></button>
-      <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+      <button class="btn watch-action-item" type="button" data-share>${icon("share")} <span>${tr("watch.share", "Share")}</span></button>
+      <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">${icon("external")} ${tr("watch.youtube", "YouTube")}</a>
     </div>
   </div>`;
 }
@@ -1211,12 +1222,12 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
       <div class="watch-bar">
         <a class="watch-channel" id="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
           <span class="avatar" id="watch-avatar">${esc(v.channel.trim().charAt(0))}</span>
-          <span class="watch-channel-text"><b id="watch-channel-name"${langAttrs(v.channel)}>${esc(v.channel)}</b><small id="watch-channel-count">${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
+          <span class="watch-channel-text"><b id="watch-channel-name"${langAttrs(v.channel)}>${esc(v.channel)}</b><small id="watch-channel-count">${ch ? tr("watch.indexed", "{count} indexed", { count: videos(ch.count) }) : tr("watch.channel", "Channel")}</small></span>
         </a>
         ${watchActionsHTML(id)}
       </div>
       <div class="watch-meta">
-        <span>${icon("eye")} ${compact.format(v.views)} views</span>
+        <span>${icon("eye")} ${tr("watch.views", "{count} views", { count: compact.format(v.views) })}</span>
         ${v.year ? `<span>${icon("calendar")} ${v.year}</span>` : ""}
         <span>${icon("clock")} ${fmtDuration(v.duration)}</span>
         <span>${icon("tag")} ${esc(kindLabel(v.kind))}</span>
@@ -1226,8 +1237,8 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
       <section id="hn-evidence" class="hn-evidence" hidden></section>
     </div>
     <aside class="watch-side">
-      <h2 class="section-title">Related videos</h2>
-      <div class="related-grid">${related.map((x) => card(x)).join("") || '<p class="count">Nothing related yet.</p>'}</div>
+      <h2 class="section-title">${tr("watch.related", "Related videos")}</h2>
+      <div class="related-grid">${related.map((x) => card(x)).join("") || `<p class="count">${tr("watch.nothingRelated", "Nothing related yet.")}</p>`}</div>
     </aside>
   </section>`;
   syncSidebar();
@@ -1357,7 +1368,7 @@ function syncWatchVideo(id, playlistId) {
   }
   if (avatar) avatar.textContent = video.channel.trim().charAt(0);
   if (channelName) channelName.textContent = video.channel;
-  if (channelCount) channelCount.textContent = channel ? `${videos(channel.count)} indexed` : "Channel";
+  if (channelCount) channelCount.textContent = channel ? tr("watch.indexed", "{count} indexed", { count: videos(channel.count) }) : tr("watch.channel", "Channel");
 
   const title = $(".watch-title");
   if (title) {
@@ -1375,19 +1386,19 @@ function syncWatchVideo(id, playlistId) {
   if (likeButton) {
     likeButton.classList.toggle("on", liked);
     likeButton.setAttribute("aria-pressed", String(liked));
-    likeButton.innerHTML = `${icon("liked")} <span>${liked ? "Liked" : "Like"}</span>`;
+    likeButton.innerHTML = `${icon("liked")} <span>${liked ? tr("watch.liked", "Liked") : tr("watch.like", "Like")}</span>`;
   }
   if (saveButton) {
     saveButton.classList.toggle("on", saved);
     saveButton.setAttribute("aria-pressed", String(saved));
-    saveButton.innerHTML = `${icon("later")} <span>${saved ? "Saved" : "Watch later"}</span>`;
+    saveButton.innerHTML = `${icon("later")} <span>${saved ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later")}</span>`;
   }
   const youtubeLink = $(".watch-youtube");
   if (youtubeLink) youtubeLink.href = `https://www.youtube.com/watch?v=${id}`;
 
   const meta = $(".watch-meta");
   if (meta) {
-    meta.innerHTML = `<span>${icon("eye")} ${compact.format(video.views)} views</span>
+    meta.innerHTML = `<span>${icon("eye")} ${tr("watch.views", "{count} views", { count: compact.format(video.views) })}</span>
       ${video.year ? `<span>${icon("calendar")} ${video.year}</span>` : ""}
       <span>${icon("clock")} ${fmtDuration(video.duration)}</span>
       <span>${icon("tag")} ${esc(kindLabel(video.kind))}</span>
@@ -1406,7 +1417,7 @@ function syncWatchVideo(id, playlistId) {
   const relatedGrid = $(".related-grid");
   if (relatedGrid) {
     relatedGrid.innerHTML = related.map((item) => card(item)).join("")
-      || '<p class="count">Nothing related yet.</p>';
+      || `<p class="count">${tr("watch.nothingRelated", "Nothing related yet.")}</p>`;
   }
   renderHNEvidence(id);
   closeWatchActionMenu(true);
@@ -1591,19 +1602,22 @@ const HN_STANCE_LABELS = {
 };
 
 function hnCommentsHTML(comments, unavailable = false) {
-  if (unavailable) return '<p class="count">Archived Hacker News comments are temporarily unavailable. Reopen this page to retry.</p>';
-  if (!comments.length) return '<p class="count">No archived Hacker News comments for this video.</p>';
-  return `<div class="hn-comments">${comments.map((comment) => `
+  if (unavailable) return `<p class="count">${tr("watch.commentsUnavailable", "Archived Hacker News comments are temporarily unavailable. Reopen this page to retry.")}</p>`;
+  if (!comments.length) return `<p class="count">${tr("watch.noComments", "No archived Hacker News comments for this video.")}</p>`;
+  return `<div class="hn-comments">${comments.map((comment) => {
+    const stance = tr(`hn.stances.${comment.stance}`, HN_STANCE_LABELS[comment.stance] || comment.stance || tr("watch.comment", "Comment"));
+    return `
     <article class="hn-comment">
       <div class="hn-comment-head">
-        <span><b${langAttrs(comment.author || "")}>${esc(comment.author || "Anonymous")}</b> · ${esc(comment.month || "")}</span>
-        <span>${esc(HN_STANCE_LABELS[comment.stance] || comment.stance || "Comment")}</span>
+        <span><b${langAttrs(comment.author || "")}>${esc(comment.author || tr("watch.anonymous", "Anonymous"))}</b> · ${esc(comment.month || "")}</span>
+        <span>${esc(stance)}</span>
       </div>
       ${comment.story_title ? `<div class="hn-story"${langAttrs(comment.story_title)}>${esc(comment.story_title)}</div>` : ""}
       <p${langAttrs(comment.text || "")}>${esc(comment.text || "")}</p>
       ${comment.why ? `<div class="hn-why"${langAttrs(comment.why)}>${esc(comment.why)}</div>` : ""}
-      <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">Open Hacker News comment</a>
-    </article>`).join("")}</div>`;
+      <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">${tr("watch.openComment", "Open Hacker News comment")}</a>
+    </article>`;
+  }).join("")}</div>`;
 }
 
 function hnDescriptionHTML(video, mainVideo = null) {
@@ -1613,22 +1627,22 @@ function hnDescriptionHTML(video, mainVideo = null) {
   const year = Number(mainVideo?.year);
 
   if (Number.isFinite(views) && views > 0) {
-    metadata.push(`${compact.format(views)} views`);
+    metadata.push(tr("watch.views", "{count} views", { count: compact.format(views) }));
   }
   if (Number.isInteger(year) && year >= 1900 && year <= new Date().getFullYear()) {
     const yearsAgo = new Date().getFullYear() - year;
-    metadata.push(yearsAgo === 0 ? "this year" : `${yearsAgo} ${yearsAgo === 1 ? "year" : "years"} ago`);
+    metadata.push(yearsAgo === 0 ? tr("watch.thisYear", "this year") : tr("watch.yearsAgo", "{count} years ago", { count: yearsAgo }));
   }
   if (!(Number.isFinite(views) && views > 0) && Number(hn.mentions) > 0) {
-    metadata.push(`${Number(hn.mentions)} HN mentions`);
+    metadata.push(tr("watch.hnMentions", "{count} HN mentions", { count: I18N ? I18N.formatNumber(Number(hn.mentions)) : Number(hn.mentions) }));
   }
   if (Number(hn.recommenders) > 0) {
-    metadata.push(`${Number(hn.recommenders)} recommenders`);
+    metadata.push(tr("hn.recommenders", "{count} recommenders", { count: I18N ? I18N.formatNumber(Number(hn.recommenders)) : Number(hn.recommenders) }));
   }
 
   const contentType = String(video.content_type || (mainVideo?.kind ? kindLabel(mainVideo.kind) : "")).trim();
-  if (contentType) metadata.push(contentType.toLowerCase());
-  if (video.shelf_life) metadata.push(String(video.shelf_life).toLowerCase());
+  if (contentType) metadata.push(tr(`hn.contentTypes.${contentType}`, contentType));
+  if (video.shelf_life) metadata.push(tr(`hn.shelfLives.${video.shelf_life}`, String(video.shelf_life)));
 
   const categories = (video.categories || []).map((category) => {
     const label = String(category.name || category.id || "").trim();
@@ -1662,7 +1676,7 @@ function hnContextHTML(video, comments, commentsUnavailable = false, mainVideo =
       ${hnAttributionHTML()}
     </section>
     <section class="hn-discussion">
-      <h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>
+      <h2 class="section-title">${tr("watch.comments", "Hacker News comments")} <span class="count">${comments.length}</span></h2>
       ${hnCommentsHTML(comments, commentsUnavailable)}
     </section>`;
 }
@@ -1685,7 +1699,7 @@ async function renderHNEvidence(videoId) {
     const target = $("#hn-evidence");
     if (target && state.current === videoId) {
       target.hidden = false;
-      target.innerHTML = '<p class="count">Hacker News context could not be loaded.</p>';
+      target.innerHTML = `<p class="count">${tr("watch.contextUnavailable", "Hacker News context could not be loaded.")}</p>`;
     }
   }
 }
@@ -1932,8 +1946,8 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
   if (autoplay) routeParams.set("autoplay", "1");
   const routeQuery = routeParams.toString();
   const requestedRoute = "#/hn-watch/" + encodeURIComponent(requestedVideoId) + (routeQuery ? "?" + routeQuery : "");
-  document.title = "Hacker News video — HackerTube";
-  view.innerHTML = '<section class="watch"><div class="watch-main"><p class="count">Loading video and archived comments…</p></div></section>';
+  document.title = tr("pages.hackerNewsVideoTitle", "Hacker News video — HackerTube");
+  view.innerHTML = `<section class="watch"><div class="watch-main"><p class="count">${tr("watch.loading", "Loading video and archived comments…")}</p></div></section>`;
   try {
     const aliases = await loadHNAliases();
     if (location.hash !== routeHash) return;
@@ -1995,18 +2009,18 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
         <div class="player">${youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
         <h1 class="watch-title"${langAttrs(video.title)}>${esc(video.title)}</h1>
         <div class="watch-bar">
-          <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b${langAttrs(video.channel || "")}>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
+          <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b${langAttrs(video.channel || "")}>${esc(video.channel || tr("watch.unknownChannel", "Unknown channel"))}</b><small>${tr("watch.referenced", "Referenced on Hacker News")}</small></span></div>
           ${watchActionsHTML(videoId)}
         </div>
         ${hnDescriptionHTML(video, mainVideo)}
         ${quote}
-        <section class="hn-discussion"><h2 class="section-title">Hacker News comments <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments, commentsUnavailable)}</section>
+        <section class="hn-discussion"><h2 class="section-title">${tr("watch.comments", "Hacker News comments")} <span class="count">${comments.length}</span></h2>${hnCommentsHTML(comments, commentsUnavailable)}</section>
       </div>
       <aside class="watch-side">
-        <h2 class="section-title">Related HackerTube picks</h2>
-        <div class="related-grid">${relatedCards.map(hnCard).join("") || '<p class="count">No related videos available.</p>'}</div>
-        <h2 class="section-title">Source</h2>
-        <a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} Hacker News</a>
+        <h2 class="section-title">${tr("watch.relatedPicks", "Related HackerTube picks")}</h2>
+        <div class="related-grid">${relatedCards.map(hnCard).join("") || `<p class="count">${tr("watch.noRelated", "No related videos available.")}</p>`}</div>
+        <h2 class="section-title">${tr("watch.source", "Source")}</h2>
+        <a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} ${tr("hn.title", "Hacker News")}</a>
         ${hnAttributionHTML()}
       </aside>
     </section>`;
@@ -2014,7 +2028,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     startYouTubePlayer(video.vid, queue, playlistId, routeHash, autoplay && queue.length <= 1);
   } catch (error) {
     if (location.hash !== routeHash) return;
-    view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
+    view.innerHTML = `<section class="error"><strong>${tr("watch.loadError", "Could not load this video.")}</strong><p>${esc(error.message)}</p></section>`;
   }
 }
 /* ---------- Collections ---------- */
@@ -2108,13 +2122,13 @@ function addToPlaylist(plId, videoId) {
   const pl = playlistById(plId);
   if (!pl || !videoId) return;
   if (pl.ids.includes(videoId)) {
-    toast("Already in this playlist", "playlists");
+    toast(tr("watch.alreadyInPlaylist", "Already in this playlist"), "playlists");
     return;
   }
   pl.ids.push(videoId);
   savePlaylists();
   invalidateHomeOrder();
-  toast(`Added to “${pl.name}”`, "playlists");
+  toast(tr("watch.addedToPlaylist", "Added to “{name}”", { name: pl.name }), "playlists");
   syncSidebar();
 }
 
@@ -2362,7 +2376,7 @@ function renderChannels() {
 
 function renderNotFound() {
   document.title = `${tr("pages.notFound", "Not found")} — HackerTube`;
-  view.innerHTML = `<div class="empty"><strong>${tr("pages.notFound", "Not found")}</strong><p>This video or channel is not in the index.</p><a class="btn" href="#/">Back to Home</a></div>`;
+  view.innerHTML = `<div class="empty"><strong>${tr("pages.notFound", "Not found")}</strong><p>${tr("watch.notFound", "This video or channel is not in the index.")}</p><a class="btn" href="#/">${tr("watch.backHome", "Back to Home")}</a></div>`;
   syncSidebar();
 }
 
@@ -2572,10 +2586,10 @@ function onViewClick(e) {
     if (playlistPlayer && typeof playlistPlayer.seekTo === "function") {
       playlistPlayer.seekTo(progress.position, true);
       playlistPlayer.playVideo();
-      toast(`Resumed at ${fmtDuration(progress.position)}`);
+      toast(tr("watch.resumedAt", "Resumed at {time}", { time: fmtDuration(progress.position) }));
     } else {
       state.pendingResume = { id, position: progress.position };
-      toast("Player is loading; resuming shortly.");
+      toast(tr("watch.playerLoading", "Player is loading; resuming shortly."));
     }
     return;
   }
@@ -2627,9 +2641,9 @@ async function shareCurrentPage() {
       document.execCommand("copy");
       input.remove();
     }
-    toast("Link copied");
+    toast(tr("watch.linkCopied", "Link copied"));
   } catch {
-    toast("Could not copy the link.", "info");
+    toast(tr("watch.copyFailed", "Could not copy the link."), "info");
   }
 }
 
@@ -2684,10 +2698,10 @@ function toggleAct(act) {
   document.querySelectorAll(`[data-act="${act}"]`).forEach((b) => {
     b.classList.toggle("on", on);
     b.setAttribute("aria-pressed", String(on));
-    const label = act === "like" ? (on ? "Liked" : "Like") : (on ? "Saved" : "Watch later");
+    const label = act === "like" ? (on ? tr("watch.liked", "Liked") : tr("watch.like", "Like")) : (on ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later"));
     b.innerHTML = `${icon(act === "like" ? "liked" : "later")} <span>${label}</span>`;
   });
-  toast(on ? (act === "like" ? "Liked" : "Added to Watch later") : "Removed", on ? (act === "like" ? "liked" : "later") : "close");
+  toast(on ? (act === "like" ? tr("watch.liked", "Liked") : tr("watch.addToWatchLater", "Added to Watch later")) : tr("dialogs.removed", "Removed"), on ? (act === "like" ? "liked" : "later") : "close");
   syncSidebar();
 }
 
@@ -2700,10 +2714,10 @@ function toggleLater(id) {
   document.querySelectorAll(`[data-later-toggle="${id}"]`).forEach((b) => {
     b.classList.toggle("on", on);
     b.setAttribute("aria-pressed", String(on));
-    b.setAttribute("aria-label", on ? "Remove from Watch later" : "Add to Watch later");
+    b.setAttribute("aria-label", on ? tr("watch.removeFromWatchLater", "Remove from Watch later") : tr("watch.addToWatchLater", "Add to Watch later"));
   });
   syncSidebar();
-  toast(on ? "Added to Watch later" : "Removed from Watch later", on ? "later" : "close");
+  toast(on ? tr("watch.addToWatchLater", "Added to Watch later") : tr("watch.removeFromWatchLater", "Removed from Watch later"), on ? "later" : "close");
   if ((location.hash || "#/") === "#/later") render();
 }
 
