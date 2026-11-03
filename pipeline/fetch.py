@@ -32,6 +32,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=MAX_PER_CHANNEL)
     ap.add_argument("--only", help="channel_id واحد للاختبار")
+    ap.add_argument("--skip-existing", action="store_true", help="تجاوز القنوات التي لها ملف في data/raw")
     ap.add_argument("--sleep", type=float, default=0.3)
     ap.add_argument("--sources", default=os.environ.get("HT_FETCH_SOURCES", DEFAULT_SOURCES))
     ap.add_argument("--api-key", help="يتجاوز YOUTUBE_API_KEY (لا يُحفظ)")
@@ -41,6 +42,8 @@ def main() -> int:
     key = api_key(args.api_key)
     RAW.mkdir(parents=True, exist_ok=True)
     channels = [c for c in CHANNELS if not args.only or c[0] == args.only]
+    if args.skip_existing:
+        channels = [c for c in channels if not (RAW / f"{c[0]}.json").exists()]
     failed = 0
     used: dict[str, int] = {}
 
