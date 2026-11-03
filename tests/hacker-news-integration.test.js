@@ -62,7 +62,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -754,4 +754,50 @@ test("Home order keeps first-page channel diversity and invalidates after watchi
 
   harness.api.markSeen("v0");
   assert.equal(harness.api.state.homeStale, true);
+});
+
+test("creator playlists preview diversifies channels and supports filtering", async () => {
+  const harness = createHarness();
+  const { api, view, location } = harness;
+  location.hash = "#/playlists";
+  const playlists = [];
+  for (let channel = 0; channel < 20; channel += 1) {
+    for (let item = 0; item < 3; item += 1) {
+      playlists.push({
+        id: `playlist_${channel}_${item}`,
+        title: `Course ${channel}-${item}`,
+        channel: `Channel ${channel}`,
+        channel_id: `channel_${channel}`,
+        count: 5,
+        cover: `cover${channel}${item}`,
+      });
+    }
+  }
+  api.state.builtin = playlists;
+
+  const preview = api.diverseCreatorPlaylists(playlists, 24);
+  assert.equal(preview.length, 24);
+  assert.equal(new Set(preview.map((playlist) => playlist.channel_id)).size, 20);
+
+  await api.renderPlaylists();
+  assert.match(view.innerHTML, /data-playlist-filter/);
+  assert.match(view.innerHTML, /data-more-playlists/);
+  assert.match(view.innerHTML, /Course 0-0/);
+  assert.match(view.innerHTML, /Course 1-0/);
+  assert.doesNotMatch(view.innerHTML, /Course 0-2/);
+
+  api.state.playlistQuery = "Course 3-1";
+  await api.renderPlaylists();
+  assert.match(view.innerHTML, /Course 3-1/);
+  assert.doesNotMatch(view.innerHTML, /Course 3-0/);
+  assert.match(view.innerHTML, /1 of 60/);
+
+  api.state.playlistQuery = "";
+  api.state.playlistChannel = "channel_3";
+  await api.renderPlaylists();
+  assert.match(view.innerHTML, /Course 3-0/);
+  assert.match(view.innerHTML, /Course 3-2/);
+  assert.doesNotMatch(view.innerHTML, /Course 4-0/);
+  assert.match(view.innerHTML, /3 of 60/);
+  assert.match(view.innerHTML, /data-playlist-clear/);
 });

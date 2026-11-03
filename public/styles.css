@@ -850,6 +850,32 @@ a.card-sub:hover { color: var(--text); }
 
 .create-pl input:focus { border-color: var(--text); }
 
+.pl-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 760px;
+  margin-bottom: 18px;
+}
+
+.pl-filter input,
+.pl-filter select {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.pl-filter input { flex: 1 1 240px; min-width: 0; }
+.pl-filter select { flex: 0 1 220px; min-width: 0; }
+.pl-filter input:focus,
+.pl-filter select:focus { border-color: var(--text); }
+
 .pl-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
