@@ -1428,9 +1428,10 @@ async function renderBuiltinPlaylist(id) {
 
 function playlistCard(p) {
   const first = p.ids.map(videoById).find(Boolean);
+  const firstId = first?.id || first?.vid;
   return `<article class="pl-card">
     <a class="pl-cover" href="#/playlist/${p.id}" aria-label="${esc(p.name)}">
-      ${first ? `<img src="${thumbSrc(first.id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${first.id}/hqdefault.jpg'">` : icon("playlists")}
+      ${first ? `<img src="${thumbSrc(firstId)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${firstId}/hqdefault.jpg'">` : icon("playlists")}
       <span>${p.ids.length}</span>
     </a>
     <div class="pl-row">
