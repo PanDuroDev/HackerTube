@@ -40,7 +40,8 @@
     "settings": "الإعدادات",
     "channels": "القنوات",
     "notFound": "غير موجود",
-    "searchResults": "نتائج البحث عن «{query}»"
+    "searchResults": "نتائج البحث عن «{query}»",
+    "hackerNewsVideoTitle": "فيديو هاكر نيوز — هاكر تيوب"
   },
   "confirm": {
     "title": "تأكيد الإجراء",
@@ -210,7 +211,14 @@
     "scoreTooltip": "نتيجة هاكر نيوز {score} · {count} موصٍ",
     "discussedTooltip": "نوقش على هاكر نيوز، غير موصى به",
     "loading": "جارٍ تحميل التوصيات…",
-    "programmingHint": "البرمجيات والأنظمة والذكاء الاصطناعي والرياضيات والعتاد وثقافة الحوسبة والتصميم والألعاب"
+    "programmingHint": "البرمجيات والأنظمة والذكاء الاصطناعي والرياضيات والعتاد وثقافة الحوسبة والتصميم والألعاب",
+    "stances": {
+      "strong_rec": "توصية قوية",
+      "rec": "توصية",
+      "reference": "مرجع",
+      "joke": "مزحة",
+      "critical": "نقد"
+    }
   },
   "settings": {
     "appearance": "المظهر",
@@ -256,5 +264,52 @@
   "languages": {
     "ar": "العربية",
     "en": "الإنجليزية"
+  },
+  "watch": {
+    "views": "{count} مشاهدة",
+    "indexed": "{count} مفهرس",
+    "channel": "القناة",
+    "referenced": "مذكور على هاكر نيوز",
+    "related": "فيديوهات ذات صلة",
+    "nothingRelated": "لا توجد فيديوهات ذات صلة بعد.",
+    "relatedPicks": "اختيارات هاكر تيوب ذات صلة",
+    "noRelated": "لا توجد فيديوهات ذات صلة متاحة.",
+    "source": "المصدر",
+    "comments": "تعليقات هاكر نيوز",
+    "noComments": "لا توجد تعليقات هاكر نيوز مؤرشفة لهذا الفيديو.",
+    "commentsUnavailable": "تعليقات هاكر نيوز المؤرشفة غير متاحة مؤقتاً. أعد فتح الصفحة للمحاولة.",
+    "comment": "تعليق",
+    "anonymous": "مجهول",
+    "openComment": "فتح تعليق هاكر نيوز",
+    "hnMentions": "{count} ذكر في هاكر نيوز",
+    "loading": "جارٍ تحميل الفيديو والتعليقات المؤرشفة…",
+    "notFound": "هذا الفيديو أو القناة غير موجود في الفهرس.",
+    "backHome": "العودة للرئيسية",
+    "resumeAt": "استئناف عند {time}",
+    "playerLoading": "المشغل قيد التحميل؛ سيستأنف قريباً.",
+    "resumedAt": "تم الاستئناف عند {time}",
+    "moreActions": "المزيد من إجراءات الفيديو",
+    "more": "المزيد",
+    "like": "إعجاب",
+    "liked": "معجب به",
+    "save": "المشاهدة لاحقاً",
+    "saved": "محفوظ",
+    "addToPlaylist": "إضافة إلى قائمة",
+    "noPlaylists": "لا توجد قوائم تشغيل بعد.",
+    "createPlaylistFirst": "أنشئ واحدة أولاً",
+    "alreadyInPlaylist": "موجود بالفعل في هذه القائمة",
+    "addedToPlaylist": "أُضيف إلى «{name}»",
+    "share": "مشاركة",
+    "youtube": "يوتيوب",
+    "linkCopied": "تم نسخ الرابط",
+    "copyFailed": "تعذّر نسخ الرابط.",
+    "remove": "إزالة",
+    "removeFromWatchLater": "إزالة من المشاهدة لاحقاً",
+    "addToWatchLater": "إضافة إلى المشاهدة لاحقاً",
+    "contextUnavailable": "تعذّر تحميل سياق هاكر نيوز.",
+    "thisYear": "هذه السنة",
+    "yearsAgo": "قبل {count} سنوات",
+    "loadError": "تعذّر تحميل هذا الفيديو.",
+    "unknownChannel": "قناة غير معروفة"
   }
 }

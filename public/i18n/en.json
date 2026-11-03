@@ -40,7 +40,8 @@
     "settings": "Settings",
     "channels": "Channels",
     "notFound": "Not found",
-    "searchResults": "Results for “{query}”"
+    "searchResults": "Results for “{query}”",
+    "hackerNewsVideoTitle": "Hacker News video — HackerTube"
   },
   "confirm": {
     "title": "Confirm action",
@@ -206,7 +207,14 @@
     "scoreTooltip": "Hacker News score {score} · {count} recommenders",
     "discussedTooltip": "Discussed on Hacker News, not recommended",
     "loading": "Loading recommendations…",
-    "programmingHint": "Software, systems, AI, math, hardware, computing culture, design, and games"
+    "programmingHint": "Software, systems, AI, math, hardware, computing culture, design, and games",
+    "stances": {
+      "strong_rec": "Strong recommendation",
+      "rec": "Recommendation",
+      "reference": "Reference",
+      "joke": "Joke",
+      "critical": "Critical"
+    }
   },
   "settings": {
     "appearance": "Appearance",
@@ -252,5 +260,52 @@
   "languages": {
     "ar": "Arabic",
     "en": "English"
+  },
+  "watch": {
+    "views": "{count} views",
+    "indexed": "{count} indexed",
+    "channel": "Channel",
+    "referenced": "Referenced on Hacker News",
+    "related": "Related videos",
+    "nothingRelated": "Nothing related yet.",
+    "relatedPicks": "Related HackerTube picks",
+    "noRelated": "No related videos available.",
+    "source": "Source",
+    "comments": "Hacker News comments",
+    "noComments": "No archived Hacker News comments for this video.",
+    "commentsUnavailable": "Archived Hacker News comments are temporarily unavailable. Reopen this page to retry.",
+    "comment": "Comment",
+    "anonymous": "Anonymous",
+    "openComment": "Open Hacker News comment",
+    "hnMentions": "{count} HN mentions",
+    "loading": "Loading video and archived comments…",
+    "notFound": "This video or channel is not in the index.",
+    "backHome": "Back to Home",
+    "resumeAt": "Resume at {time}",
+    "playerLoading": "Player is loading; resuming shortly.",
+    "resumedAt": "Resumed at {time}",
+    "moreActions": "More video actions",
+    "more": "More",
+    "like": "Like",
+    "liked": "Liked",
+    "save": "Watch later",
+    "saved": "Saved",
+    "addToPlaylist": "Add to playlist",
+    "noPlaylists": "No playlists yet.",
+    "createPlaylistFirst": "Create one first",
+    "alreadyInPlaylist": "Already in this playlist",
+    "addedToPlaylist": "Added to “{name}”",
+    "share": "Share",
+    "youtube": "YouTube",
+    "linkCopied": "Link copied",
+    "copyFailed": "Could not copy the link.",
+    "remove": "Remove",
+    "removeFromWatchLater": "Remove from Watch later",
+    "addToWatchLater": "Add to Watch later",
+    "contextUnavailable": "Hacker News context could not be loaded.",
+    "thisYear": "this year",
+    "yearsAgo": "{count} years ago",
+    "loadError": "Could not load this video.",
+    "unknownChannel": "Unknown channel"
   }
 }
