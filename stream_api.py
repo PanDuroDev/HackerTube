@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import ipaddress
 import os
-import shutil
 import re
 import secrets
+import shutil
 import threading
 import time
 import urllib.error
@@ -244,7 +244,8 @@ def stream(video_id: str):
                     info = downloader.extract_info(video_url, download=False)
                 candidates = _muxed_mp4_candidates(info)
 
-            if not candidates and _bgutil_provider_ready():
+            provider_ready = _bgutil_provider_ready()
+            if not candidates and provider_ready:
                 # mweb needs PO Tokens for some YouTube sessions. The BgUtils
                 # script provider generates them on demand using the bundled
                 # Deno runtime; the extraction semaphore keeps this work serial.
@@ -264,9 +265,10 @@ def stream(video_id: str):
             if not candidates:
                 app.logger.warning(
                     "No compatible progressive MP4 found for video %s "
-                    "after default, web_embedded%s extraction",
+                    "after %s extraction",
                     video_id,
-                    " and mweb with BgUtils PO Tokens" if _bgutil_provider_ready() else "",
+                    "default, web_embedded, and mweb with BgUtils PO Tokens"
+                    if provider_ready else "default and web_embedded",
                 )
                 return jsonify({
                     "error": "No compatible progressive MP4 stream is available for this video."
