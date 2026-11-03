@@ -59,7 +59,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -90,10 +90,11 @@ function sampleHNVideo(id = "hn123") {
 }
 
 function setVideoLoader(harness, records) {
-  harness.context.fetchJson = async (file) => {
+  harness.api.setFetchJson(async (file) => {
     if (file === "data/hacker-news/videos.json") return records;
+    if (file === "data/hacker-news/existing.json") return {};
     throw new Error("Unexpected data request: " + file);
-  };
+  });
 }
 
 test("Hacker News cards reuse the shared card and retain the correct watch route", () => {
@@ -175,9 +176,9 @@ test("collections reload and render saved HN-only videos, including updates duri
   const first = sampleHNVideo("hn123");
   const addedWhileLoading = sampleHNVideo("hn456");
   let resolveVideos;
-  harness.context.fetchJson = () => new Promise((resolve) => {
+  api.setFetchJson(() => new Promise((resolve) => {
     resolveVideos = resolve;
-  });
+  }));
 
   api.state.videos = [];
   api.state.byId = new Map();
@@ -189,7 +190,7 @@ test("collections reload and render saved HN-only videos, including updates duri
   location.hash = "#/liked";
 
   const pending = api.renderCollection("liked");
-  await Promise.resolve();
+  assert.equal(typeof resolveVideos, "function", "HN catalog loading should start before the first await");
   api.state.likes.add(addedWhileLoading.vid);
   resolveVideos([first, addedWhileLoading]);
   await pending;
