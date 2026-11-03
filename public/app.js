@@ -760,8 +760,17 @@ async function renderWatch(id, playlistId = null) {
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
   const playerMarkup = state.settings.nativePlayer
-    ? `<video id="native-video-player" controls playsinline preload="metadata"
-        aria-label="${esc(v.title)}"></video><p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
+    ? `<video id="native-video-player" playsinline preload="metadata"
+        aria-label="${esc(v.title)}"></video>
+        <div class="native-controls" id="native-player-controls" aria-label="Video controls">
+          <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
+          <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
+          <output class="native-time" data-player-time>0:00 / 0:00</output>
+          <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
+          <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
+          <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
+        </div>
+        <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
     : youtubeIframeMarkup(v.id, v.title, queue.length > 1 ? queue : null);
 
   view.innerHTML = `<section class="watch">
@@ -819,10 +828,64 @@ function youtubeIframeMarkup(videoId, title, queue = null) {
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 
+function formatPlayerTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const total = Math.floor(seconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const remaining = String(total % 60).padStart(2, "0");
+  return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${remaining}` : `${minutes}:${remaining}`;
+}
+
+function attachNativePlayerControls(player) {
+  const container = player.closest(".player");
+  const toggle = container.querySelector("[data-player-toggle]");
+  const seek = container.querySelector("[data-player-seek]");
+  const time = container.querySelector("[data-player-time]");
+  const mute = container.querySelector("[data-player-mute]");
+  const volume = container.querySelector("[data-player-volume]");
+  const fullscreen = container.querySelector("[data-player-fullscreen]");
+  const update = () => {
+    const duration = Number.isFinite(player.duration) ? player.duration : 0;
+    seek.value = duration ? String(Math.round(player.currentTime / duration * 1000)) : "0";
+    time.textContent = `${formatPlayerTime(player.currentTime)} / ${formatPlayerTime(duration)}`;
+    toggle.textContent = player.paused ? "Play" : "Pause";
+    toggle.setAttribute("aria-label", player.paused ? "Play" : "Pause");
+    mute.textContent = player.muted || player.volume === 0 ? "Unmute" : "Mute";
+    mute.setAttribute("aria-label", player.muted || player.volume === 0 ? "Unmute" : "Mute");
+    volume.value = String(player.muted ? 0 : player.volume);
+  };
+  toggle.addEventListener("click", () => {
+    if (player.paused) player.play().catch(() => toast("Could not start playback.", "info"));
+    else player.pause();
+  });
+  seek.addEventListener("input", () => {
+    if (Number.isFinite(player.duration) && player.duration > 0) {
+      player.currentTime = Number(seek.value) / 1000 * player.duration;
+    }
+  });
+  mute.addEventListener("click", () => { player.muted = !player.muted; update(); });
+  volume.addEventListener("input", () => {
+    player.volume = Number(volume.value);
+    player.muted = player.volume === 0;
+    update();
+  });
+  fullscreen.addEventListener("click", () => {
+    const target = container;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else target.requestFullscreen?.().catch(() => {});
+  });
+  ["loadedmetadata", "durationchange", "timeupdate", "play", "pause", "volumechange", "ended"].forEach((event) => {
+    player.addEventListener(event, update);
+  });
+  update();
+}
+
 async function startNativePlayer(video, queue, playlistId, routeHash) {
   const player = $("#native-video-player");
   const status = $("#native-player-status");
   if (!player || !status) return;
+  attachNativePlayerControls(player);
   if (queue.length > 1) {
     player.addEventListener("ended", () => {
       if (location.hash !== routeHash) return;
