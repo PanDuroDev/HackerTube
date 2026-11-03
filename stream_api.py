@@ -145,8 +145,38 @@ def health():
     return jsonify({"status": "ok"})
 
 
+
+
+def _muxed_mp4_candidates(info: dict) -> list[dict]:
+    """Return directly playable HTTPS MP4 formats that already contain audio and video."""
+    formats = info.get("formats") or []
+    candidates = [
+        item for item in formats
+        if item.get("ext") == "mp4"
+        and item.get("protocol") == "https"
+        and item.get("vcodec") not in (None, "none")
+        and item.get("acodec") not in (None, "none")
+        and item.get("url", "").startswith("https://")
+        and not item.get("has_drm")
+    ]
+    if not candidates:
+        # Some extractors return a single format at the top level instead of
+        # exposing a formats array. Keep supporting that response shape.
+        if (
+            info.get("ext") == "mp4"
+            and info.get("protocol") in (None, "https")
+            and info.get("vcodec") not in (None, "none")
+            and info.get("acodec") not in (None, "none")
+            and info.get("url", "").startswith("https://")
+            and not info.get("has_drm")
+        ):
+            candidates = [info]
+    return candidates
+
+
 @app.route("/api/stream/<video_id>", methods=["GET", "OPTIONS"])
 def stream(video_id: str):
+    """Extract a muxed MP4 and return a short-lived URL served by the media proxy."""
     if request.method == "OPTIONS":
         return ("", 204)
     if not VIDEO_ID_RE.fullmatch(video_id):
@@ -162,39 +192,29 @@ def stream(video_id: str):
             "no_warnings": True,
             "noplaylist": True,
             "skip_download": True,
-            # Let yt-dlp return all formats. Our explicit filter below handles
-            # the no-compatible-MP4 case without format-selection exceptions.
+            # Inspect available formats rather than forcing a selector that
+            # could fail before we can try the alternate YouTube client.
             "ignore_no_formats_error": True,
             "socket_timeout": 20,
             "extractor_retries": 1,
         }
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
         with yt_dlp.YoutubeDL(options) as downloader:
-            info = downloader.extract_info(
-                f"https://www.youtube.com/watch?v={video_id}",
-                download=False,
-            )
+            info = downloader.extract_info(video_url, download=False)
 
-        formats = info.get("formats") or []
-        candidates = [
-            item for item in formats
-            if item.get("ext") == "mp4"
-            and item.get("protocol") == "https"
-            and item.get("vcodec") not in (None, "none")
-            and item.get("acodec") not in (None, "none")
-            and item.get("url", "").startswith("https://")
-            and not item.get("has_drm")
-        ]
+        candidates = _muxed_mp4_candidates(info)
         if not candidates:
-            item = info
-            if (
-                item.get("ext") == "mp4"
-                and item.get("protocol") in (None, "https")
-                and item.get("vcodec") not in (None, "none")
-                and item.get("acodec") not in (None, "none")
-                and item.get("url", "").startswith("https://")
-                and not item.get("has_drm")
-            ):
-                candidates = [item]
+            # Some server-side YouTube clients are served adaptive-only
+            # formats under the default client set. Retry once with Android,
+            # which can still expose a directly playable muxed MP4 format.
+            android_options = {
+                **options,
+                "extractor_args": {"youtube": {"player_client": ["android"]}},
+            }
+            with yt_dlp.YoutubeDL(android_options) as downloader:
+                info = downloader.extract_info(video_url, download=False)
+            candidates = _muxed_mp4_candidates(info)
+
         if not candidates:
             return jsonify({
                 "error": "No compatible progressive MP4 stream is available for this video."
