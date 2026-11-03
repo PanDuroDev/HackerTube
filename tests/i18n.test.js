@@ -20,8 +20,13 @@ test("Arabic and English dictionaries share the required keys", () => {
   const enKeys = new Set(flatten(en));
   const arKeys = new Set(flatten(ar));
   for (const key of enKeys) assert.ok(arKeys.has(key), `missing Arabic key: ${key}`);
-  for (const key of ["app.title", "header.language", "nav.home", "nav.hackerNews", "counts.videos.other"]) {
-    assert.ok(enKeys.has(key));
+  for (const key of [
+    "app.title", "header.language", "nav.home", "nav.hackerNews",
+    "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext",
+    "hn.scope", "hn.contentTypes.comedy", "topics.web", "languages.ar",
+    "counts.videos.other",
+  ]) {
+    assert.ok(enKeys.has(key), `missing required key: ${key}`);
   }
 });
 
@@ -29,6 +34,11 @@ test("t() translates, interpolates, and falls back to English", () => {
   i18n.setMessages("ar", ar, en);
   assert.equal(i18n.t("nav.home"), "الرئيسية");
   assert.equal(i18n.t("pages.searchResults", { query: "react" }), "نتائج البحث عن «react»");
+  assert.equal(i18n.t("filters.button"), "الفلاتر");
+  assert.equal(i18n.t("filters.forYou"), "مخصص لك");
+  assert.equal(i18n.t("settings.browsing"), "التصفح");
+  assert.equal(i18n.t("hn.scope"), "النطاق");
+  assert.equal(i18n.t("topics.web"), "تطوير الويب");
   i18n.setMessages("ar", { nav: { home: "بيت" } }, en);
   assert.equal(i18n.t("nav.home"), "بيت");
   assert.equal(i18n.t("header.search"), "Search");
