@@ -82,6 +82,9 @@ def import_archive() -> dict[str, int]:
             SOURCE_ROOT + "mentions.jsonl",
             SOURCE_ROOT + "related.jsonl",
             SOURCE_ROOT + "taxonomy.json",
+            SOURCE_ROOT + "embedding_ids.json",
+            SOURCE_ROOT + "embeddings.npy",
+            SOURCE_ROOT + "DATA.md",
         }
         missing = sorted(required - names)
         if missing:
@@ -101,7 +104,14 @@ def import_archive() -> dict[str, int]:
 
         overlaps = {video_id: by_id[video_id] for video_id in by_id if video_id in existing_ids}
         new_videos = [record for record in source_videos if record["vid"] not in existing_ids]
-        new_ids = {record["vid"] for record in new_videos}
+
+        embedding_ids = json.loads(archive.read(SOURCE_ROOT + "embedding_ids.json").decode("utf-8"))
+        if len(embedding_ids) != len(set(embedding_ids)) or set(embedding_ids) != set(by_id):
+            raise ValueError("Embedding IDs must uniquely cover every source video.")
+        embeddings = archive.read(SOURCE_ROOT + "embeddings.npy")
+        if not embeddings.startswith(b"\\x93NUMPY"):
+            raise ValueError("embeddings.npy has an invalid NumPy file signature.")
+        data_documentation = archive.read(SOURCE_ROOT + "DATA.md")
 
         mentions_by_prefix: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
         mention_count = 0
@@ -118,7 +128,7 @@ def import_archive() -> dict[str, int]:
         related: dict[str, list[dict]] = {}
         for record in read_jsonl(archive, SOURCE_ROOT + "related.jsonl"):
             video_id = record.get("vid")
-            if video_id in new_ids:
+            if video_id in by_id:
                 related[video_id] = record.get("related") or []
 
         taxonomy = json.loads(archive.read(SOURCE_ROOT + "taxonomy.json").decode("utf-8"))
@@ -135,6 +145,9 @@ def import_archive() -> dict[str, int]:
     write_json(OUT / "existing.json", overlaps)
     write_json(OUT / "related.json", related)
     write_json(OUT / "taxonomy.json", taxonomy, compact=False)
+    write_json(OUT / "embedding_ids.json", embedding_ids)
+    (OUT / "embeddings.npy").write_bytes(embeddings)
+    (OUT / "DATA.md").write_bytes(data_documentation)
     for prefix, grouped in sorted(mentions_by_prefix.items()):
         write_gzip_json(OUT / "mentions" / f"{prefix}.json.gz", grouped)
 
@@ -150,11 +163,17 @@ def import_archive() -> dict[str, int]:
             len(area.get("categories", [])) for area in taxonomy.get("areas", [])
         ),
         "mention_partitions": len(mentions_by_prefix),
+        "embedding_rows": len(embedding_ids),
+        "embedding_dimensions": 384,
+        "embedding_dtype": "float16",
+        "embedding_model": "BAAI/bge-small-en-v1.5",
     }
     meta = {
-        "source": "HackerTube / Hacker News",
+        "source": "HackerTube (https://hackertube.org), derived from open-index/hacker-news",
         "source_archive": "hackertube-data.zip",
         "source_export_date": "2026-10-31",
+        "data_license": "ODC-By 1.0",
+        "attribution": "Credit HackerTube and open-index/hacker-news; original comments remain their authors' work.",
         **stats,
         "deduplication": "Exact YouTube video ID against public/data/videos.json",
         "comments_format": "Gzip-compressed JSON objects partitioned by the first YouTube ID character.",
