@@ -1,3 +1,8 @@
+import io
+import urllib.error
+
+import pytest
+
 from pipeline import sources
 from pipeline.config import CHANNEL_LANG, CHANNELS
 from pipeline.sources import FetchError, fetch_with_fallback, parse_iso_duration
@@ -58,3 +63,46 @@ def test_channel_ids_unique_and_tagged():
     assert len(ids) == len(set(ids))
     assert CHANNEL_LANG["UCSNkfKl4cU-55Nm-ovsvOHQ"] == "ar"
     assert CHANNEL_LANG["UC8butISFwT-Wl7EV0hUK0BQ"] == "en"
+
+
+def test_get_json_retries_5xx(monkeypatch):
+    calls = {"n": 0}
+
+    class Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake(url, timeout=20):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise urllib.error.HTTPError(
+                url, 503, "busy", {}, io.BytesIO(b'{"error":{"message":"busy"}}')
+            )
+        return Resp()
+
+    monkeypatch.setattr(sources.urllib.request, "urlopen", fake)
+    monkeypatch.setattr(sources.time, "sleep", lambda seconds: None)
+    assert sources._get_json("http://test") == {"ok": True}
+    assert calls["n"] == 3
+
+
+def test_get_json_does_not_retry_4xx(monkeypatch):
+    calls = {"n": 0}
+
+    def fake(url, timeout=20):
+        calls["n"] += 1
+        raise urllib.error.HTTPError(
+            url, 403, "quota", {}, io.BytesIO(b'{"error":{"message":"quota"}}')
+        )
+
+    monkeypatch.setattr(sources.urllib.request, "urlopen", fake)
+    monkeypatch.setattr(sources.time, "sleep", lambda seconds: None)
+    with pytest.raises(FetchError, match="HTTP 403"):
+        sources._get_json("http://test")
+    assert calls["n"] == 1

@@ -53,11 +53,13 @@ def _get_json(url: str) -> dict:
                 message = json.loads(detail)["error"]["message"]
             except Exception:
                 message = detail[:200]
-            raise FetchError(f"HTTP {exc.code}: {message}") from exc
+            if exc.code < 500 or attempt == 2:
+                raise FetchError(f"HTTP {exc.code}: {message}") from exc
+            last_error = exc
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             last_error = exc
-            if attempt < 2:
-                time.sleep(1.5 * (attempt + 1))
+        if attempt < 2:
+            time.sleep(1.5 * (attempt + 1))
     raise FetchError(str(getattr(last_error, "reason", last_error))) from last_error
 
 
@@ -125,7 +127,6 @@ def fetch_with_api(channel_id: str, name: str, limit: int, key: str) -> dict:
             {
                 "part": "snippet,contentDetails,statistics",
                 "id": ",".join(chunk),
-                "maxResults": 50,
                 "key": key,
             },
         )
