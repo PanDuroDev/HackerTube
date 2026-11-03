@@ -33,6 +33,8 @@ const TOPIC_SEARCH_ALIASES = {
 };
 const DEFAULTS = { pageSize: 36, hideSeen: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
+const SITE_URL = "https://pandurodev.github.io/HackerTube/";
+const SORT_VALUES = new Set(["foryou", "best", "newest", "views", "longest", "shortest"]);
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -79,7 +81,6 @@ const state = {
 };
 
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
-let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
@@ -296,6 +297,26 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function setPageMeta({ title, description = "", canonical = "", image = "", type = "website" }) {
+  document.title = title;
+  const setContent = (selector, value) => {
+    const element = document.querySelector(selector);
+    if (element) element.setAttribute("content", value);
+  };
+  setContent('meta[name="description"]', description);
+  setContent('meta[property="og:title"]', title);
+  setContent('meta[property="og:description"]', description);
+  setContent('meta[property="og:type"]', type);
+  setContent('meta[property="og:url"]', canonical);
+  setContent('meta[property="og:image"]', image);
+  setContent('meta[name="twitter:title"]', title);
+  setContent('meta[name="twitter:description"]', description);
+  setContent('meta[name="twitter:image"]', image);
+  setContent('meta[name="twitter:card"]', image ? "summary_large_image" : "summary");
+  const canonicalElement = document.querySelector('link[rel="canonical"]');
+  if (canonicalElement) canonicalElement.setAttribute("href", canonical);
+}
+
 function fmtDuration(seconds) {
   const s = Math.max(0, seconds | 0);
   const h = Math.floor(s / 3600);
@@ -408,7 +429,10 @@ function render() {
     playlistPlayer = null;
   }
   const hash = location.hash || "#/";
-  const path = hash.replace(/^#\/?/, "");
+  const raw = hash.replace(/^#\/?/, "");
+  const queryIndex = raw.indexOf("?");
+  const path = queryIndex < 0 ? raw : raw.slice(0, queryIndex);
+  const params = new URLSearchParams(queryIndex < 0 ? "" : raw.slice(queryIndex + 1));
   const [seg, ...rest] = path.split("/");
   const arg = decodeURIComponent(rest.join("/"));
   state.current = null;
@@ -416,47 +440,39 @@ function render() {
 
   if (!seg || seg === "home") {
     resetFilters("foryou");
-    if (pendingTopic) {
-      ui.topics = new Set([pendingTopic]);
-      pendingTopic = null;
-    }
+    applyFeedParams(params);
     return renderFeed({ type: "all" });
   }
   if (seg === "longs") {
     resetFilters();
+    applyFeedParams(params);
     return renderFeed({ type: "longs", title: "Long videos", minDuration: 1200 });
   }
   if (seg === "search") {
     resetFilters();
+    applyFeedParams(params);
     return renderFeed({ type: "search", q: arg, title: `Results for “${arg}”` });
   }
   if (seg === "channel") {
     const ch = state.channels.get(arg);
     if (!ch) return renderNotFound();
     resetFilters();
+    applyFeedParams(params);
     return renderFeed({ type: "channel", channel: arg, title: ch.name });
   }
   if (seg === "liked") return renderCollection("liked");
   if (seg === "later" || seg === "saved") return renderCollection("later");
   if (seg === "history") return renderCollection("history");
   if (seg === "categories") return renderCategories();
-  if (seg === "hacker-news") return renderHackerNews(arg);
+  if (seg === "hacker-news") return renderHackerNews(arg, params);
   if (seg === "hn-watch") {
-    const queryIndex = arg.indexOf("?");
-    const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
-    const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
-    const params = new URLSearchParams(query);
-    return renderHNWatch(id, params.get("list"), params.get("autoplay") === "1");
+    return renderHNWatch(arg, params.get("list"), params.get("autoplay") === "1");
   }
   if (seg === "playlists") return renderPlaylists();
   if (seg === "playlist") return arg.startsWith("pl_") ? renderPlaylist(arg) : renderBuiltinPlaylist(arg);
   if (seg === "settings") return renderSettings();
   if (seg === "watch") {
-    const queryIndex = arg.indexOf("?");
-    const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
-    const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
-    const params = new URLSearchParams(query);
-    return renderWatch(id, params.get("list"), params.get("autoplay") === "1");
+    return renderWatch(arg, params.get("list"), params.get("autoplay") === "1");
   }
   if (seg === "channels") return renderChannels();
   return renderNotFound();
@@ -548,6 +564,49 @@ function resetFilters(sort = "best") {
   ui.level = ui.kind = ui.duration = ui.year = ui.channel = ui.lang = "";
   ui.sort = sort;
   ui.limit = pageSize();
+}
+
+const FEED_FILTER_KEYS = ["lang", "level", "kind", "duration", "year", "channel"];
+
+function applyFeedParams(params) {
+  const topics = params.get("topics");
+  if (topics) {
+    const valid = new Set((state.meta?.topics || []).map((topic) => topic.id));
+    ui.topics = new Set(topics.split(",").filter((topic) => valid.has(topic)));
+  }
+  for (const key of FEED_FILTER_KEYS) {
+    const value = params.get(key);
+    if (value) ui[key] = value;
+  }
+  const sort = params.get("sort");
+  if (SORT_VALUES.has(sort)) ui.sort = sort;
+}
+
+function defaultFeedSort(scope = state.scope) {
+  return scope?.type === "all" ? "foryou" : "best";
+}
+
+function feedHashFromState() {
+  const scope = state.scope || { type: "all" };
+  const params = new URLSearchParams();
+  if (ui.topics.size) params.set("topics", [...ui.topics].join(","));
+  for (const key of FEED_FILTER_KEYS) {
+    if (ui[key]) params.set(key, ui[key]);
+  }
+  if (ui.sort !== defaultFeedSort(scope)) params.set("sort", ui.sort);
+  let path = "#/";
+  if (scope.type === "search") path = `#/search/${encodeURIComponent(scope.q || "")}`;
+  else if (scope.type === "channel") path = `#/channel/${encodeURIComponent(scope.channel || "")}`;
+  else if (scope.type === "longs") path = "#/longs";
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+
+function syncFeedUrl() {
+  const hash = feedHashFromState();
+  if ((location.hash || "#/") !== hash && typeof history !== "undefined" && history.replaceState) {
+    history.replaceState(null, "", hash);
+  }
 }
 
 function filtered(scope) {
@@ -720,7 +779,11 @@ function renderFeed(scope) {
   }
   const shown = list.slice(0, ui.limit);
   const title = scope.title || "";
-  document.title = title ? `${title} — HackerTube` : "HackerTube";
+  const pageTitle = title ? `${title} — HackerTube` : "HackerTube";
+  const description = title
+    ? `${videos(list.length)} in ${title} on HackerTube.`
+    : `An index of ${videos(state.meta?.total || list.length)} programming videos in Arabic and English.`;
+  setPageMeta({ title: pageTitle, description, canonical: SITE_URL + feedHashFromState() });
 
   view.innerHTML = `<section class="feed">
     <div class="feed-head">
@@ -735,6 +798,7 @@ function renderFeed(scope) {
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
     ${list.length > ui.limit ? `<div class="more"><button class="btn" data-more>Show more (${list.length - ui.limit})</button></div>` : ""}
   </section>`;
+  syncFeedUrl();
   syncSidebar();
 }
 
@@ -885,6 +949,7 @@ function watchActionsHTML(videoId) {
         <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
         <div class="drop-panel">${playlistPanel}</div>
       </details>
+      <button class="btn watch-action-item" type="button" data-share>${icon("share")} <span>Share</span></button>
       <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
     </div>
   </div>`;
@@ -936,6 +1001,13 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   if (location.hash !== routeHash) return;
 
   document.title = `${v.title} — HackerTube`;
+  setPageMeta({
+    title: document.title,
+    description: `${v.channel} · ${compact.format(v.views)} views${v.year ? ` · ${v.year}` : ""}. Topics: ${(v.topics || []).map((topic) => state.topicLabels[topic] || topic).join(", ")}.`,
+    canonical: `${SITE_URL}#/watch/${encodeURIComponent(v.id)}`,
+    image: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`,
+    type: "video.other",
+  });
   const related = state.videos
     .filter((x) => x.id !== v.id && x.topics.some((t) => v.topics.includes(t)))
     .sort((a, b) => shared(b, v) - shared(a, v) || b.score - a.score)
@@ -1058,6 +1130,13 @@ function syncWatchVideo(id, playlistId) {
   state.current = id;
   markSeen(id);
   document.title = `${video.title} — HackerTube`;
+  setPageMeta({
+    title: document.title,
+    description: `${video.channel} · ${compact.format(video.views)} views${video.year ? ` · ${video.year}` : ""}. Topics: ${(video.topics || []).map((topic) => state.topicLabels[topic] || topic).join(", ")}.`,
+    canonical: `${SITE_URL}#/watch/${encodeURIComponent(id)}`,
+    image: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    type: "video.other",
+  });
 
   const channel = state.channels.get(video.channel_id);
   const channelLink = $("#watch-channel");
@@ -1411,6 +1490,43 @@ function hnFilterCount() {
   return count;
 }
 
+const HN_FILTER_PARAMS = {
+  hnScope: "scope",
+  hnRecommendation: "recommendation",
+  hnType: "contentType",
+  hnLevel: "level",
+  hnShelf: "shelfLife",
+  hnArea: "area",
+  hnSort: "sort",
+};
+
+function applyHNFilterParams(params) {
+  for (const [param, key] of Object.entries(HN_FILTER_PARAMS)) {
+    const value = params.get(param);
+    if (value) state.hnFilters[key] = value;
+  }
+}
+
+function hnHashFromState(query = "") {
+  const params = new URLSearchParams();
+  const filters = state.hnFilters;
+  if (filters.scope !== HN_DEFAULTS.scope) params.set("hnScope", filters.scope);
+  for (const [param, key] of Object.entries(HN_FILTER_PARAMS)) {
+    if (key !== "scope" && key !== "sort" && filters[key]) params.set(param, filters[key]);
+  }
+  if (filters.sort !== HN_DEFAULTS.sort) params.set("hnSort", filters.sort);
+  const path = query ? `#/hacker-news/${encodeURIComponent(query)}` : "#/hacker-news";
+  const value = params.toString();
+  return value ? `${path}?${value}` : path;
+}
+
+function syncHNUrl(query = "") {
+  const hash = hnHashFromState(query);
+  if ((location.hash || "#/") !== hash && typeof history !== "undefined" && history.replaceState) {
+    history.replaceState(null, "", hash);
+  }
+}
+
 function hnComparator() {
   const sort = state.hnFilters.sort === "best" ? "score" : state.hnFilters.sort;
   const value = (record) => {
@@ -1497,13 +1613,22 @@ function hnListMarkup(source, total, { query = "", partial = false } = {}) {
   </section>`;
 }
 
-async function renderHackerNews(query = "") {
+async function renderHackerNews(query = "", params = null) {
+  if (params) {
+    state.hnFilters = Object.assign({}, HN_DEFAULTS);
+    applyHNFilterParams(params);
+  }
   if (state.hnQuery !== query) {
     state.hnQuery = query;
     state.hnLimit = pageSize();
   }
   $("#q").value = query;
   document.title = "Hacker News recommendations — HackerTube";
+  setPageMeta({
+    title: document.title,
+    description: "Programming videos recommended and discussed in Hacker News comments, with archived discussion context.",
+    canonical: `${SITE_URL}${hnHashFromState(query)}`,
+  });
   view.innerHTML = '<section><div class="feed-head"><h1>Hacker News</h1><span class="count">Loading recommendations…</span></div></section>';
   try {
     if (!query && !state.hnVideos) {
@@ -1511,6 +1636,7 @@ async function renderHackerNews(query = "") {
       if (preview && !state.hnVideos && (location.hash || "#/").startsWith("#/hacker-news") && state.hnQuery === query) {
         view.innerHTML = hnListMarkup(preview, state.hnTotal || preview.length, { partial: true });
         syncSidebar();
+        syncHNUrl(query);
       }
     }
     const records = await loadHNVideos();
@@ -1521,6 +1647,7 @@ async function renderHackerNews(query = "") {
       : records;
     view.innerHTML = hnListMarkup(source, records.length, { query });
     syncSidebar();
+    syncHNUrl(query);
   } catch (error) {
     if (!(location.hash || "#/").startsWith("#/hacker-news") || state.hnQuery !== query) return;
     view.innerHTML = `<section class="error"><strong>Could not load Hacker News data.</strong><p>${esc(error.message)}</p></section>`;
@@ -1577,6 +1704,13 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     const commentsUnavailable = commentResult === null;
     const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
+    setPageMeta({
+      title: document.title,
+      description: video.summary || `${video.channel} · referenced on Hacker News.`,
+      canonical: `${SITE_URL}#/hn-watch/${encodeURIComponent(videoId)}`,
+      image: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+      type: "video.other",
+    });
     const mainVideo = state.byId.get(videoId);
     const quote = video.quote?.text
       ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
@@ -1656,11 +1790,16 @@ function videoById(id) {
 
 function renderCategories() {
   document.title = "Categories — HackerTube";
+  setPageMeta({
+    title: document.title,
+    description: `Browse ${state.meta.topics.length} programming topics across the HackerTube catalog.`,
+    canonical: `${SITE_URL}#/categories`,
+  });
   const topics = [...state.meta.topics].sort((a, b) => b.count - a.count);
   view.innerHTML = `<section>
     <div class="feed-head"><h1>Categories</h1><span class="count">${topics.length} topics</span></div>
     <div class="topic-grid">
-      ${topics.map((t) => `<a class="topic-card" href="#/" data-goto-topic="${t.id}">
+      ${topics.map((t) => `<a class="topic-card" href="#/?topics=${encodeURIComponent(t.id)}" data-goto-topic="${t.id}">
         <span class="topic-name">${esc(state.topicLabels[t.id] || t.id)}</span>
         <span class="topic-num">${t.count}</span>
         ${icon("arrowRight")}
@@ -1746,6 +1885,11 @@ async function renderPlaylists() {
   }
   if (location.hash !== routeHash) return;
   document.title = "Playlists — HackerTube";
+  setPageMeta({
+    title: document.title,
+    description: `Browse ${state.builtin.length} creator playlists and your own saved playlists.`,
+    canonical: `${SITE_URL}#/playlists`,
+  });
   const total = state.builtin.length + state.playlists.length;
   const filtered = filteredCreatorPlaylists();
   const creators = diverseCreatorPlaylists(filtered, state.playlistLimit);
@@ -1958,9 +2102,10 @@ function onViewClick(e) {
 
   const goto = e.target.closest("[data-goto-topic]");
   if (goto) {
-    pendingTopic = goto.dataset.gotoTopic;
-    if (/^#\/(home)?$/.test(location.hash || "#/")) render();
-    else location.hash = "#/";
+    e.preventDefault();
+    const target = `#/?topics=${encodeURIComponent(goto.dataset.gotoTopic)}`;
+    if ((location.hash || "#/") === target) render();
+    else location.hash = target;
     return;
   }
 
@@ -2143,6 +2288,12 @@ function onViewClick(e) {
   if (act) {
     closeWatchActionMenu(true);
     toggleAct(act.dataset.act);
+    return;
+  }
+
+  if (e.target.closest("[data-share]")) {
+    closeWatchActionMenu(true);
+    shareCurrentPage();
   }
 }
 
@@ -2153,6 +2304,37 @@ function closeWatchActionMenu(restoreFocus = false) {
   const toggle = actions.querySelector("[data-watch-actions-toggle]");
   toggle?.setAttribute("aria-expanded", "false");
   if (restoreFocus) toggle?.focus();
+}
+
+async function shareCurrentPage() {
+  const url = location.href;
+  const title = document.title;
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    try {
+      await navigator.share({ title, url });
+      return;
+    } catch {
+      // The user may have cancelled the native share sheet.
+    }
+  }
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const input = document.createElement("textarea");
+      input.value = url;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    toast("Link copied");
+  } catch {
+    toast("Could not copy the link.", "info");
+  }
 }
 
 function onViewChange(e) {
