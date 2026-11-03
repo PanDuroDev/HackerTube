@@ -1,0 +1,57 @@
+{
+  "app": {
+    "title": "HackerTube — programming videos in Arabic and English",
+    "description": "An index of programming videos from hand-picked Arabic and English channels, with search and filters for topic, language, level, duration and date."
+  },
+  "header": {
+    "language": "Language",
+    "menu": "Menu",
+    "searchPlaceholder": "Search videos, channels, topics",
+    "search": "Search",
+    "toggleTheme": "Toggle theme",
+    "switchLight": "Switch to light theme",
+    "switchDark": "Switch to dark theme",
+    "closeMenu": "Close menu"
+  },
+  "skipToContent": "Skip to content",
+  "sidebar": {
+    "navigation": "Navigation",
+    "menu": "Menu",
+    "explore": "Explore"
+  },
+  "nav": {
+    "home": "Home",
+    "longs": "Longs",
+    "liked": "Liked",
+    "history": "History",
+    "later": "Watch later",
+    "categories": "Categories",
+    "playlists": "Playlists",
+    "hackerNews": "Hacker News",
+    "settings": "Settings",
+    "channels": "Channels"
+  },
+  "pages": {
+    "longs": "Long videos",
+    "categories": "Categories",
+    "playlists": "Playlists",
+    "hackerNews": "Hacker News",
+    "hackerNewsTitle": "Hacker News recommendations — HackerTube",
+    "settings": "Settings",
+    "channels": "Channels",
+    "notFound": "Not found",
+    "searchResults": "Results for “{query}”"
+  },
+  "confirm": {
+    "title": "Confirm action",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "noscript": "This site needs JavaScript to show and filter the index.",
+  "counts": {
+    "videos": {
+      "one": "{count} video",
+      "other": "{count} videos"
+    }
+  }
+}
