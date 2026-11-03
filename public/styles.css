@@ -629,7 +629,7 @@ a.card-sub:hover { color: var(--text); }
 .youtube-player-frame--cropped iframe {
   inset: auto 0;
   top: 50%;
-  height: 283%;
+  height: 277.8%;
   transform: translateY(-50%);
 }
 .youtube-start-overlay {
@@ -679,7 +679,7 @@ a.card-sub:hover { color: var(--text); }
 }
 .player:fullscreen .youtube-player-frame--cropped iframe {
   top: 50%;
-  height: 283%;
+  height: 277.8%;
   transform: translateY(-50%);
 }
 
