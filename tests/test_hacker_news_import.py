@@ -33,7 +33,7 @@ def test_hacker_news_auxiliary_assets_are_complete():
     embeddings = (HN_DATA / "embeddings.npy").read_bytes()
     assert len(embedding_ids) == len(set(embedding_ids)) == len(source_ids)
     assert set(embedding_ids) == source_ids
-    assert embeddings.startswith(b"\\x93NUMPY")
+    assert embeddings.startswith(bytes([0x93]) + b"NUMPY")
     assert len(embeddings) > 4_000_000
     assert (HN_DATA / "DATA.md").is_file()
 
