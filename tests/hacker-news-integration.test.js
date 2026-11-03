@@ -11,10 +11,9 @@ const APP_SOURCE = fs.readFileSync(
   "utf8",
 );
 
-function createHarness(savedSettings = null) {
+function createHarness() {
   const view = { innerHTML: "", addEventListener() {} };
   const storage = new Map();
-  if (savedSettings) storage.set("ht_settings", JSON.stringify(savedSettings));
   const document = {
     title: "",
     querySelector(selector) {
@@ -72,7 +71,6 @@ function createHarness(savedSettings = null) {
     context,
     document,
     location: context.location,
-    storage,
     view,
   };
 }
@@ -504,24 +502,6 @@ test("Settings no longer expose Playback or Stream API options", () => {
     assert.ok(!view.innerHTML.includes(label), `settings should not contain ${label}`);
   }
   assert.ok(view.innerHTML.includes("Browsing"));
-});
-
-
-test("legacy playback preferences are removed from saved browser settings", () => {
-  const { api, storage } = createHarness({
-    pageSize: 60,
-    hideSeen: true,
-    nativePlayer: true,
-    customYoutubeControls: true,
-    streamApiUrl: "https://old-tunnel.example",
-  });
-
-  assert.equal(api.state.settings.pageSize, 60);
-  assert.equal(api.state.settings.hideSeen, true);
-  for (const key of ["nativePlayer", "customYoutubeControls", "streamApiUrl"]) {
-    assert.ok(!Object.prototype.hasOwnProperty.call(api.state.settings, key));
-  }
-  assert.deepEqual(JSON.parse(storage.get("ht_settings")), { pageSize: 60, hideSeen: true });
 });
 
 

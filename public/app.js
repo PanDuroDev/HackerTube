@@ -69,12 +69,6 @@ const state = {
   showAllPlaylists: false,
 };
 
-const savedSettings = storeGet(STORE.settings, {});
-const removedPlaybackSettings = ["nativePlayer", "customYoutubeControls", "streamApiUrl"];
-if (savedSettings && removedPlaybackSettings.some((key) => Object.prototype.hasOwnProperty.call(savedSettings, key))) {
-  for (const key of removedPlaybackSettings) delete state.settings[key];
-  storeSet(STORE.settings, state.settings);
-}
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
 let playlistPlayer = null;
