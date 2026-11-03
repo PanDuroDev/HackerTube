@@ -439,7 +439,7 @@ test("HN watch uses the actual route when query parameter order differs", async 
   assert.ok(!view.innerHTML.includes("Loading video and archived comments"));
 });
 
-test("single-video HN playlist embeds with autoplay enabled", async () => {
+test("single-video HN playlist uses custom player controls and keeps autoplay enabled", async () => {
   const harness = createHarness();
   const { api, location, view } = harness;
   const hn = sampleHNVideo("hn123");
@@ -455,6 +455,10 @@ test("single-video HN playlist embeds with autoplay enabled", async () => {
   await api.renderHNWatch(hn.vid, "pl_test", true);
 
   assert.ok(view.innerHTML.includes("youtube-nocookie.com/embed/hn123"));
+  assert.ok(view.innerHTML.includes("controls=0"));
   assert.ok(view.innerHTML.includes("autoplay=1"));
-  assert.ok(!view.innerHTML.includes('id="youtube-player"'));
+  assert.ok(view.innerHTML.includes('id="youtube-player"'));
+  assert.ok(view.innerHTML.includes('data-youtube-toggle'));
+  assert.ok(view.innerHTML.includes('data-youtube-seek'));
+  assert.ok(view.innerHTML.includes('data-youtube-speed'));
 });
