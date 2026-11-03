@@ -24,6 +24,29 @@ def test_hacker_news_import_excludes_existing_video_ids():
     assert meta["source_videos"] == len(imported) + len(existing)
 
 
+def test_hacker_news_auxiliary_assets_are_complete():
+    videos = json.loads((HN_DATA / "videos.json").read_text(encoding="utf-8"))
+    existing = json.loads((HN_DATA / "existing.json").read_text(encoding="utf-8"))
+    source_ids = {video["vid"] for video in videos} | set(existing)
+
+    embedding_ids = json.loads((HN_DATA / "embedding_ids.json").read_text(encoding="utf-8"))
+    embeddings = (HN_DATA / "embeddings.npy").read_bytes()
+    assert len(embedding_ids) == len(set(embedding_ids)) == len(source_ids)
+    assert set(embedding_ids) == source_ids
+    assert embeddings.startswith(b"\\x93NUMPY")
+    assert len(embeddings) > 4_000_000
+    assert (HN_DATA / "DATA.md").is_file()
+
+    related = json.loads((HN_DATA / "related.json").read_text(encoding="utf-8"))
+    assert len(related) == 3778
+    assert set(related) <= source_ids
+    assert all(
+        item["vid"] in source_ids
+        for neighbours in related.values()
+        for item in neighbours
+    )
+
+
 def test_hacker_news_comments_are_complete_and_partitioned():
     source_ids = {
         video["vid"] for video in json.loads((HN_DATA / "videos.json").read_text(encoding="utf-8"))
