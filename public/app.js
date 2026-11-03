@@ -124,6 +124,8 @@ async function init() {
     else location.hash = next;
   });
   document.addEventListener("keydown", (e) => {
+    if ($("#confirmDialog")?.open) return;
+
     if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
       e.preventDefault();
       $("#q").focus();
