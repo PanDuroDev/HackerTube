@@ -1,0 +1,220 @@
+{
+ "generated_at": "2026-11-03T02:55:48+00:00",
+ "total": 3319,
+ "total_hours": 1469,
+ "channels": [
+  {
+   "id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
+   "name": "Coder Shiyar (كودر شيار)",
+   "count": 293
+  },
+  {
+   "id": "UCIKDaj_tCR7ntiwM71DfaBg",
+   "name": "راكوان للبرمجة - CodeRK",
+   "count": 272
+  },
+  {
+   "id": "UCWX_0VvMxl0_XosvYOZ7O0g",
+   "name": "محمد الدسوقى (Mohamed El Desouki)",
+   "count": 269
+  },
+  {
+   "id": "UCbQh1yxBPVhyjB-G_blFFEQ",
+   "name": "Abdelrahman Gamal",
+   "count": 259
+  },
+  {
+   "id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "name": "Elzero Web School",
+   "count": 242
+  },
+  {
+   "id": "UCxxljM6JkSvJVSD_T90ZnMw",
+   "name": "Hesham Asem",
+   "count": 239
+  },
+  {
+   "id": "UCa--uYErOqjm8qT576P1hMQ",
+   "name": "Adel Nasim",
+   "count": 225
+  },
+  {
+   "id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "name": "TheNewBaghdad (بغداد الجديدة)",
+   "count": 198
+  },
+  {
+   "id": "UC5COvx1Z8fnfvVkafqL_UZg",
+   "name": "اتعلم ببساطة",
+   "count": 175
+  },
+  {
+   "id": "UCFnqbM05-W4VpmzZj36-Kog",
+   "name": "Mohamed Elkashef",
+   "count": 175
+  },
+  {
+   "id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
+   "name": "Yehia Tech",
+   "count": 150
+  },
+  {
+   "id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
+   "name": "Python Arabic Community",
+   "count": 123
+  },
+  {
+   "id": "UC4Y8dVfo_-aydzENDmE7wTw",
+   "name": "Ali Shahin",
+   "count": 116
+  },
+  {
+   "id": "UCnGblT_CyMwswTIH9QmJ3YQ",
+   "name": "غريب الشيخ || Ghareeb Elshaikh",
+   "count": 112
+  },
+  {
+   "id": "UCveX_0uBOHVHbpV838OGXVA",
+   "name": "Codezilla",
+   "count": 95
+  },
+  {
+   "id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "name": "أكاديمية حسوب",
+   "count": 92
+  },
+  {
+   "id": "UCaGo8x7uqxMK5A08AI8s6IQ",
+   "name": "QAcart",
+   "count": 72
+  },
+  {
+   "id": "UCuEOSK8blSM6j5jxVp3ttnQ",
+   "name": "Programming Advices",
+   "count": 70
+  },
+  {
+   "id": "UCrgG9J-S4NaHfNkvtMthRDA",
+   "name": "Algorithmiat - خوارزميات",
+   "count": 56
+  },
+  {
+   "id": "UC1fxEAVE-_N9mDL7APCkeOQ",
+   "name": "freeCodeCamp Arabic",
+   "count": 31
+  },
+  {
+   "id": "UCOApBrMjpXbBAii6d0187ww",
+   "name": "Ziad Emad",
+   "count": 31
+  },
+  {
+   "id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
+   "name": "بايثون بالعربي",
+   "count": 24
+  }
+ ],
+ "topics": [
+  {
+   "id": "python",
+   "label": "بايثون",
+   "count": 525
+  },
+  {
+   "id": "javascript",
+   "label": "جافاسكربت",
+   "count": 215
+  },
+  {
+   "id": "web",
+   "label": "تطوير الويب",
+   "count": 637
+  },
+  {
+   "id": "php",
+   "label": "PHP",
+   "count": 63
+  },
+  {
+   "id": "java",
+   "label": "جافا",
+   "count": 266
+  },
+  {
+   "id": "cpp",
+   "label": "C++",
+   "count": 430
+  },
+  {
+   "id": "csharp",
+   "label": "C#",
+   "count": 21
+  },
+  {
+   "id": "mobile",
+   "label": "تطبيقات الموبايل",
+   "count": 161
+  },
+  {
+   "id": "database",
+   "label": "قواعد البيانات",
+   "count": 246
+  },
+  {
+   "id": "linux",
+   "label": "لينكس",
+   "count": 41
+  },
+  {
+   "id": "devops",
+   "label": "ديفوبس والسحابة",
+   "count": 24
+  },
+  {
+   "id": "git",
+   "label": "Git",
+   "count": 34
+  },
+  {
+   "id": "security",
+   "label": "الأمن السيبراني",
+   "count": 120
+  },
+  {
+   "id": "ai",
+   "label": "الذكاء الاصطناعي",
+   "count": 528
+  },
+  {
+   "id": "data",
+   "label": "تحليل البيانات",
+   "count": 11
+  },
+  {
+   "id": "algorithms",
+   "label": "الخوارزميات",
+   "count": 172
+  },
+  {
+   "id": "cs",
+   "label": "علوم الحاسب",
+   "count": 35
+  },
+  {
+   "id": "testing",
+   "label": "الاختبار",
+   "count": 59
+  },
+  {
+   "id": "networking",
+   "label": "الشبكات",
+   "count": 41
+  },
+  {
+   "id": "tools",
+   "label": "أدوات المطوّر",
+   "count": 91
+  }
+ ],
+ "fetched_channels": 22
+}
