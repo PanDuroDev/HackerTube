@@ -38,7 +38,8 @@ function createHarness() {
         storage.delete(key);
       },
     },
-    location: { hash: "#/", origin: "https://example.test" },
+    location: { hash: "#/", origin: "https://example.test", pathname: "/", search: "" },
+    history: { replaceState() {} },
     URLSearchParams,
     URL,
     matchMedia: () => ({ matches: false, addEventListener() {} }),
@@ -62,7 +63,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -825,4 +826,54 @@ test("HN renders a preview before the full catalog resolves", async () => {
   await pending;
   assert.match(harness.view.innerHTML, /Full catalog video/);
   assert.doesNotMatch(harness.view.innerHTML, /loading full catalog/);
+});
+
+test("feed filters hydrate from shareable URLs and categories use real links", () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  api.state.meta = {
+    total: 2,
+    topics: [{ id: "web", label: "Web" }, { id: "python", label: "Python" }],
+    channels: [],
+    playlists: [],
+  };
+  api.state.topicLabels = { web: "Web", python: "Python" };
+  api.state.videos = [
+    sampleMainVideo("web1", { topics: ["web"], lang: "ar", views: 50 }),
+    sampleMainVideo("py1", { topics: ["python"], lang: "en", views: 500 }),
+  ];
+  location.hash = "#/?topics=web&lang=ar&sort=views";
+
+  api.render();
+
+  assert.deepEqual([...api.ui.topics], ["web"]);
+  assert.equal(api.ui.lang, "ar");
+  assert.equal(api.ui.sort, "views");
+  assert.match(view.innerHTML, /web1 video/);
+  assert.doesNotMatch(view.innerHTML, /py1 video/);
+  assert.equal(api.feedHashFromState(), "#/?topics=web&lang=ar&sort=views");
+
+  api.renderCategories();
+  assert.match(view.innerHTML, /href="#\/\?topics=web"/);
+  assert.match(view.innerHTML, /href="#\/\?topics=python"/);
+});
+
+test("watch actions include a share control", () => {
+  const { api } = createHarness();
+  const markup = api.watchActionsHTML("video123");
+  assert.match(markup, /data-share/);
+  assert.match(markup, />Share</);
+});
+
+test("HN filters hydrate from shareable URLs", () => {
+  const { api } = createHarness();
+  api.applyHNFilterParams(new URLSearchParams("hnScope=all&hnRecommendation=discussed&hnSort=mentions"));
+
+  assert.equal(api.state.hnFilters.scope, "all");
+  assert.equal(api.state.hnFilters.recommendation, "discussed");
+  assert.equal(api.state.hnFilters.sort, "mentions");
+  assert.equal(
+    api.hnHashFromState(""),
+    "#/hacker-news?hnScope=all&hnRecommendation=discussed&hnSort=mentions",
+  );
 });
