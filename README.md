@@ -6,7 +6,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 
 ## Features
 
-- A home feed with varied recommendations that learns locally from likes, watch history, playlists, and watch-later activity, alongside long videos, likes, and viewing history.
+- A home feed with varied recommendations that learns locally from likes, watch history, playlists, and watch-later activity, alongside long videos, likes, and viewing history. For you, Best, and explicit feed refresh modes separate personalized discovery from quality ranking.
 - An English, left-to-right interface with a single **Filters** menu for topics, language, channel, level, content type, duration, year, and sorting.
 - 20 categories with video counts, plus user-created playlists that can be managed and populated from the watch page.
 - Curated playlists from content creators, fetched and cleaned automatically and displayed on the Playlists page.
