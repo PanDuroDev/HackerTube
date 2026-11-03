@@ -2185,6 +2185,8 @@ function onViewChange(e) {
     state.settings[key] = setting.type === "checkbox" ? setting.checked : Number(setting.value);
     storeSet(STORE.settings, state.settings);
     if (key === "pageSize") ui.limit = pageSize();
+    const overlaySetting = view.querySelector('[data-setting="hideYoutubeOverlays"]');
+    if (overlaySetting) overlaySetting.disabled = state.settings.customYoutubeControls === false;
     syncSidebar();
     toast("Saved");
     if (["nativePlayer", "customYoutubeControls", "hideYoutubeOverlays"].includes(key) && (
