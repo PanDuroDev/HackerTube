@@ -824,7 +824,10 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
         ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
       }
       if (ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId) && !state.hnExisting?.[videoId])) {
-        await Promise.all([loadHNVideos(), loadHNExisting()]);
+        await Promise.all([
+          loadHNVideos().catch(() => null),
+          loadHNExisting().catch(() => null),
+        ]);
       }
       const index = ids.indexOf(id);
       if (index >= 0) {
@@ -887,7 +890,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   else if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
 }
 
-function youtubeIframeMarkup(videoId, title, queue = null) {
+function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   const params = new URLSearchParams({
     enablejsapi: "1",
     origin: location.origin,
@@ -895,6 +898,7 @@ function youtubeIframeMarkup(videoId, title, queue = null) {
     playsinline: "1",
   });
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
+  if (autoplay) params.set("autoplay", "1");
   return `<iframe ${queue && queue.length > 1 ? 'id="youtube-player"' : ""}
     src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
     title="${esc(title)}" loading="lazy" allowfullscreen
@@ -1395,6 +1399,7 @@ async function renderHackerNews(query = "") {
 }
 
 async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = false) {
+  const routeHash = location.hash;
   const routeParams = new URLSearchParams();
   if (playlistId) routeParams.set("list", playlistId);
   if (autoplay) routeParams.set("autoplay", "1");
@@ -1404,7 +1409,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
   view.innerHTML = '<section class="watch"><div class="watch-main"><p class="count">Loading video and archived comments…</p></div></section>';
   try {
     const aliases = await loadHNAliases();
-    if (location.hash !== requestedRoute) return;
+    if (location.hash !== routeHash) return;
     const videoId = aliases[requestedVideoId] || requestedVideoId;
     const [, existing, related, commentResult] = await Promise.all([
       loadHNVideos(),
@@ -1412,7 +1417,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
       loadHNRelated(),
       loadHNMentions(videoId).catch(() => null),
     ]);
-    if (location.hash !== requestedRoute) return;
+    if (location.hash !== routeHash) return;
     const video = state.hnById.get(videoId) || existing[videoId];
     if (!video) return renderNotFound();
     if (requestedVideoId !== videoId) {
@@ -1439,7 +1444,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
         state.builtinIds = null;
       }
     }
-    if (location.hash !== requestedRoute) return;
+    if (location.hash !== routeHash) return;
     const commentsUnavailable = commentResult === null;
     const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
@@ -1464,7 +1469,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
               <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
             </div>
             <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
-          : youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null)}</div>
+          : youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
         <h1 class="watch-title">${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
@@ -1484,12 +1489,12 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     </section>`;
     syncSidebar();
     if (state.settings.nativePlayer) {
-      startNativePlayer({ id: video.vid, title: video.title }, queue, playlistId, requestedRoute, autoplay);
+      startNativePlayer({ id: video.vid, title: video.title }, queue, playlistId, routeHash, autoplay);
     } else if (queue.length > 1) {
-      startPlaylistPlayer(queue, playlistId, requestedRoute);
+      startPlaylistPlayer(queue, playlistId, routeHash);
     }
   } catch (error) {
-    if (location.hash !== requestedRoute) return;
+    if (location.hash !== routeHash) return;
     view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
   }
 }
