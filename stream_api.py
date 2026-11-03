@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ipaddress
 import os
+import shutil
 import re
 import secrets
 import threading
@@ -10,13 +11,14 @@ import time
 import urllib.error
 import urllib.request
 from collections import defaultdict, deque
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import yt_dlp
 from flask import Flask, Response, jsonify, request, url_for
 
 app = Flask(__name__)
-STREAM_API_VERSION = "2026.11.03-web-embedded"
+STREAM_API_VERSION = "2026.11.03-mweb-bgutil"
 
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 ALLOWED_ORIGINS = {
@@ -35,6 +37,20 @@ TRUST_CLOUDFLARE_IP = os.environ.get("HT_TRUST_CLOUDFLARE_IP", "false").lower() 
 }
 MAX_CONCURRENT_STREAMS = max(1, int(os.environ.get("HT_MAX_CONCURRENT_STREAMS", "6")))
 _stream_slots = threading.BoundedSemaphore(MAX_CONCURRENT_STREAMS)
+MAX_CONCURRENT_EXTRACTIONS = max(1, int(os.environ.get("HT_MAX_CONCURRENT_EXTRACTIONS", "1")))
+_extract_slots = threading.BoundedSemaphore(MAX_CONCURRENT_EXTRACTIONS)
+BGUTIL_SERVER_HOME = Path(os.environ.get(
+    "HT_BGUTIL_SERVER_HOME",
+    Path(__file__).resolve().parent / "vendor" / "bgutil-ytdlp-pot-provider" / "server",
+)).expanduser().resolve()
+
+
+def _bgutil_provider_ready() -> bool:
+    """Return whether the bundled BgUtils script and its Deno runtime are available."""
+    return bool(
+        shutil.which("deno")
+        and (BGUTIL_SERVER_HOME / "src" / "generate_once.ts").is_file()
+    )
 
 _requests: dict[str, deque[float]] = defaultdict(deque)
 _rate_lock = threading.Lock()
@@ -148,6 +164,7 @@ def health():
         "status": "ok",
         "api_version": STREAM_API_VERSION,
         "yt_dlp_version": yt_dlp.version.__version__,
+        "pot_provider": "ready" if _bgutil_provider_ready() else "unavailable",
     })
 
 
@@ -192,74 +209,98 @@ def stream(video_id: str):
     if not _allow_request(client_ip, time.monotonic()):
         return jsonify({"error": "Too many stream requests. Try again shortly."}), 429
 
+    if not _extract_slots.acquire(blocking=False):
+        response = jsonify({"error": "Stream extraction is busy. Try again shortly."})
+        response.status_code = 503
+        response.headers["Retry-After"] = "5"
+        return response
+
     try:
-        options = {
-            "quiet": True,
-            "no_warnings": True,
-            "noplaylist": True,
-            "skip_download": True,
-            # Inspect available formats rather than forcing a selector that
-            # could fail before we can try the alternate YouTube client.
-            "ignore_no_formats_error": True,
-            "socket_timeout": 20,
-            "extractor_retries": 1,
-        }
-        video_url = f"https://www.youtube.com/watch?v={video_id}"
-        with yt_dlp.YoutubeDL(options) as downloader:
-            info = downloader.extract_info(video_url, download=False)
-
-        candidates = _muxed_mp4_candidates(info)
-        if not candidates:
-            # The web_embedded client is a documented fallback for videos that
-            # permit embedding. Unlike Android, it does not require a GVS PO
-            # Token for its supported formats.
-            embedded_options = {
-                **options,
-                "extractor_args": {
-                    "youtube": {"player_client": ["default", "web_embedded"]}
-                },
+        try:
+            options = {
+                "quiet": True,
+                "no_warnings": True,
+                "noplaylist": True,
+                "skip_download": True,
+                "ignore_no_formats_error": True,
+                "socket_timeout": 15,
+                "extractor_retries": 0,
             }
-            with yt_dlp.YoutubeDL(embedded_options) as downloader:
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            with yt_dlp.YoutubeDL(options) as downloader:
                 info = downloader.extract_info(video_url, download=False)
-            candidates = _muxed_mp4_candidates(info)
 
-        if not candidates:
-            app.logger.warning(
-                "No compatible progressive MP4 found for video %s "
-                "after default and web_embedded extraction",
-                video_id,
+            candidates = _muxed_mp4_candidates(info)
+            if not candidates:
+                # web_embedded can expose a no-PO-token muxed format for videos
+                # that allow embedding, but its format set is not guaranteed.
+                embedded_options = {
+                    **options,
+                    "extractor_args": {
+                        "youtube": {"player_client": ["default", "web_embedded"]}
+                    },
+                }
+                with yt_dlp.YoutubeDL(embedded_options) as downloader:
+                    info = downloader.extract_info(video_url, download=False)
+                candidates = _muxed_mp4_candidates(info)
+
+            if not candidates and _bgutil_provider_ready():
+                # mweb needs PO Tokens for some YouTube sessions. The BgUtils
+                # script provider generates them on demand using the bundled
+                # Deno runtime; the extraction semaphore keeps this work serial.
+                mweb_options = {
+                    **options,
+                    "extractor_args": {
+                        "youtube": {"player_client": ["mweb"]},
+                        "youtubepot-bgutilscript": {
+                            "server_home": [str(BGUTIL_SERVER_HOME)]
+                        },
+                    },
+                }
+                with yt_dlp.YoutubeDL(mweb_options) as downloader:
+                    info = downloader.extract_info(video_url, download=False)
+                candidates = _muxed_mp4_candidates(info)
+
+            if not candidates:
+                app.logger.warning(
+                    "No compatible progressive MP4 found for video %s "
+                    "after default, web_embedded%s extraction",
+                    video_id,
+                    " and mweb with BgUtils PO Tokens" if _bgutil_provider_ready() else "",
+                )
+                return jsonify({
+                    "error": "No compatible progressive MP4 stream is available for this video."
+                }), 422
+
+            selected = max(
+                candidates,
+                key=lambda item: (
+                    int(item.get("height") or 0),
+                    float(item.get("tbr") or 0),
+                    int(item.get("filesize") or item.get("filesize_approx") or 0),
+                ),
+            )
+            stream_url = selected["url"]
+            if not _is_googlevideo_url(stream_url):
+                return jsonify({"error": "The extractor returned an unsupported media host."}), 502
+
+            token = _remember_stream(
+                stream_url,
+                selected.get("http_headers") or info.get("http_headers"),
             )
             return jsonify({
-                "error": "No compatible progressive MP4 stream is available for this video."
-            }), 422
-
-        selected = max(
-            candidates,
-            key=lambda item: (
-                int(item.get("height") or 0),
-                float(item.get("tbr") or 0),
-                int(item.get("filesize") or item.get("filesize_approx") or 0),
-            ),
-        )
-        stream_url = selected["url"]
-        if not _is_googlevideo_url(stream_url):
-            return jsonify({"error": "The extractor returned an unsupported media host."}), 502
-
-        token = _remember_stream(
-            stream_url,
-            selected.get("http_headers") or info.get("http_headers"),
-        )
-        return jsonify({
-            "url": url_for("media", token=token),
-            "title": info.get("title", ""),
-            "format_id": selected.get("format_id"),
-            "height": selected.get("height"),
-        })
-    except Exception:
-        app.logger.exception("yt-dlp failed for video %s", video_id)
-        return jsonify({
-            "error": "Could not extract this video. It may be private, restricted, or temporarily unavailable."
-        }), 502
+                "url": url_for("media", token=token),
+                "title": info.get("title", ""),
+                "format_id": selected.get("format_id"),
+                "height": selected.get("height"),
+            })
+        except Exception:
+            app.logger.exception("yt-dlp failed for video %s", video_id)
+            return jsonify({
+                "error": "Could not extract this video. It may be private, restricted, or temporarily unavailable."
+            }), 502
+    finally:
+        _extract_slots.release()
 
 
 class _UpstreamStream:
