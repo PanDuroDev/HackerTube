@@ -114,6 +114,9 @@ def build_meta(records: list[dict], payloads: list[dict]) -> dict:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     payloads = load_raw()
     records = build_records(payloads)
     if not records:
