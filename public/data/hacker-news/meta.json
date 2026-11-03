@@ -1,0 +1,16 @@
+{
+  "source": "HackerTube / Hacker News",
+  "source_archive": "hackertube-data.zip",
+  "source_export_date": "2026-10-31",
+  "source_videos": 6454,
+  "imported_videos": 6451,
+  "excluded_existing_videos": 3,
+  "mentions": 39834,
+  "mentions_for_existing_videos": 18,
+  "related_video_records": 3776,
+  "taxonomy_areas": 16,
+  "taxonomy_categories": 150,
+  "mention_partitions": 64,
+  "deduplication": "Exact YouTube video ID against public/data/videos.json",
+  "comments_format": "Gzip-compressed JSON objects partitioned by the first YouTube ID character."
+}
