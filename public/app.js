@@ -1218,12 +1218,12 @@ function watchActionsHTML(videoId) {
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>${tr("watch.noPlaylists", "No playlists yet.")}</p><a href="#/playlists">${tr("watch.createPlaylistFirst", "Create one first")}</a>`;
   return `<div class="actions watch-actions">
-    ${resume}
     <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
       aria-label="${tr("watch.moreActions", "More video actions")}" aria-controls="watchActionItems" aria-expanded="false">
       ${icon("more")} <span>${tr("watch.more", "More")}</span>
     </button>
     <div class="watch-action-items" id="watchActionItems">
+      ${resume}
       <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? tr("watch.liked", "Liked") : tr("watch.like", "Like")}</span></button>
       <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later")}</span></button>
       <details class="drop">
@@ -1966,7 +1966,7 @@ function hnListMarkup(source, total, { query = "", partial = false } = {}) {
     : `${videos(list.length)}${list.length !== total ? ` · ${total} total` : ""}`;
   return `<section class="feed">
     <div class="feed-head">
-      <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1><p class="hn-intro">${tr("hn.intro", "Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.")}</p></div>
+      <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1></div>
       <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
         ${icon("filter")} ${tr("filters.button", "Filters")}${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
       </button>

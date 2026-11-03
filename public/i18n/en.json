@@ -133,7 +133,6 @@
   },
   "hn": {
     "title": "Hacker News",
-    "intro": "Videos recommended or discussed in Hacker News comments. Main-catalog videos are excluded. The default scope is programming; switch to All HN for every topic.",
     "scope": "Scope",
     "programming": "Programming",
     "allHn": "All HN",
