@@ -900,6 +900,12 @@ async function loadHNVideos() {
         ].join(" ")),
       ]));
       return records;
+    }).catch((error) => {
+      state.hnVideosPromise = null;
+      state.hnVideos = null;
+      state.hnById = new Map();
+      state.hnSearchIndex = new Map();
+      throw error;
     });
   }
   return state.hnVideosPromise;
@@ -910,6 +916,10 @@ async function loadHNExisting() {
     state.hnExistingPromise = fetchJson("data/hacker-news/existing.json").then((records) => {
       state.hnExisting = records;
       return records;
+    }).catch((error) => {
+      state.hnExistingPromise = null;
+      state.hnExisting = null;
+      throw error;
     });
   }
   return state.hnExistingPromise;
@@ -920,6 +930,10 @@ async function loadHNRelated() {
     state.hnRelatedPromise = fetchJson("data/hacker-news/related.json").then((records) => {
       state.hnRelated = records;
       return records;
+    }).catch((error) => {
+      state.hnRelatedPromise = null;
+      state.hnRelated = null;
+      throw error;
     });
   }
   return state.hnRelatedPromise;
@@ -930,6 +944,10 @@ async function loadHNAliases() {
     state.hnAliasesPromise = fetchJson("data/hacker-news/aliases.json").then((records) => {
       state.hnAliases = records;
       return records;
+    }).catch((error) => {
+      state.hnAliasesPromise = null;
+      state.hnAliases = null;
+      throw error;
     });
   }
   return state.hnAliasesPromise;
@@ -950,13 +968,18 @@ async function loadHNMentions(videoId) {
   if (!state.hnMentionPartitions.has(prefix)) {
     const promise = (async () => {
       const response = await fetch(`data/hacker-news/mentions/${encodeURIComponent(prefix)}.json.gz`, { cache: "no-cache" });
-      if (!response.ok) return {};
+      if (response.status === 404) return {};
+      if (!response.ok) throw new Error(`Hacker News comments: HTTP ${response.status}`);
       if (typeof DecompressionStream === "undefined") {
         throw new Error("This browser cannot decompress the Hacker News comment data.");
       }
+      if (!response.body) throw new Error("Hacker News comments response has no body.");
       const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
       return JSON.parse(await new Response(stream).text());
-    })();
+    })().catch((error) => {
+      state.hnMentionPartitions.delete(prefix);
+      throw error;
+    });
     state.hnMentionPartitions.set(prefix, promise);
   }
   const partition = await state.hnMentionPartitions.get(prefix);
