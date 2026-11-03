@@ -43,3 +43,23 @@ def test_score_rewards_views():
     low = c("شرح بايثون", views=1_000)["score"]
     high = c("شرح بايثون", views=1_000_000)["score"]
     assert high > low
+
+
+def test_unknown_level_is_explicit_for_generic_titles():
+    r = c("فيديو جديد على القناة")
+    assert r["level"] == "unknown"
+    assert r["level_confidence"] == 0.0
+
+
+def test_description_and_tags_contribute_to_classification():
+    r = classify(
+        "فيديو عملي",
+        duration=900,
+        views=1000,
+        year=2025,
+        description="Learn Python from scratch with a beginner friendly project.",
+        tags=["python", "basics"],
+    )
+    assert "python" in r["topics"]
+    assert r["level"] == "beginner"
+    assert r["level_confidence"] > 0

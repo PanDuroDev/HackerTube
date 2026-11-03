@@ -23,7 +23,7 @@ def test_built_dataset_schema():
         assert required <= v.keys()
         assert v["duration"] >= 60
         assert v["topics"] and set(v["topics"]) <= set(TOPIC_LABELS)
-        assert v["level"] in {"beginner", "advanced", "any"}
+        assert v["level"] in {"beginner", "advanced", "any", "unknown"}
         assert v["kind"] in {"course", "tutorial", "project", "talk", "short"}
         assert "search" not in v
         assert 0 <= v["year"] <= 2030
@@ -57,3 +57,19 @@ def test_sitemap_and_robots_are_generated():
     assert "https://pandurodev.github.io/HackerTube/#/?topics=web" in sitemap
     assert "Sitemap: https://pandurodev.github.io/HackerTube/sitemap.xml" in robots
     assert "User-agent: *" in robots
+
+
+def test_level_and_language_distributions_are_meaningful():
+    from collections import Counter
+
+    videos = json.loads(VIDEOS.read_text(encoding="utf-8"))
+    levels = Counter(video["level"] for video in videos)
+    total = len(videos)
+
+    assert levels["beginner"] > 0
+    assert levels["advanced"] > 0
+    assert levels["unknown"] < total * 0.7
+    assert len(levels) >= 3
+    meta = json.loads(META.read_text(encoding="utf-8"))
+    assert meta["languages"]["ar"] > 0
+    assert meta["languages"]["en"] > 0

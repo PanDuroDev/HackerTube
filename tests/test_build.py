@@ -96,3 +96,22 @@ def test_description_is_preserved_when_present():
          "description": "  وصف تفصيلي للفيديو  ", "timestamp": None},
     ])])
     assert records[0]["description"] == "وصف تفصيلي للفيديو"
+
+
+def test_description_language_and_tags_are_used():
+    records = build_records([payload([
+        {
+            "id": "a",
+            "title": "Arabic title",
+            "duration": 900,
+            "views": 1000,
+            "description": "This is a long English description about Python, projects, and beginner tutorials for everyone.",
+            "tags": ["python", "programming"],
+            "timestamp": None,
+        },
+    ], channel_id="UC_AR", channel="Arabic Channel", lang="ar")])
+    record = records[0]
+    assert record["lang"] == "en"
+    assert record["lang_source"] == "description"
+    assert record["tags"] == ["python", "programming"]
+    assert "python" in record["topics"]
