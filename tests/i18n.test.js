@@ -24,6 +24,7 @@ test("Arabic and English dictionaries share the required keys", () => {
     "app.title", "header.language", "nav.home", "nav.hackerNews",
     "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext",
     "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
+    "watch.continueWatching", "collections.likedEmpty", "collections.historyHint", "collections.browseVideos",
     "hn.scope", "hn.contentTypes.comedy", "topics.web", "languages.ar",
     "counts.videos.other",
   ]) {
@@ -43,6 +44,8 @@ test("t() translates, interpolates, and falls back to English", () => {
   assert.equal(i18n.t("watch.like"), "إعجاب");
   assert.equal(i18n.t("watch.share"), "مشاركة");
   assert.equal(i18n.t("watch.resumeAt", { time: "2:00" }), "استئناف عند 2:00");
+  assert.equal(i18n.t("watch.continueWatching"), "متابعة المشاهدة");
+  assert.equal(i18n.t("collections.likedEmpty"), "لا توجد فيديوهات معجب بها بعد.");
   i18n.setMessages("ar", { nav: { home: "بيت" } }, en);
   assert.equal(i18n.t("nav.home"), "بيت");
   assert.equal(i18n.t("header.search"), "Search");

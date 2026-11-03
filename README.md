@@ -39,7 +39,7 @@ Video playback uses the official YouTube embedded player with its built-in contr
 
 ## UI languages
 
-The UI locale can be selected from the header picker or with `?lang=ar`. The choice is stored locally and sets `<html lang>`/`dir`. Phase 1 translates the static shell/navigation; phase 2 adds filters, sorting, settings, and Hacker News filter labels; phase 3 adds watch actions, progress/share copy, and Hacker News comments metadata. Remaining collection/toast strings and per-locale SEO are tracked in #69.
+The UI locale can be selected from the header picker or with `?lang=ar`. The choice is stored locally and sets `<html lang>`/`dir`. Phase 1 translates the static shell/navigation; phase 2 adds filters, sorting, settings, and Hacker News filter labels; phase 3 adds watch actions, progress/share copy, and Hacker News comments metadata; phase 4 translates the Liked/History/Watch later collections. Remaining playlist/toast strings and per-locale SEO are tracked in #69.
 
 Content language is separate from UI locale: video titles and channel names keep their source language and direction.
 
