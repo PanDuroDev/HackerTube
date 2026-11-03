@@ -361,7 +361,8 @@ function render() {
     const queryIndex = arg.indexOf("?");
     const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
     const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
-    return renderWatch(id, new URLSearchParams(query).get("list"));
+    const params = new URLSearchParams(query);
+    return renderWatch(id, params.get("list"), params.get("autoplay") === "1");
   }
   if (seg === "channels") return renderChannels();
   return renderNotFound();
@@ -727,7 +728,7 @@ function emptyState() {
 
 /* ---------- Watch ---------- */
 
-async function renderWatch(id, playlistId = null) {
+async function renderWatch(id, playlistId = null, autoplay = false) {
   const routeHash = location.hash;
   const v = state.byId.get(id);
   if (!v) return renderNotFound();
@@ -737,9 +738,15 @@ async function renderWatch(id, playlistId = null) {
   let queue = [];
   if (playlistId) {
     try {
-      if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
-      const playlists = await state.builtinIds;
-      const ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+      let ids = [];
+      if (playlistId.startsWith("pl_")) {
+        const playlist = playlistById(playlistId);
+        ids = Array.isArray(playlist?.ids) ? playlist.ids : [];
+      } else {
+        if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+        const playlists = await state.builtinIds;
+        ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+      }
       const index = ids.indexOf(id);
       if (index >= 0) queue = ids.slice(index).filter((videoId) => state.byId.has(videoId));
     } catch {
@@ -814,12 +821,17 @@ async function renderWatch(id, playlistId = null) {
   </section>`;
   syncSidebar();
   renderHNEvidence(id);
-  if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash);
+  if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash, autoplay);
   else if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
 }
 
 function youtubeIframeMarkup(videoId, title, queue = null) {
-  const params = new URLSearchParams({ rel: "0", playsinline: "1" });
+  const params = new URLSearchParams({
+    enablejsapi: "1",
+    origin: location.origin,
+    rel: "0",
+    playsinline: "1",
+  });
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   return `<iframe ${queue && queue.length > 1 ? 'id="youtube-player"' : ""}
     src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
@@ -881,32 +893,58 @@ function attachNativePlayerControls(player) {
   update();
 }
 
-async function startNativePlayer(video, queue, playlistId, routeHash) {
+async function startNativePlayer(video, queue, playlistId, routeHash, autoplay = false) {
   const player = $("#native-video-player");
   const status = $("#native-player-status");
   if (!player || !status) return;
+
   attachNativePlayerControls(player);
   if (queue.length > 1) {
     player.addEventListener("ended", () => {
       if (location.hash !== routeHash) return;
-      const next = queue[queue.indexOf(video.id) + 1];
-      if (next) location.hash = `#/watch/${encodeURIComponent(next)}?list=${encodeURIComponent(playlistId || "")}`;
+      const currentIndex = queue.indexOf(video.id);
+      const next = currentIndex >= 0 ? queue[currentIndex + 1] : null;
+      if (next) {
+        const params = new URLSearchParams({ list: playlistId, autoplay: "1" });
+        location.hash = `#/watch/${encodeURIComponent(next)}?${params}`;
+      }
     });
   }
+
+  let fallbackStarted = false;
+  const fallback = (error = null) => {
+    if (fallbackStarted || location.hash !== routeHash || !player.isConnected) return;
+    fallbackStarted = true;
+    fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
+  };
+
+  player.addEventListener("error", () => fallback(new Error("The browser could not play the extracted stream.")), { once: true });
+  player.addEventListener("canplay", () => {
+    status.remove();
+    if (autoplay) {
+      player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
+    }
+  }, { once: true });
+
+  const controller = new AbortController();
+  const fetchTimeout = setTimeout(() => controller.abort(), 25000);
   try {
     const response = await fetch(`${STREAM_API_BASE_URL}/api/stream/${encodeURIComponent(video.id)}`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
+      signal: controller.signal,
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload.url) throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
-    if (location.hash !== routeHash || !$("#native-video-player")) return;
-    player.src = payload.url;
+    if (!response.ok || !payload.url) {
+      throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
+    }
+    if (location.hash !== routeHash || !player.isConnected) return;
+    player.src = new URL(payload.url, STREAM_API_BASE_URL).href;
     player.load();
-    status.remove();
-    player.addEventListener("error", () => fallbackToYouTubePlayer(video, queue, playlistId, routeHash), { once: true });
   } catch (error) {
-    fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
+    fallback(error);
+  } finally {
+    clearTimeout(fetchTimeout);
   }
 }
 
@@ -1512,7 +1550,7 @@ function renderPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(pl.name)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}">${icon("play")} Play</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}">${icon("play")} Play</a>` : ""}
       <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} Delete playlist</button>
     </div>
     ${list.length
@@ -1787,7 +1825,9 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
-    if (key === "nativePlayer" && location.hash.startsWith("#/watch/")) render();
+    if (key === "nativePlayer" && (
+      location.hash.startsWith("#/watch/") || location.hash.startsWith("#/hn-watch/")
+    )) render();
     if (key === "hideSeen" || key === "pageSize") {
       if (/^#\/($|longs|search\/|channel\/)/.test(location.hash || "#/")) renderFeed(state.scope);
     }
