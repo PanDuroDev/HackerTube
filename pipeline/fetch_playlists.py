@@ -67,11 +67,12 @@ def video_details(ids: list[str], key: str) -> dict[str, dict]:
         chunk = ids[start : start + 50]
         data = _api_get(
             "videos",
-            {"part": "snippet,contentDetails,statistics", "id": ",".join(chunk), "key": key},
+            {"part": "snippet,contentDetails,statistics,liveStreamingDetails", "id": ",".join(chunk), "key": key},
         )
         for item in data.get("items") or []:
             snippet = item.get("snippet") or {}
-            if snippet.get("liveBroadcastContent") in ("live", "upcoming"):
+            if (snippet.get("liveBroadcastContent") in ("live", "upcoming")
+                    or item.get("liveStreamingDetails")):
                 continue
             videos[item["id"]] = {
                 "title": snippet.get("title") or "",
@@ -84,6 +85,11 @@ def video_details(ids: list[str], key: str) -> dict[str, dict]:
     return videos
 
 
+def is_unavailable_playlist_error(exc: FetchError) -> bool:
+    """Skip only playlists known to be deleted or inaccessible."""
+    return exc.reason in {"playlistNotFound", "playlistItemsNotAccessible"}
+
+
 def fetch_channel(channel_id: str, name: str, lang: str, key: str, limit: int, min_items: int) -> dict:
     playlists = []
     ids: list[str] = []
@@ -92,8 +98,10 @@ def fetch_channel(channel_id: str, name: str, lang: str, key: str, limit: int, m
         title = (item.get("snippet") or {}).get("title") or ""
         try:
             video_ids = playlist_video_ids(pid, key, limit)
-        except FetchError:
-            continue  # قائمة محذوفة أو خاصة أثناء الجلب؛ لا تُسقط القناة كلها
+        except FetchError as exc:
+            if is_unavailable_playlist_error(exc):
+                continue  # قائمة محذوفة أو غير متاحة؛ لا تُسقط القناة كلها
+            raise
         if len(video_ids) < min_items:
             continue
         playlists.append({"id": pid, "title": title, "ids": video_ids})
@@ -155,6 +163,7 @@ def main() -> int:
             todo.append((cid, name))
 
     done = 0
+    failed = False
     with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
         futures = {
             pool.submit(
@@ -168,9 +177,10 @@ def main() -> int:
             name = futures[future]
             try:
                 print(f"[{done}/{len(todo)}] {future.result()}", flush=True)
-            except (FetchError, OSError) as exc:
+            except Exception as exc:
+                failed = True
                 print(f"[{done}/{len(todo)}] {name}: فشل — {exc}", file=sys.stderr, flush=True)
-    return 0
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

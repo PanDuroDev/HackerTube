@@ -43,7 +43,8 @@ def build_records(payloads: list[dict]) -> list[dict]:
             views = int(e.get("views") or 0)
             ts = e.get("timestamp")
             year = dt.datetime.fromtimestamp(ts, dt.timezone.utc).year if ts else 0
-            if not title or duration < MIN_DURATION or "#shorts" in title.lower():
+            if (not title or duration < MIN_DURATION or "#shorts" in title.lower()
+                    or e.get("is_broadcast")):
                 continue
 
             rec = {

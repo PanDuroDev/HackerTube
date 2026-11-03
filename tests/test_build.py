@@ -24,6 +24,17 @@ def test_build_filters_and_dedupes():
     assert next(r for r in records if r["id"] == "d")["views"] == 9000
 
 
+def test_build_excludes_completed_broadcasts_and_shorts():
+    broadcast = entry("live", "شرح برمجة كامل")
+    broadcast["is_broadcast"] = True
+    records = build_records([payload([
+        entry("normal", "دورة بايثون للمبتدئين"),
+        broadcast,
+        entry("short", "شرح #Shorts لبايثون"),
+    ])])
+    assert {record["id"] for record in records} == {"normal"}
+
+
 def test_episode_inherits_channel_topic():
     entries = [
         entry("1", "دورة بايثون - الحلقة 1"),

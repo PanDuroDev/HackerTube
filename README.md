@@ -34,9 +34,9 @@ python -m http.server 8080 -d public
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env         # ضع YOUTUBE_API_KEY هنا (اختياري لكنه الأسرع)
+cp .env.example .env         # المفتاح اختياري لـ fetch، ومطلوب لـ fetch_playlists
 python -m pipeline.fetch     # أحدث 500 فيديو لكل قناة إلى data/raw/
-python -m pipeline.fetch_playlists  # قوائم صنّاع المحتوى إلى data/playlists/
+python -m pipeline.fetch_playlists  # يتطلب YOUTUBE_API_KEY؛ قوائم صنّاع المحتوى إلى data/playlists/
 python -m pipeline.build     # ينتج videos.json و meta.json و playlists.json
 pytest                       # الاختبارات
 ```

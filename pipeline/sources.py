@@ -21,7 +21,10 @@ API_KEY_ENV = "YOUTUBE_API_KEY"
 
 
 class FetchError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, status: int | None = None, reason: str | None = None):
+        super().__init__(message)
+        self.status = status
+        self.reason = reason
 
 
 def load_dotenv(path: Path = ROOT / ".env") -> None:
@@ -49,12 +52,20 @@ def _get_json(url: str) -> dict:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "ignore")
+            reason = None
             try:
-                message = json.loads(detail)["error"]["message"]
-            except Exception:
+                error = json.loads(detail).get("error") or {}
+                message = error.get("message") or detail[:200]
+                reason = next(
+                    (item.get("reason") for item in error.get("errors", []) if item.get("reason")),
+                    None,
+                )
+            except (TypeError, ValueError):
                 message = detail[:200]
             if exc.code < 500 or attempt == 2:
-                raise FetchError(f"HTTP {exc.code}: {message}") from exc
+                raise FetchError(
+                    f"HTTP {exc.code}: {message}", status=exc.code, reason=reason
+                ) from exc
             last_error = exc
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             last_error = exc
@@ -125,7 +136,7 @@ def fetch_with_api(channel_id: str, name: str, limit: int, key: str) -> dict:
         data = _api_get(
             "videos",
             {
-                "part": "snippet,contentDetails,statistics",
+                "part": "snippet,contentDetails,statistics,liveStreamingDetails",
                 "id": ",".join(chunk),
                 "key": key,
             },
@@ -143,6 +154,8 @@ def fetch_with_api(channel_id: str, name: str, limit: int, key: str) -> dict:
                     ),
                     "views": int((item.get("statistics") or {}).get("viewCount") or 0),
                     "timestamp": _timestamp(snippet.get("publishedAt")),
+                    "is_broadcast": bool(item.get("liveStreamingDetails"))
+                    or snippet.get("liveBroadcastContent") in ("live", "upcoming"),
                     "url": f"https://www.youtube.com/watch?v={item['id']}",
                 }
             )
@@ -177,8 +190,13 @@ def fetch_with_ytdlp(channel_id: str, name: str, limit: int) -> dict:
     for e in data.get("entries") or []:
         if not e or not e.get("id"):
             continue
-        if e.get("live_status") in ("is_live", "is_upcoming"):
+        live_status = e.get("live_status")
+        if live_status in ("is_live", "is_upcoming"):
             continue
+        is_broadcast = bool(
+            e.get("is_live") or e.get("was_live")
+            or live_status in ("was_live", "post_live")
+        )
         entries.append(
             {
                 "id": e["id"],
@@ -186,6 +204,7 @@ def fetch_with_ytdlp(channel_id: str, name: str, limit: int) -> dict:
                 "duration": int(e.get("duration") or 0),
                 "views": int(e.get("view_count") or 0),
                 "timestamp": e.get("timestamp"),
+                "is_broadcast": is_broadcast,
                 "url": f"https://www.youtube.com/watch?v={e['id']}",
             }
         )
