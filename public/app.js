@@ -1,7 +1,7 @@
 /* Static UI, no frameworks: data from public/data, all state in the browser. */
 
 const KIND_LABELS = { course: "Course", tutorial: "Tutorial", project: "Project", talk: "Talk", short: "Short" };
-const LEVEL_LABELS = { beginner: "Beginner", advanced: "Advanced", any: "General" };
+const LEVEL_LABELS = { beginner: "Beginner", advanced: "Advanced", any: "General", unknown: "Unspecified" };
 const TOPIC_LABELS = {
   python: "Python", javascript: "JavaScript", web: "Web Development", php: "PHP",
   java: "Java", cpp: "C++", csharp: "C#", mobile: "Mobile", database: "Databases",
@@ -121,6 +121,7 @@ function ensureMainSearchIndex() {
       video.year,
     ].join(" "),
     description: video.description || "",
+    tags: (video.tags || []).join(" "),
     id: video.id,
   }), {
     getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),

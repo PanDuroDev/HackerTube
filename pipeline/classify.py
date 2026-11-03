@@ -1,7 +1,7 @@
-"""تصنيف فيديوهات القنوات العربية: مواضيع، مستوى، نوع، لغة العنوان، وترتيب.
+"""تصنيف الفيديوهات: مواضيع، مستوى، نوع، لغة، وترتيب.
 
-التصنيف قواعد واضحة على العنوان فقط (لا وصف ولا API مدفوع). هذا حدّ مقصود:
-عنوان بلا كلمة مفتاحية لا يُصنّف إلا إذا كان حلقة من سلسلة (انظر build.py).
+التصنيف قواعد واضحة تعمل على العنوان والوصف والوسوم عند توفرها. غياب أي
+إشارة يعطي مستوى unknown بدلاً من ادعاء مستوى عام.
 """
 
 import math
@@ -35,10 +35,25 @@ TOPICS = [
 
 TOPIC_LABELS = {tid: label for tid, label, _ in TOPICS}
 
-_BEGINNER = ["مبتدئ", "للمبتدئين", "من الصفر", "اساسيات", "أساسيات", "مقدمه", "مقدمة", "beginner", "basics", "intro", "introduction", "crash course", "101"]
-_ADVANCED = ["متقدم", "متقدمه", "advanced", "احتراف", "احترافي", "معمق", "deep dive", "internals", "expert"]
+_BEGINNER = [
+    "مبتدئ", "للمبتدئين", "من الصفر", "شرح من الصفر", "تعلم من الصفر", "اساسيات",
+    "أساسيات", "مقدمه", "مقدمة", "مدخل", "تمهيد", "ببساطة", "beginner", "beginners",
+    "basics", "fundamentals", "getting started", "from scratch", "intro",
+    "introduction", "crash course", "zero to hero", "101",
+]
+_ADVANCED = [
+    "متقدم", "متقدمه", "advanced", "احتراف", "احترافي", "احترافية", "معمق",
+    "deep dive", "internals", "expert", "professional", "system design",
+    "performance", "optimization", "تحسين الاداء", "تحسين الأداء", "تصميم الانظمه",
+    "تصميم الأنظمة", "interview preparation", "interview questions",
+]
+_GENERAL = [
+    "general", "all levels", "كل المستويات", "جميع المستويات", "لجميع المستويات",
+    "any level", "tutorial", "tutorials", "course", "explained", "walkthrough",
+    "شرح", "درس", "دروس", "كورس", "دوره", "دورة", "تعلم", "كامل", "كامله", "كاملة",
+]
 
-_COURSE = ["دوره", "كورس", "course", "سلسله", "bootcamp", "كامل", "كامله", "شامل", "شامله", "masterclass"]
+_COURSE = ["دوره", "كورس", "course", "سلسله", "series", "مسار", "bootcamp", "كامل", "كامله", "شامل", "شامله", "masterclass", "workshop", "ورشه", "ورشة"]
 _TALK = ["مؤتمر", "conference", "محاضره", "talk", "بودكاست", "podcast", "ندوه", "webinar"]
 _PROJECT = ["مشروع", "project", "نبني", "بناء", "نصنع", "تطبيق", "clone"]
 _EPISODE = re.compile(r"(الحلقه|الدرس|الجزء|المستوي|episode|lesson|\bpart\b|\bep\b|#\s*\d+)")
@@ -57,7 +72,9 @@ def _level(text_norm: str) -> str:
         return "advanced"
     if any(has_keyword(text_norm, kw) for kw in _BEGINNER):
         return "beginner"
-    return "any"
+    if any(has_keyword(text_norm, kw) for kw in _GENERAL):
+        return "any"
+    return "unknown"
 
 
 def _kind(text_norm: str, duration: int) -> str:
@@ -87,18 +104,32 @@ def is_episode(title: str) -> bool:
     return _EPISODE.search(normalize_ar(title)) is not None
 
 
-def classify(title: str, duration: int, views: int, year: int) -> dict:
+def detect_language(text: str) -> str:
+    """يعيد ar أو en أو mixed من النص المطبّع."""
+    return _title_lang(normalize_ar(text))
+
+
+def classify(
+    title: str,
+    duration: int,
+    views: int,
+    year: int,
+    description: str = "",
+    tags: list[str] | None = None,
+) -> dict:
     """يعيد حقول التصنيف لفيديو واحد. year تقريبي من يوتيوب."""
-    text = normalize_ar(title)
+    text = normalize_ar(" ".join([title, description or "", " ".join(tags or [])]))
     topics = _topic_ids(text)
     kind = _kind(text, duration)
+    level = _level(text)
     recency = max(0.0, min(1.5, (year - 2016) / 10))
     kind_bonus = {"course": 0.4, "project": 0.2, "talk": 0.2}.get(kind, 0.0)
     topic_bonus = min(0.3, 0.15 * max(0, len(topics) - 1))
     score = round(math.log10(max(views, 0) + 10) + recency + kind_bonus + topic_bonus, 3)
     return {
         "topics": topics,
-        "level": _level(text),
+        "level": level,
+        "level_confidence": 0.0 if level == "unknown" else 0.8,
         "kind": kind,
         "lang": _title_lang(text),
         "score": score,

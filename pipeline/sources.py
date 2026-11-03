@@ -150,6 +150,7 @@ def fetch_with_api(channel_id: str, name: str, limit: int, key: str) -> dict:
                     "id": item["id"],
                     "title": snippet.get("title") or "",
                     "description": snippet.get("description") or "",
+                    "tags": snippet.get("tags") or [],
                     "duration": parse_iso_duration(
                         (item.get("contentDetails") or {}).get("duration", "")
                     ),
@@ -202,6 +203,8 @@ def fetch_with_ytdlp(channel_id: str, name: str, limit: int) -> dict:
             {
                 "id": e["id"],
                 "title": e.get("title") or "",
+                "description": e.get("description") or "",
+                "tags": e.get("tags") or [],
                 "duration": int(e.get("duration") or 0),
                 "views": int(e.get("view_count") or 0),
                 "timestamp": e.get("timestamp"),

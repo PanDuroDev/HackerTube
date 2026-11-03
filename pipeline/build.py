@@ -7,7 +7,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from .classify import TOPIC_LABELS, classify, is_episode
+from .classify import TOPIC_LABELS, classify, detect_language, is_episode
 from .config import CHANNEL_LANG, MIN_DURATION
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,6 +46,11 @@ def build_records(payloads: list[dict]) -> list[dict]:
                     or e.get("is_broadcast")):
                 continue
 
+            description = (e.get("description") or "").strip()
+            raw_tags = e.get("tags") or []
+            if isinstance(raw_tags, str):
+                raw_tags = [raw_tags]
+            tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()]
             rec = {
                 "id": e["id"],
                 "title": title,
@@ -54,12 +59,19 @@ def build_records(payloads: list[dict]) -> list[dict]:
                 "views": views,
                 "duration": duration,
                 "year": year,
-                **classify(title, duration, views, year),
+                **classify(title, duration, views, year, description, tags),
             }
-            description = (e.get("description") or "").strip()
             if description:
                 rec["description"] = description
-            rec["lang"] = lang  # لغة القناة أهم من لغة العنوان للتصفية
+            if tags:
+                rec["tags"] = tags
+            detected_lang = detect_language(description) if len(description) >= 40 else "mixed"
+            if detected_lang in ("ar", "en"):
+                rec["lang"] = detected_lang
+                rec["lang_source"] = "description"
+            else:
+                rec["lang"] = lang
+                rec["lang_source"] = "channel"
             kind = "course" if is_episode(title) and duration >= 600 else rec["kind"]
             rec["kind"] = kind
             prev = records.get(rec["id"])
