@@ -217,6 +217,7 @@ function skeletonCards(count = 6) {
       <div class="sk sk-thumb"></div>
       <div class="sk sk-line w-90"></div>
       <div class="sk sk-line w-55"></div>
+      <div class="sk sk-line sk-line-sm w-35"></div>
     </div>`).join("")}</div>`;
 }
 
@@ -244,18 +245,22 @@ function skeletonSettings() {
       <div class="skeleton-segment"><div class="sk sk-pill"></div><div class="sk sk-pill"></div><div class="sk sk-pill"></div></div>
     </div>
     <div class="skeleton-group">
+      <div class="sk sk-line w-20"></div>
+      <div class="skeleton-segment"><div class="sk sk-pill"></div><div class="sk sk-pill"></div></div>
+    </div>
+    <div class="skeleton-group">
       <div class="sk sk-line w-25"></div>
-      ${rows(2)}
+      ${rows(3)}
     </div>
     <div class="skeleton-group">
       <div class="sk sk-line w-20"></div>
-      ${rows(3)}
+      ${rows(4)}
     </div>
   </div>`;
 }
 
-function skeletonTiles(count = 10, className = "sk-topic") {
-  return `<div class="skeleton-tile-grid">${Array.from({ length: count }, () => `<div class="sk ${className}"></div>`).join("")}</div>`;
+function skeletonTiles(count = 10, className = "sk-topic", gridClass = "") {
+  return `<div class="skeleton-tile-grid ${gridClass}">${Array.from({ length: count }, () => `<div class="sk ${className}"></div>`).join("")}</div>`;
 }
 
 function skeletonPlaylists() {
@@ -301,8 +306,8 @@ function renderRouteSkeleton() {
   const seg = raw.split(/[\/?]/)[0];
   let content = skeletonFeed();
   if (seg === "settings") content = skeletonSettings();
-  else if (seg === "categories") content = skeletonTiles(12, "sk-topic");
-  else if (seg === "channels") content = skeletonTiles(12, "sk-channel");
+  else if (seg === "categories") content = skeletonTiles(12, "sk-topic", "skeleton-topic-grid");
+  else if (seg === "channels") content = skeletonTiles(12, "sk-channel", "skeleton-channel-grid");
   else if (seg === "playlists" || seg === "playlist") content = skeletonPlaylists();
   else if (seg === "watch" || seg === "hn-watch") content = skeletonWatch();
   view.innerHTML = `<div class="skeleton-screen" role="status" aria-live="polite" aria-busy="true" aria-label="${tr("skeleton.loading", "Loading…")}">${content}</div>`;
