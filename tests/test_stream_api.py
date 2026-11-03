@@ -149,6 +149,7 @@ def test_retries_with_android_client_when_default_has_no_muxed_mp4():
     assert response.json["height"] == 360
     assert response.json["url"].startswith("/media/")
     assert youtube_dl.call_count == 2
+    assert "extractor_args" not in youtube_dl.call_args_list[0].args[0]
     assert youtube_dl.call_args_list[1].args[0]["extractor_args"] == {
         "youtube": {"player_client": ["android"]}
     }
