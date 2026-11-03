@@ -64,7 +64,10 @@ async function init() {
       e.preventDefault();
       $("#q").focus();
     }
-    if (e.key === "Escape") setSidebar(false);
+    if (e.key === "Escape") {
+      setSidebar(false);
+      closeSelects();
+    }
   });
   addEventListener("resize", () => {
     if (!matchMedia("(max-width: 980px)").matches) setSidebar(false);
@@ -78,6 +81,9 @@ async function init() {
   view.addEventListener("click", onViewClick);
   view.addEventListener("change", onViewChange);
   view.addEventListener("submit", onViewSubmit);
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".select")) closeSelects();
+  });
 
   try {
     const [videos, meta] = await Promise.all([
@@ -244,10 +250,10 @@ function renderSidebar() {
   ];
   $("#sidebar").innerHTML = `
     <nav class="side-nav">
-      ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}">${icon(ic)}<span>${label}</span><span class="side-count" data-count="${key}"></span></a>`).join("")}
+      ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span><span class="side-count" data-count="${key}"></span></a>`).join("")}
     </nav>
     <div class="side-title">Explore</div>
-    <a class="side-link" data-nav="channels" href="#/channels">${icon("channels")}<span>Channels</span><span class="side-count" data-count="channels"></span></a>
+    <a class="side-link" data-nav="channels" href="#/channels" title="Channels">${icon("channels")}<span>Channels</span><span class="side-count" data-count="channels"></span></a>
     <p class="side-foot">${videos(state.meta.total)} · ${state.meta.channels.length} channels</p>`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
@@ -359,10 +365,10 @@ function renderFeed(scope) {
   view.innerHTML = `<section class="feed">
     <div class="feed-head">
       ${title ? `<h1>${esc(title)}</h1>` : ""}
-      <span class="count">${videos(list.length)}</span>
       <button class="btn filter-btn ${hasFilters() ? "on" : ""}" data-filter-toggle aria-expanded="${ui.open}">
         ${icon("filter")} Filters${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
       </button>
+      <span class="count">${videos(list.length)}</span>
     </div>
     ${ui.open ? filtersPanel() : ""}
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
@@ -402,11 +408,32 @@ function filtersPanel() {
 }
 
 function field(name, label, allLabel, options, current) {
-  const opts = options
-    .map(([value, text]) => `<option value="${esc(value)}" ${String(current) === String(value) ? "selected" : ""}>${esc(text)}</option>`)
+  const cur = String(current);
+  const isAll = cur === "" || (name === "sort" && cur === "best");
+  const activeOption = options.find(([value]) => String(value) === cur);
+  const shown = isAll || !activeOption ? allLabel : activeOption[1];
+  const rows = [["", allLabel], ...options]
+    .map(([value, text]) => {
+      const on = value === "" ? isAll : String(value) === cur;
+      return `<button type="button" class="select-opt ${on ? "on" : ""}" role="option" aria-selected="${on}" data-select-opt="${name}" data-value="${esc(value)}">${esc(text)}${on ? icon("check") : ""}</button>`;
+    })
     .join("");
-  return `<label class="filter-field"><span class="filter-label">${esc(label)}</span>
-    <select data-f="${name}"><option value="">${esc(allLabel)}</option>${opts}</select></label>`;
+  return `<div class="filter-field">
+    <span class="filter-label">${esc(label)}</span>
+    <div class="select">
+      <button type="button" class="select-btn" data-select-toggle="${name}" aria-haspopup="listbox" aria-expanded="false">
+        <span>${esc(shown)}</span>${icon("chevron")}
+      </button>
+      <div class="select-menu" role="listbox" aria-label="${esc(label)}">${rows}</div>
+    </div>
+  </div>`;
+}
+
+function closeSelects() {
+  document.querySelectorAll(".select.open").forEach((wrap) => {
+    wrap.classList.remove("open");
+    wrap.querySelector("[data-select-toggle]")?.setAttribute("aria-expanded", "false");
+  });
 }
 
 function card(v, opts = {}) {
@@ -643,12 +670,12 @@ function renderSettings() {
         <span><b>Hide watched videos</b><small>Keep opened videos out of Home and search.</small></span>
         <input class="switch" type="checkbox" data-setting="hideSeen" ${s.hideSeen ? "checked" : ""}>
       </label>
-      <label class="setting-row">
+      <div class="setting-row">
         <span><b>Page size</b><small>Videos shown before “Show more”.</small></span>
-        <select data-setting="pageSize">
-          ${[24, 36, 60].map((n) => `<option value="${n}" ${Number(s.pageSize) === n ? "selected" : ""}>${n}</option>`).join("")}
-        </select>
-      </label>
+        <div class="segmented" role="group" aria-label="Page size">
+          ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
+        </div>
+      </div>
     </div>
     <div class="settings-group">
       <h2>Data</h2>
@@ -706,6 +733,39 @@ function onViewClick(e) {
   if (e.target.closest("[data-filter-close]")) {
     ui.open = false;
     renderFeed(state.scope);
+    return;
+  }
+
+  const selectToggle = e.target.closest("[data-select-toggle]");
+  if (selectToggle) {
+    const wrap = selectToggle.closest(".select");
+    const wasOpen = wrap.classList.contains("open");
+    closeSelects();
+    if (!wasOpen) {
+      wrap.classList.add("open");
+      selectToggle.setAttribute("aria-expanded", "true");
+    }
+    return;
+  }
+
+  const option = e.target.closest("[data-select-opt]");
+  if (option) {
+    const fieldName = option.dataset.selectOpt;
+    const value = option.dataset.value;
+    closeSelects();
+    ui[fieldName] = fieldName === "sort" && !value ? "best" : value;
+    ui.limit = pageSize();
+    renderFeed(state.scope);
+    return;
+  }
+
+  const sizeBtn = e.target.closest("[data-pagesize]");
+  if (sizeBtn) {
+    state.settings.pageSize = Number(sizeBtn.dataset.pagesize);
+    storeSet(STORE.settings, state.settings);
+    ui.limit = pageSize();
+    renderSettings();
+    toast("Saved");
     return;
   }
 
@@ -794,12 +854,6 @@ function onViewChange(e) {
     }
     return;
   }
-
-  const sel = e.target.closest("select[data-f]");
-  if (!sel) return;
-  ui[sel.dataset.f] = sel.value;
-  ui.limit = pageSize();
-  renderFeed(state.scope);
 }
 
 function onViewSubmit(e) {
