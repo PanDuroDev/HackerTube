@@ -53,6 +53,10 @@
     "videos": {
       "one": "{count} video",
       "other": "{count} videos"
+    },
+    "playlists": {
+      "one": "{count} playlist",
+      "other": "{count} playlists"
     }
   },
   "filters": {
@@ -318,5 +322,28 @@
     "historyHint": "Videos you open show up here. The last 50 are kept in your browser.",
     "clearAll": "Clear all",
     "browseVideos": "Browse videos"
+  },
+  "playlists": {
+    "createPlaceholder": "New playlist name",
+    "create": "Create",
+    "fromCreators": "From creators",
+    "of": "of {total}",
+    "searchPlaceholder": "Search creator playlists",
+    "yourPlaylists": "Your playlists",
+    "emptyTitle": "No playlists yet",
+    "emptyHint": "Create one, then add videos from any watch page.",
+    "emptyCreator": "No creator playlists match",
+    "emptyCreatorHint": "Try a different title or channel.",
+    "emptyPlaylist": "Playlist is empty",
+    "emptyPlaylistHint": "Add videos from a watch page with “Add to playlist”.",
+    "emptyBuiltin": "Nothing from this playlist is indexed",
+    "emptyBuiltinHint": "Its videos may be short, private or outside the current index.",
+    "allPlaylists": "All playlists",
+    "play": "Play",
+    "playAll": "Play all",
+    "delete": "Delete playlist",
+    "deleteAria": "Delete playlist",
+    "emptyLabel": "Empty",
+    "created": "Created “{name}”"
   }
 }

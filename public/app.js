@@ -113,6 +113,11 @@ function videos(n) {
   return `${n} ${n === 1 ? "video" : "videos"}`;
 }
 
+function playlistsCount(n) {
+  if (I18N) return I18N.formatCount("counts.playlists", n, { count: I18N.formatNumber(n) });
+  return `${n} ${n === 1 ? "playlist" : "playlists"}`;
+}
+
 function kindLabel(kind) {
   return tr(`kinds.${kind}`, KIND_LABELS[kind] || kind);
 }
@@ -2191,29 +2196,29 @@ async function renderPlaylists() {
     .sort((a, b) => String(a[1]).localeCompare(String(b[1]), undefined, { numeric: true }));
   const isFiltered = Boolean(state.playlistQuery.trim() || state.playlistChannel);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>${tr("pages.playlists", "Playlists")}</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
+    <div class="feed-head"><h1>${tr("pages.playlists", "Playlists")}</h1><span class="count">${playlistsCount(total)}</span></div>
     <form class="create-pl" data-create-playlist>
-      <input name="name" placeholder="New playlist name" maxlength="40" required aria-label="New playlist name">
-      <button class="btn primary" type="submit">${icon("plus")} Create</button>
+      <input name="name" placeholder="${tr("playlists.createPlaceholder", "New playlist name")}" maxlength="40" required aria-label="${tr("playlists.createPlaceholder", "New playlist name")}">
+      <button class="btn primary" type="submit">${icon("plus")} ${tr("playlists.create", "Create")}</button>
     </form>
-    ${state.builtin.length ? `<h2 class="section-title">From creators <span class="count">${filtered.length}${isFiltered ? ` of ${state.builtin.length}` : ""}</span></h2>
+    ${state.builtin.length ? `<h2 class="section-title">${tr("playlists.fromCreators", "From creators")} <span class="count">${filtered.length}${isFiltered ? ` ${tr("playlists.of", "of {total}", { total: state.builtin.length })}` : ""}</span></h2>
       <form class="pl-filter" data-playlist-filter>
-        <input name="q" value="${esc(state.playlistQuery)}" placeholder="Search creator playlists" aria-label="Search creator playlists">
-        <select name="channel" aria-label="Filter creator playlists by channel">
-          <option value="">All channels</option>
+        <input name="q" value="${esc(state.playlistQuery)}" placeholder="${tr("playlists.searchPlaceholder", "Search creator playlists")}" aria-label="${tr("playlists.searchPlaceholder", "Search creator playlists")}">
+        <select name="channel" aria-label="${tr("filters.channel", "Channel")}">
+          <option value="">${tr("filters.allChannels", "All channels")}</option>
           ${channels.map(([id, name]) => `<option value="${esc(id)}" ${state.playlistChannel === id ? "selected" : ""}>${esc(name)}</option>`).join("")}
         </select>
-        <button class="btn" type="submit">${icon("search")} Search</button>
-        ${isFiltered ? '<button class="btn" type="button" data-playlist-clear>Clear</button>' : ""}
+        <button class="btn" type="submit">${icon("search")} ${tr("header.search", "Search")}</button>
+        ${isFiltered ? `<button class="btn" type="button" data-playlist-clear>${tr("filters.clearAll", "Clear all")}</button>` : ""}
       </form>
       ${creators.length
         ? `<div class="pl-grid">${creators.map(creatorPlaylistCard).join("")}</div>`
-        : '<div class="empty"><strong>No creator playlists match</strong><p>Try a different title or channel.</p><button class="btn" data-playlist-clear>Clear filters</button></div>'}
-      ${creators.length < filtered.length ? `<div class="more"><button class="btn" data-more-playlists>Show more (${filtered.length - creators.length})</button></div>` : ""}` : ""}
-    <h2 class="section-title">Your playlists</h2>
+        : `<div class="empty"><strong>${tr("playlists.emptyCreator", "No creator playlists match")}</strong><p>${tr("playlists.emptyCreatorHint", "Try a different title or channel.")}</p><button class="btn" data-playlist-clear>${tr("filters.clearFilters", "Clear filters")}</button></div>`}
+      ${creators.length < filtered.length ? `<div class="more"><button class="btn" data-more-playlists>${tr("filters.showMore", "Show more")} (${filtered.length - creators.length})</button></div>` : ""}` : ""}
+    <h2 class="section-title">${tr("playlists.yourPlaylists", "Your playlists")}</h2>
     ${state.playlists.length
       ? `<div class="pl-grid">${state.playlists.map(playlistCard).join("")}</div>`
-      : `<div class="empty"><strong>No playlists yet</strong><p>Create one, then add videos from any watch page.</p></div>`}
+      : `<div class="empty"><strong>${tr("playlists.emptyTitle", "No playlists yet")}</strong><p>${tr("playlists.emptyHint", "Create one, then add videos from any watch page.")}</p></div>`}
   </section>`;
   syncSidebar();
 }
@@ -2246,12 +2251,12 @@ async function renderBuiltinPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} Play all</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} ${tr("playlists.playAll", "Play all")}</a>` : ""}
       <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
     </div>
     ${list.length
       ? `<div class="grid">${list.map((v) => card(v)).join("")}</div>`
-      : `<div class="empty"><strong>Nothing from this playlist is indexed</strong><p>Its videos may be short, private or outside the current index.</p><a class="btn" href="#/playlists">All playlists</a></div>`}
+      : `<div class="empty"><strong>${tr("playlists.emptyBuiltin", "Nothing from this playlist is indexed")}</strong><p>${tr("playlists.emptyBuiltinHint", "Its videos may be short, private or outside the current index.")}</p><a class="btn" href="#/playlists">${tr("playlists.allPlaylists", "All playlists")}</a></div>`}
   </section>`;
   syncSidebar();
 }
@@ -2265,8 +2270,8 @@ function playlistCard(p) {
       <span>${p.ids.length}</span>
     </a>
     <div class="pl-row">
-      <div><a href="#/playlist/${p.id}"${langAttrs(p.name)}>${esc(p.name)}</a><small>${p.ids.length ? videos(p.ids.length) : "Empty"}</small></div>
-      <button class="icon-btn" data-delete-playlist="${p.id}" aria-label="Delete playlist">${icon("trash")}</button>
+      <div><a href="#/playlist/${p.id}"${langAttrs(p.name)}>${esc(p.name)}</a><small>${p.ids.length ? videos(p.ids.length) : tr("playlists.emptyLabel", "Empty")}</small></div>
+      <button class="icon-btn" data-delete-playlist="${p.id}" aria-label="${tr("playlists.deleteAria", "Delete playlist")}">${icon("trash")}</button>
     </div>
   </article>`;
 }
@@ -2284,12 +2289,12 @@ async function renderPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(pl.name)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="${playlistPlaybackHref(list[0], pl.id, true)}">${icon("play")} Play</a>` : ""}
-      <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} Delete playlist</button>
+      ${list.length ? `<a class="btn primary" href="${playlistPlaybackHref(list[0], pl.id, true)}">${icon("play")} ${tr("playlists.play", "Play")}</a>` : ""}
+      <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} ${tr("playlists.delete", "Delete playlist")}</button>
     </div>
     ${list.length
       ? `<div class="grid">${list.map((video) => card(video, { remove: "playlist", playlist: pl.id })).join("")}</div>`
-      : `<div class="empty"><strong>Playlist is empty</strong><p>Add videos from a watch page with “Add to playlist”.</p><a class="btn" href="#/">Browse videos</a></div>`}
+      : `<div class="empty"><strong>${tr("playlists.emptyPlaylist", "Playlist is empty")}</strong><p>${tr("playlists.emptyPlaylistHint", "Add videos from a watch page with “Add to playlist”.")}</p><a class="btn" href="#/">${tr("collections.browseVideos", "Browse videos")}</a></div>`}
   </section>`;
   syncSidebar();
 }
@@ -2685,7 +2690,7 @@ function onViewSubmit(e) {
   createPlaylist(name);
   form.reset();
   renderPlaylists();
-  toast(`Created “${name}”`, "plus");
+  toast(tr("playlists.created", "Created “{name}”", { name }), "plus");
 }
 
 function toggleAct(act) {
