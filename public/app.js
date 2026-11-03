@@ -1033,7 +1033,7 @@ async function startNativePlayer(video, queue, playlistId, routeHash, autoplay =
 
   const streamApiBaseUrl = getStreamApiBaseUrl();
   const controller = new AbortController();
-  const fetchTimeout = setTimeout(() => controller.abort(), 25000);
+  const fetchTimeout = setTimeout(() => controller.abort(), 52000);
   try {
     const response = await fetch(`${streamApiBaseUrl}/api/stream/${encodeURIComponent(video.id)}`, {
       headers: { Accept: "application/json" },
