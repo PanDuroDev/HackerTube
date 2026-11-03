@@ -1369,3 +1369,5 @@ a.card-sub:hover { color: var(--text); }
   .search button { width: 46px; }
   .filter-grid { grid-template-columns: 1fr; }
 }
+
+.player > #youtube-player { width: 100%; height: 100%; }
