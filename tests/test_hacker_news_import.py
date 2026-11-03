@@ -11,7 +11,13 @@ HN_DATA = ROOT / "public" / "data" / "hacker-news"
 
 def normalized(value):
     text = unicodedata.normalize("NFKC", value or "").casefold()
-    return " ".join(re.findall(r"[^\\W_]+", text, flags=re.UNICODE))
+    return " ".join(re.findall(r"[^\W_]+", text, flags=re.UNICODE))
+
+
+def test_title_channel_normalization_ignores_punctuation_and_case():
+    assert normalized("Rust: Systems Programming!") == normalized("RUST systems-programming")
+    assert normalized("C++ / C#") == normalized("C C")
+    assert normalized("Málaga café") == normalized("MÁLAGA CAFÉ")
 
 
 def test_hacker_news_import_excludes_existing_and_duplicate_videos():
