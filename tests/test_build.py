@@ -1,4 +1,4 @@
-from pipeline.build import build_meta, build_records
+from pipeline.build import build_meta, build_records, load_playlists
 
 
 def entry(vid, title, duration=900, views=1000):
@@ -40,7 +40,7 @@ def test_meta_counts():
         entry("a", "دورة بايثون"),
         entry("b", "شرح React للمبتدئين"),
     ])])
-    meta = build_meta(records, [payload([])])
+    meta = build_meta(records, [payload([])], [])
     assert meta["total"] == 2
     assert meta["channels"][0]["count"] == 2
     assert meta["languages"] == {"ar": 2}
@@ -55,10 +55,30 @@ def test_channel_language_wins_over_title():
         lang="en",
     )])
     assert records[0]["lang"] == "en"
-    meta = build_meta(records, [])
+    meta = build_meta(records, [], [])
     assert meta["languages"] == {"en": 1}
 
 
 def test_search_text_is_normalized():
     records = build_records([payload([entry("a", "دورة بايثون")])])
     assert records[0]["search"] == "دوره بايثون قناه تجريبيه"
+
+
+def test_playlists_keep_only_indexed_videos(tmp_path):
+    import json
+
+    records = build_records([payload([
+        entry("a", "دورة بايثون"),
+        entry("b", "شرح React للمبتدئين"),
+    ])])
+    (tmp_path / "ch.json").write_text(json.dumps({
+        "channel_id": "UC1",
+        "channel": "قناة تجريبية",
+        "playlists": [
+            {"id": "PL1", "title": "بايثون", "ids": ["a", "missing", "b"]},
+            {"id": "PL2", "title": "قصيرة", "ids": ["a"]},
+        ],
+    }), encoding="utf-8")
+    lists = load_playlists(records, tmp_path)
+    assert [p["id"] for p in lists] == ["PL1"]
+    assert lists[0]["ids"] == ["a", "b"]

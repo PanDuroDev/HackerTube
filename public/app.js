@@ -27,6 +27,9 @@ const state = {
   longCount: 0,
   scope: { type: "all" },
   current: null,
+  builtin: [],
+  builtinIds: null,
+  showAllPlaylists: false,
 };
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
@@ -92,6 +95,7 @@ async function init() {
     ]);
     state.videos = videos;
     state.meta = meta;
+    state.builtin = meta.playlists || [];
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, TOPIC_LABELS[t.id] || t.label]));
@@ -233,7 +237,7 @@ function render() {
   if (seg === "history") return renderCollection("history");
   if (seg === "categories") return renderCategories();
   if (seg === "playlists") return renderPlaylists();
-  if (seg === "playlist") return renderPlaylist(arg);
+  if (seg === "playlist") return arg.startsWith("pl_") ? renderPlaylist(arg) : renderBuiltinPlaylist(arg);
   if (seg === "settings") return renderSettings();
   if (seg === "watch") return renderWatch(arg);
   if (seg === "channels") return renderChannels();
@@ -625,15 +629,59 @@ function addToPlaylist(plId, videoId) {
 
 function renderPlaylists() {
   document.title = "Playlists — HackerTube";
+  const total = state.builtin.length + state.playlists.length;
+  const creators = state.showAllPlaylists ? state.builtin : state.builtin.slice(0, 24);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>Playlists</h1><span class="count">${state.playlists.length} ${state.playlists.length === 1 ? "playlist" : "playlists"}</span></div>
+    <div class="feed-head"><h1>Playlists</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
     <form class="create-pl" data-create-playlist>
       <input name="name" placeholder="New playlist name" maxlength="40" required aria-label="New playlist name">
       <button class="btn primary" type="submit">${icon("plus")} Create</button>
     </form>
+    ${state.builtin.length ? `<h2 class="section-title">From creators <span class="count">${state.builtin.length}</span></h2>
+      <div class="pl-grid">${creators.map(creatorPlaylistCard).join("")}</div>
+      ${creators.length < state.builtin.length ? `<div class="more"><button class="btn" data-more-playlists>Show all ${state.builtin.length} playlists</button></div>` : ""}` : ""}
+    <h2 class="section-title">Your playlists</h2>
     ${state.playlists.length
       ? `<div class="pl-grid">${state.playlists.map(playlistCard).join("")}</div>`
       : `<div class="empty"><strong>No playlists yet</strong><p>Create one, then add videos from any watch page.</p></div>`}
+  </section>`;
+  syncSidebar();
+}
+
+function creatorPlaylistCard(p) {
+  return `<article class="pl-card">
+    <a class="pl-cover" href="#/playlist/${p.id}" aria-label="${esc(p.title)}">
+      ${p.cover ? `<img src="${thumbSrc(p.cover)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${p.cover}/hqdefault.jpg'">` : icon("playlists")}
+      <span>${p.count}</span>
+    </a>
+    <div class="pl-row">
+      <div><a href="#/playlist/${p.id}">${esc(p.title)}</a><small>${esc(p.channel)} · ${videos(p.count)}</small></div>
+    </div>
+  </article>`;
+}
+
+async function renderBuiltinPlaylist(id) {
+  const meta = state.builtin.find((p) => p.id === id);
+  if (!meta) return renderNotFound();
+  document.title = `${meta.title} — HackerTube`;
+  let ids = [];
+  try {
+    if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+    ids = (await state.builtinIds)[id] || [];
+  } catch {
+    state.builtinIds = null;
+  }
+  if (location.hash !== `#/playlist/${id}`) return;
+  const list = ids.map((vid) => state.byId.get(vid)).filter(Boolean);
+  view.innerHTML = `<section>
+    <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
+    <div class="pl-head">
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}">${icon("play")} Play all</a>` : ""}
+      <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
+    </div>
+    ${list.length
+      ? `<div class="grid">${list.map((v) => card(v)).join("")}</div>`
+      : `<div class="empty"><strong>Nothing from this playlist is indexed</strong><p>Its videos may be short, private or outside the current index.</p><a class="btn" href="#/playlists">All playlists</a></div>`}
   </section>`;
   syncSidebar();
 }
@@ -825,6 +873,12 @@ function onViewClick(e) {
     else ui.topics.add(id);
     ui.limit = pageSize();
     renderFeed(state.scope);
+    return;
+  }
+
+  if (e.target.closest("[data-more-playlists]")) {
+    state.showAllPlaylists = true;
+    renderPlaylists();
     return;
   }
 

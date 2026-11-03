@@ -13,6 +13,7 @@ from .normalize import normalize_ar
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
+PLAYLIST_RAW = ROOT / "data" / "playlists"
 OUT = ROOT / "public" / "data"
 
 
@@ -42,7 +43,7 @@ def build_records(payloads: list[dict]) -> list[dict]:
             views = int(e.get("views") or 0)
             ts = e.get("timestamp")
             year = dt.datetime.fromtimestamp(ts, dt.timezone.utc).year if ts else 0
-            if not title or duration < MIN_DURATION:
+            if not title or duration < MIN_DURATION or "#shorts" in title.lower():
                 continue
 
             rec = {
@@ -91,7 +92,35 @@ def build_records(payloads: list[dict]) -> list[dict]:
     return keep
 
 
-def build_meta(records: list[dict], payloads: list[dict]) -> dict:
+def load_playlists(records: list[dict], folder: Path = PLAYLIST_RAW) -> list[dict]:
+    """قوائم أصحاب القنوات، مقتصرة على فيديوهات الفهرس وبترتيبها الأصلي."""
+    if not folder.exists():
+        return []
+    by_id = {r["id"]: r for r in records}
+    playlists = []
+    seen = set()
+    for path in sorted(folder.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        channel = clean_name(payload.get("channel") or payload["channel_id"])
+        for pl in payload.get("playlists", []):
+            ids = [vid for vid in pl.get("ids", []) if vid in by_id]
+            if len(ids) < 2 or pl["id"] in seen:
+                continue
+            seen.add(pl["id"])
+            playlists.append(
+                {
+                    "id": pl["id"],
+                    "title": (pl.get("title") or "").strip() or "Playlist",
+                    "channel_id": payload["channel_id"],
+                    "channel": channel,
+                    "ids": ids,
+                }
+            )
+    playlists.sort(key=lambda p: (p["channel"].casefold(), p["title"].casefold()))
+    return playlists
+
+
+def build_meta(records: list[dict], payloads: list[dict], playlists: list[dict]) -> dict:
     topic_counts = Counter(t for r in records for t in r["topics"])
     channel_counts = Counter((r["channel_id"], r["channel"]) for r in records)
     lang_counts = Counter(r.get("lang", "ar") for r in records)
@@ -109,6 +138,17 @@ def build_meta(records: list[dict], payloads: list[dict]) -> dict:
             for tid in TOPIC_LABELS
             if topic_counts[tid]
         ],
+        "playlists": [
+            {
+                "id": p["id"],
+                "title": p["title"],
+                "channel_id": p["channel_id"],
+                "channel": p["channel"],
+                "count": len(p["ids"]),
+                "cover": p["ids"][0],
+            }
+            for p in playlists
+        ],
         "fetched_channels": len(payloads),
     }
 
@@ -122,15 +162,23 @@ def main() -> int:
     if not records:
         print("لا يوجد محتوى برمجي بعد التصفية.", file=sys.stderr)
         return 1
+    playlists = load_playlists(records)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "videos.json").write_text(
         json.dumps(records, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
-    (OUT / "meta.json").write_text(
-        json.dumps(build_meta(records, payloads), ensure_ascii=False, indent=1),
+    (OUT / "playlists.json").write_text(
+        json.dumps({p["id"]: p["ids"] for p in playlists}, separators=(",", ":")),
         encoding="utf-8",
     )
-    print(f"تم: {len(records)} فيديو من {len({r['channel_id'] for r in records})} قناة.")
+    (OUT / "meta.json").write_text(
+        json.dumps(build_meta(records, payloads, playlists), ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
+    print(
+        f"تم: {len(records)} فيديو من {len({r['channel_id'] for r in records})} قناة، "
+        f"و{len(playlists)} قائمة جاهزة."
+    )
     return 0
 
 
