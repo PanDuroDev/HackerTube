@@ -10,10 +10,10 @@ import time
 import urllib.error
 import urllib.request
 from collections import defaultdict, deque
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 import yt_dlp
-from flask import Flask, Response, jsonify, request, stream_with_context, url_for
+from flask import Flask, Response, jsonify, request, url_for
 
 app = Flask(__name__)
 
@@ -28,10 +28,12 @@ ALLOWED_ORIGINS = {
 }
 RATE_LIMIT = int(os.environ.get("HT_STREAM_RATE_LIMIT", "20"))
 RATE_WINDOW = 60
-STREAM_TTL = int(os.environ.get("HT_STREAM_TOKEN_TTL", "1800"))
+STREAM_TTL = int(os.environ.get("HT_STREAM_TOKEN_TTL", "21600"))
 TRUST_CLOUDFLARE_IP = os.environ.get("HT_TRUST_CLOUDFLARE_IP", "false").lower() in {
     "1", "true", "yes"
 }
+MAX_CONCURRENT_STREAMS = max(1, int(os.environ.get("HT_MAX_CONCURRENT_STREAMS", "6")))
+_stream_slots = threading.BoundedSemaphore(MAX_CONCURRENT_STREAMS)
 
 _requests: dict[str, deque[float]] = defaultdict(deque)
 _rate_lock = threading.Lock()
@@ -60,12 +62,20 @@ def _remember_stream(url: str, headers: dict | None) -> str:
     }
     if "User-Agent" not in safe_headers and "user-agent" not in safe_headers:
         safe_headers["User-Agent"] = "Mozilla/5.0"
+    ttl = STREAM_TTL
+    source_expiry = parse_qs(urlparse(url).query).get("expire")
+    if source_expiry:
+        try:
+            # Never let the proxy token outlive the signed upstream URL.
+            ttl = min(ttl, max(0, int(source_expiry[0]) - int(time.time())))
+        except ValueError:
+            pass
     with _stream_lock:
         now = time.monotonic()
         expired = [key for key, value in _streams.items() if value[0] <= now]
         for key in expired:
             _streams.pop(key, None)
-        _streams[token] = (now + STREAM_TTL, url, safe_headers)
+        _streams[token] = (now + ttl, url, safe_headers)
     return token
 
 
@@ -219,8 +229,39 @@ def stream(video_id: str):
         }), 502
 
 
+class _UpstreamStream:
+    """Close an upstream response and release its concurrency slot exactly once."""
+
+    def __init__(self, upstream, release_slot):
+        self._upstream = upstream
+        self._release_slot = release_slot
+        self._close_lock = threading.Lock()
+        self._closed = False
+
+    def __iter__(self):
+        try:
+            while True:
+                chunk = self._upstream.read(64 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+        finally:
+            self.close()
+
+    def close(self):
+        with self._close_lock:
+            if self._closed:
+                return
+            self._closed = True
+        try:
+            self._upstream.close()
+        finally:
+            self._release_slot()
+
+
 @app.route("/media/<token>", methods=["GET", "HEAD", "OPTIONS"])
 def media(token: str):
+    """Proxy a signed media URL while bounding concurrent upstream streams."""
     if request.method == "OPTIONS":
         return ("", 204)
     stored = _get_stream(token)
@@ -244,50 +285,71 @@ def media(token: str):
         headers=headers,
         method=request.method,
     )
+    if not _stream_slots.acquire(blocking=False):
+        response = jsonify({"error": "Too many active video streams. Try again shortly."})
+        response.status_code = 503
+        response.headers["Retry-After"] = "5"
+        return response
+
+    release_lock = threading.Lock()
+    released = False
+
+    def release_slot():
+        nonlocal released
+        with release_lock:
+            if released:
+                return
+            released = True
+        _stream_slots.release()
+
+    upstream = None
+    stream_body = None
+    response_owns_slot = False
     try:
         try:
             upstream = urllib.request.urlopen(upstream_request, timeout=45)
         except urllib.error.HTTPError as error:
             # HTTPError is also a readable response (notably for 416 Range errors).
             upstream = error
-    except (urllib.error.URLError, TimeoutError, OSError):
-        app.logger.exception("Upstream media request failed")
-        return jsonify({"error": "The upstream video stream is unavailable."}), 502
+        except (urllib.error.URLError, TimeoutError, OSError):
+            app.logger.exception("Upstream media request failed")
+            return jsonify({"error": "The upstream video stream is unavailable."}), 502
 
-    status = getattr(upstream, "status", None) or upstream.getcode()
-    response_headers = {}
-    for name in (
-        "Content-Type",
-        "Content-Length",
-        "Content-Range",
-        "Accept-Ranges",
-        "ETag",
-        "Last-Modified",
-    ):
-        value = upstream.headers.get(name)
-        if value:
-            response_headers[name] = value
+        status = getattr(upstream, "status", None) or upstream.getcode()
+        response_headers = {}
+        for name in (
+            "Content-Type",
+            "Content-Length",
+            "Content-Range",
+            "Accept-Ranges",
+            "ETag",
+            "Last-Modified",
+        ):
+            value = upstream.headers.get(name)
+            if value:
+                response_headers[name] = value
 
-    if request.method == "HEAD":
-        upstream.close()
-        return Response(status=status, headers=response_headers)
+        if request.method == "HEAD":
+            return Response(status=status, headers=response_headers)
 
-    def generate():
-        try:
-            while True:
-                chunk = upstream.read(64 * 1024)
-                if not chunk:
-                    break
-                yield chunk
-        finally:
-            upstream.close()
-
-    return Response(
-        stream_with_context(generate()),
-        status=status,
-        headers=response_headers,
-        direct_passthrough=True,
-    )
+        stream_body = _UpstreamStream(upstream, release_slot)
+        response = Response(
+            stream_body,
+            status=status,
+            headers=response_headers,
+            direct_passthrough=False,
+        )
+        response_owns_slot = True
+        return response
+    finally:
+        if not response_owns_slot:
+            try:
+                if stream_body is not None:
+                    stream_body.close()
+                elif upstream is not None:
+                    upstream.close()
+            finally:
+                release_slot()
 
 
 if __name__ == "__main__":
