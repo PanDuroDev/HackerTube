@@ -1499,6 +1499,8 @@ a.card-sub:hover { color: var(--text); }
 
 /* Direct HTML5 playback */
 .player video { width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
+.player:has(.native-controls) { display: flex; flex-direction: column; }
+.player:has(.native-controls) video { flex: 1 1 auto; min-height: 0; height: auto; }
 .native-player-status {
   position: absolute;
   inset: auto 0 0;
