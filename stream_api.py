@@ -10,8 +10,11 @@ from urllib.parse import urlparse
 
 import yt_dlp
 from flask import Flask, jsonify, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+# Render terminates TLS at its proxy; recover the actual client IP for rate limiting.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 ALLOWED_ORIGINS = {
     origin.strip().rstrip("/")
