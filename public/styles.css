@@ -704,6 +704,9 @@ a.card-sub:hover { color: var(--text); }
   margin: 14px 0 18px;
 }
 
+.watch-actions-toggle { display: none; }
+.watch-action-items { display: contents; }
+
 .drop { position: relative; }
 
 .drop > summary { list-style: none; }
@@ -1284,6 +1287,10 @@ a.card-sub:hover { color: var(--text); }
     display: flex;
     width: 100%;
     justify-content: flex-start;
+  }
+  .watch-action-items > .drop {
+    flex-direction: column;
+    align-items: stretch;
   }
   .watch-action-items .drop-panel {
     position: static;
