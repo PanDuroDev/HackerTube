@@ -41,6 +41,7 @@ init();
 
 async function init() {
   applyTheme(state.theme);
+  if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
   $("#menuBtn").addEventListener("click", () => {
     if (matchMedia("(max-width: 980px)").matches) setSidebar(!$("#sidebar").classList.contains("open"));
     else {
