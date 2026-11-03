@@ -1,2 +1,4 @@
 yt-dlp>=2025.1.15
 pytest>=8
+Flask>=3.0,<4
+gunicorn>=22,<24

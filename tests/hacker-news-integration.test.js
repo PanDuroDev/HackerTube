@@ -36,7 +36,9 @@ function createHarness() {
         storage.delete(key);
       },
     },
-    location: { hash: "#/" },
+    location: { hash: "#/", origin: "https://example.test" },
+    URLSearchParams,
+    matchMedia: () => ({ matches: false, addEventListener() {} }),
     window: {
       HackerTubeSearch: {
         SearchIndex: class {
@@ -57,11 +59,11 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, watchActionsHTML, renderHNWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist };",
+    source + "\nglobalThis.__testApi = { state, card, videoWatchHref, playlistPlaybackHref, watchActionsHTML, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo };",
     context,
     { filename: "public/app.js" },
   );
-  vm.runInContext("syncSidebar = () => {}; toast = () => {};", context);
+  vm.runInContext("syncSidebar = () => {}; toast = () => {}; renderHNEvidence = () => {}; startPlaylistPlayer = () => {};", context);
 
   return {
     api: context.__testApi,
@@ -221,8 +223,8 @@ test("custom playlists render HN-only videos and use their video IDs for thumbna
 
   await api.renderPlaylist("pl_test");
 
-  assert.ok(view.innerHTML.includes('href="#/hn-watch/hn123"'));
-  assert.ok(view.innerHTML.includes('class="btn primary" href="#/hn-watch/hn123"'));
+  assert.ok(view.innerHTML.includes('href="#/hn-watch/hn123?list=pl_test&autoplay=1"'));
+  assert.ok(view.innerHTML.includes('class="btn primary" href="#/hn-watch/hn123?list=pl_test&autoplay=1"'));
   assert.ok(view.innerHTML.includes('data-remove="playlist"'));
   assert.ok(view.innerHTML.includes('data-later-toggle="hn123"'));
 
@@ -251,4 +253,80 @@ test("a stale HN watch request cannot overwrite a page after navigation", async 
   await pending;
 
   assert.equal(view.innerHTML, "new route");
+});
+
+
+test("mixed custom playlists load HN entries into the main video queue", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const hn = sampleHNVideo("hn456");
+  const main = {
+    id: "main123",
+    title: "Main catalog video",
+    channel: "Main channel",
+    channel_id: "channel1",
+    views: 100,
+    year: 2024,
+    topics: [],
+    duration: 180,
+    kind: "tutorial",
+    level: "any",
+    score: 1,
+  };
+
+  api.state.videos = [main];
+  api.state.byId = new Map([[main.id, main]]);
+  api.state.hnById = new Map();
+  api.state.hnVideosPromise = null;
+  api.state.playlists = [{ id: "pl_test", name: "Mixed", ids: [main.id, hn.vid] }];
+  api.state.channels = new Map();
+  api.setFetchJson(async (file) => file === "data/hacker-news/videos.json" ? [hn] : {});
+  location.hash = "#/watch/main123?list=pl_test&autoplay=1";
+
+  await api.renderWatch(main.id, "pl_test", true);
+
+  assert.ok(view.innerHTML.includes('id="youtube-player"'));
+  assert.ok(view.innerHTML.includes("playlist=hn456"));
+});
+
+test("mixed iframe queues switch watch routes at catalog boundaries", () => {
+  const { api, location } = createHarness();
+  const hn = sampleHNVideo("hn456");
+  const main = { id: "main123", title: "Main", channel: "Main", topics: [], views: 1 };
+  api.state.byId = new Map([[main.id, main]]);
+  api.state.hnById = new Map([[hn.vid, hn]]);
+
+  location.hash = "#/watch/main123?list=pl_test&autoplay=1";
+  api.syncWatchVideo(hn.vid, "pl_test");
+  assert.equal(location.hash, "#/hn-watch/hn456?list=pl_test&autoplay=1");
+
+  location.hash = "#/hn-watch/hn456?list=pl_test&autoplay=1";
+  api.syncWatchVideo(main.id, "pl_test");
+  assert.equal(location.hash, "#/watch/main123?list=pl_test&autoplay=1");
+});
+
+test("HN watch preserves native playback controls while sharing actions and playlist context", async () => {
+  const harness = createHarness();
+  const { api, location, view } = harness;
+  const hn = sampleHNVideo("hn123");
+  const main = { id: "main123", title: "Main", channel: "Main", topics: [], views: 10 };
+  api.state.hnVideosPromise = Promise.resolve([hn]);
+  api.state.hnById = new Map([[hn.vid, hn]]);
+  api.state.hnExistingPromise = Promise.resolve({});
+  api.state.hnRelatedPromise = Promise.resolve({});
+  api.state.hnAliasesPromise = Promise.resolve({});
+  api.state.hnMentionPartitions.set("h", Promise.resolve({ [hn.vid]: [] }));
+  api.state.playlists = [{ id: "pl_test", name: "Mixed", ids: [hn.vid, main.id] }];
+  api.state.byId = new Map([[main.id, main]]);
+  api.state.settings.nativePlayer = true;
+  location.hash = "#/hn-watch/hn123?list=pl_test&autoplay=1";
+
+  await api.renderHNWatch(hn.vid, "pl_test", true);
+
+  assert.equal(api.state.current, hn.vid);
+  assert.equal(api.state.seen[0], hn.vid);
+  assert.ok(view.innerHTML.includes('id="native-video-player"'));
+  assert.ok(view.innerHTML.includes('data-player-toggle'));
+  assert.ok(view.innerHTML.includes('data-act="like"'));
+  assert.ok(view.innerHTML.includes('data-act="save"'));
 });

@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false };
+const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -72,7 +72,10 @@ const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", yea
 let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
+const STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
+let themeChangeVersion = 0;
+
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
@@ -272,15 +275,33 @@ function toast(message, kind = "check") {
 }
 
 function applyTheme(pref) {
-  state.theme = pref;
-  storeSet(STORE.theme, pref);
+  const root = document.documentElement;
   const dark = pref === "dark" || (pref === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const nextTheme = dark ? "dark" : "light";
+  const themeChanged = root.dataset.theme !== nextTheme;
+
+  state.theme = pref;
+  if (themeChanged) {
+    // Stop hover/focus transitions from animating every control during a theme swap.
+    root.dataset.themeChanging = "true";
+    root.dataset.theme = nextTheme;
+
+    const version = ++themeChangeVersion;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (version === themeChangeVersion) {
+          delete root.dataset.themeChanging;
+        }
+      });
+    });
+  }
+
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = dark ? "#0f0f0f" : "#ffffff";
   const btn = $("#themeBtn");
   btn.innerHTML = icon(dark ? "sun" : "moon");
   btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  storeSet(STORE.theme, pref);
 }
 
 function setSidebar(open) {
@@ -352,7 +373,13 @@ function render() {
   if (seg === "history") return renderCollection("history");
   if (seg === "categories") return renderCategories();
   if (seg === "hacker-news") return renderHackerNews(arg);
-  if (seg === "hn-watch") return renderHNWatch(arg);
+  if (seg === "hn-watch") {
+    const queryIndex = arg.indexOf("?");
+    const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
+    const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
+    const params = new URLSearchParams(query);
+    return renderHNWatch(id, params.get("list"), params.get("autoplay") === "1");
+  }
   if (seg === "playlists") return renderPlaylists();
   if (seg === "playlist") return arg.startsWith("pl_") ? renderPlaylist(arg) : renderBuiltinPlaylist(arg);
   if (seg === "settings") return renderSettings();
@@ -360,7 +387,8 @@ function render() {
     const queryIndex = arg.indexOf("?");
     const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
     const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
-    return renderWatch(id, new URLSearchParams(query).get("list"));
+    const params = new URLSearchParams(query);
+    return renderWatch(id, params.get("list"), params.get("autoplay") === "1");
   }
   if (seg === "channels") return renderChannels();
   return renderNotFound();
@@ -735,6 +763,14 @@ function card(v, opts = {}) {
   </article>`;
 }
 
+function playlistPlaybackHref(video, playlistId, autoplay = true) {
+  const params = new URLSearchParams();
+  if (playlistId) params.set("list", playlistId);
+  if (autoplay) params.set("autoplay", "1");
+  const query = params.toString();
+  const route = videoWatchHref(video);
+  return query ? route + "?" + query : route;
+}
 function watchActionsHTML(videoId) {
   const liked = state.likes.has(videoId);
   const later = state.saved.has(videoId);
@@ -768,7 +804,7 @@ function emptyState() {
 
 /* ---------- Watch ---------- */
 
-async function renderWatch(id, playlistId = null) {
+async function renderWatch(id, playlistId = null, autoplay = false) {
   const routeHash = location.hash;
   const v = state.byId.get(id);
   if (!v) return renderNotFound();
@@ -778,11 +814,22 @@ async function renderWatch(id, playlistId = null) {
   let queue = [];
   if (playlistId) {
     try {
-      if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
-      const playlists = await state.builtinIds;
-      const ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+      let ids = [];
+      if (playlistId.startsWith("pl_")) {
+        const playlist = playlistById(playlistId);
+        ids = Array.isArray(playlist?.ids) ? playlist.ids : [];
+      } else {
+        if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+        const playlists = await state.builtinIds;
+        ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+      }
+      if (ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId))) {
+        await loadHNVideos();
+      }
       const index = ids.indexOf(id);
-      if (index >= 0) queue = ids.slice(index).filter((videoId) => state.byId.has(videoId));
+      if (index >= 0) {
+        queue = ids.slice(index).filter((videoId) => state.byId.has(videoId) || state.hnById.has(videoId));
+      }
     } catch {
       state.builtinIds = null;
     }
@@ -795,22 +842,19 @@ async function renderWatch(id, playlistId = null) {
     .sort((a, b) => shared(b, v) - shared(a, v) || b.score - a.score)
     .slice(0, 8);
   const ch = state.channels.get(v.channel_id);
-  const playerParams = new URLSearchParams({
-    enablejsapi: "1",
-    origin: location.origin,
-    rel: "0",
-    playsinline: "1",
-  });
-  const playerMarkup = queue.length > 1
-    ? `<iframe id="youtube-player"
-        src="https://www.youtube-nocookie.com/embed/${v.id}?${playerParams}"
-        title="${esc(v.title)}" loading="lazy" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"></iframe>`
-    : `<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
-        title="${esc(v.title)}" loading="lazy" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  const playerMarkup = state.settings.nativePlayer
+    ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous"
+        aria-label="${esc(v.title)}"></video>
+        <div class="native-controls" id="native-player-controls" aria-label="Video controls">
+          <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
+          <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
+          <output class="native-time" data-player-time>0:00 / 0:00</output>
+          <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
+          <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
+          <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
+        </div>
+        <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
+    : youtubeIframeMarkup(v.id, v.title, queue.length > 1 ? queue : null);
 
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
@@ -839,7 +883,143 @@ async function renderWatch(id, playlistId = null) {
   </section>`;
   syncSidebar();
   renderHNEvidence(id);
+  if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash, autoplay);
+  else if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+}
+
+function youtubeIframeMarkup(videoId, title, queue = null) {
+  const params = new URLSearchParams({
+    enablejsapi: "1",
+    origin: location.origin,
+    rel: "0",
+    playsinline: "1",
+  });
+  if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
+  return `<iframe ${queue && queue.length > 1 ? 'id="youtube-player"' : ""}
+    src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
+    title="${esc(title)}" loading="lazy" allowfullscreen
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+
+function formatPlayerTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const total = Math.floor(seconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const remaining = String(total % 60).padStart(2, "0");
+  return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${remaining}` : `${minutes}:${remaining}`;
+}
+
+function attachNativePlayerControls(player) {
+  const container = player.closest(".player");
+  const toggle = container.querySelector("[data-player-toggle]");
+  const seek = container.querySelector("[data-player-seek]");
+  const time = container.querySelector("[data-player-time]");
+  const mute = container.querySelector("[data-player-mute]");
+  const volume = container.querySelector("[data-player-volume]");
+  const fullscreen = container.querySelector("[data-player-fullscreen]");
+  const update = () => {
+    const duration = Number.isFinite(player.duration) ? player.duration : 0;
+    seek.value = duration ? String(Math.round(player.currentTime / duration * 1000)) : "0";
+    time.textContent = `${formatPlayerTime(player.currentTime)} / ${formatPlayerTime(duration)}`;
+    toggle.textContent = player.paused ? "Play" : "Pause";
+    toggle.setAttribute("aria-label", player.paused ? "Play" : "Pause");
+    mute.textContent = player.muted || player.volume === 0 ? "Unmute" : "Mute";
+    mute.setAttribute("aria-label", player.muted || player.volume === 0 ? "Unmute" : "Mute");
+    volume.value = String(player.muted ? 0 : player.volume);
+  };
+  toggle.addEventListener("click", () => {
+    if (player.paused) player.play().catch(() => toast("Could not start playback.", "info"));
+    else player.pause();
+  });
+  seek.addEventListener("input", () => {
+    if (Number.isFinite(player.duration) && player.duration > 0) {
+      player.currentTime = Number(seek.value) / 1000 * player.duration;
+    }
+  });
+  mute.addEventListener("click", () => { player.muted = !player.muted; update(); });
+  volume.addEventListener("input", () => {
+    player.volume = Number(volume.value);
+    player.muted = player.volume === 0;
+    update();
+  });
+  fullscreen.addEventListener("click", () => {
+    const target = container;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else target.requestFullscreen?.().catch(() => {});
+  });
+  ["loadedmetadata", "durationchange", "timeupdate", "play", "pause", "volumechange", "ended"].forEach((event) => {
+    player.addEventListener(event, update);
+  });
+  update();
+}
+
+async function startNativePlayer(video, queue, playlistId, routeHash, autoplay = false) {
+  const player = $("#native-video-player");
+  const status = $("#native-player-status");
+  if (!player || !status) return;
+
+  attachNativePlayerControls(player);
+  if (queue.length > 1) {
+    player.addEventListener("ended", () => {
+      if (location.hash !== routeHash) return;
+      const currentIndex = queue.indexOf(video.id);
+      const next = currentIndex >= 0 ? queue[currentIndex + 1] : null;
+      if (next) {
+        location.hash = playlistPlaybackHref(videoById(next), playlistId, true);
+      }
+    });
+  }
+
+  let fallbackStarted = false;
+  let mediaTimeout = null;
+  const fallback = (error = null) => {
+    if (fallbackStarted || location.hash !== routeHash || !player.isConnected) return;
+    fallbackStarted = true;
+    clearTimeout(mediaTimeout);
+    fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
+  };
+
+  player.addEventListener("error", () => fallback(new Error("The browser could not play the extracted stream.")), { once: true });
+  player.addEventListener("loadedmetadata", () => status.remove(), { once: true });
+  player.addEventListener("canplay", () => clearTimeout(mediaTimeout), { once: true });
+
+  const controller = new AbortController();
+  const fetchTimeout = setTimeout(() => controller.abort(), 25000);
+  try {
+    const response = await fetch(`${STREAM_API_BASE_URL}/api/stream/${encodeURIComponent(video.id)}`, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.url) {
+      throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
+    }
+    if (location.hash !== routeHash || !player.isConnected) return;
+    player.src = new URL(payload.url, STREAM_API_BASE_URL).href;
+    player.load();
+    if (autoplay) {
+      player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
+    }
+    mediaTimeout = setTimeout(
+      () => fallback(new Error("The stream did not become playable in time.")),
+      35000,
+    );
+  } catch (error) {
+    fallback(error);
+  } finally {
+    clearTimeout(fetchTimeout);
+  }
+}
+
+function fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error = null) {
+  const container = $(".player");
+  if (!container || location.hash !== routeHash) return;
+  container.innerHTML = youtubeIframeMarkup(video.id, video.title, queue);
   if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+  if (error) toast("Direct playback unavailable. Using YouTube player.", "info");
 }
 
 function loadYouTubeIframeApi() {
@@ -891,8 +1071,12 @@ async function startPlaylistPlayer(queue, playlistId, routeHash) {
 }
 
 function syncWatchVideo(id, playlistId) {
-  const video = state.byId.get(id);
+  const video = videoById(id);
   if (!video) return;
+  if (!state.byId.has(id) || location.hash.startsWith("#/hn-watch/")) {
+    location.hash = playlistPlaybackHref(video, playlistId, true);
+    return;
+  }
   state.current = id;
   markSeen(id);
   document.title = `${video.title} — HackerTube`;
@@ -948,7 +1132,7 @@ function syncWatchVideo(id, playlistId) {
   }
   renderHNEvidence(id);
   closeWatchActionMenu(true);
-  history.replaceState(null, "", `${location.pathname}${location.search}#/watch/${encodeURIComponent(id)}?list=${encodeURIComponent(playlistId)}`);
+  history.replaceState(null, "", `${location.pathname}${location.search}${playlistPlaybackHref(video, playlistId, true)}`);
 }
 
 function shared(a, b) {
@@ -1210,8 +1394,12 @@ async function renderHackerNews(query = "") {
   }
 }
 
-async function renderHNWatch(requestedVideoId) {
-  const requestedRoute = `#/hn-watch/${encodeURIComponent(requestedVideoId)}`;
+async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = false) {
+  const routeParams = new URLSearchParams();
+  if (playlistId) routeParams.set("list", playlistId);
+  if (autoplay) routeParams.set("autoplay", "1");
+  const routeQuery = routeParams.toString();
+  const requestedRoute = "#/hn-watch/" + encodeURIComponent(requestedVideoId) + (routeQuery ? "?" + routeQuery : "");
   document.title = "Hacker News video — HackerTube";
   view.innerHTML = '<section class="watch"><div class="watch-main"><p class="count">Loading video and archived comments…</p></div></section>';
   try {
@@ -1228,11 +1416,30 @@ async function renderHNWatch(requestedVideoId) {
     const video = state.hnById.get(videoId) || existing[videoId];
     if (!video) return renderNotFound();
     if (requestedVideoId !== videoId) {
-      location.hash = `#/hn-watch/${encodeURIComponent(videoId)}`;
+      location.hash = "#/hn-watch/" + encodeURIComponent(videoId) + (routeQuery ? "?" + routeQuery : "");
       return;
     }
     state.current = videoId;
     markSeen(videoId);
+    let queue = [];
+    if (playlistId) {
+      try {
+        let ids = [];
+        if (playlistId.startsWith("pl_")) {
+          const playlist = playlistById(playlistId);
+          ids = Array.isArray(playlist?.ids) ? playlist.ids : [];
+        } else {
+          if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+          const playlists = await state.builtinIds;
+          ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+        }
+        const index = ids.indexOf(videoId);
+        if (index >= 0) queue = ids.slice(index).filter((nextId) => state.byId.has(nextId) || state.hnById.has(nextId));
+      } catch {
+        state.builtinIds = null;
+      }
+    }
+    if (location.hash !== requestedRoute) return;
     const commentsUnavailable = commentResult === null;
     const comments = commentResult || [];
     document.title = `${video.title} — HackerTube`;
@@ -1246,7 +1453,18 @@ async function renderHNWatch(requestedVideoId) {
       .slice(0, 8);
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
-        <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        <div class="player">${state.settings.nativePlayer
+          ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous" aria-label="${esc(video.title)}"></video>
+            <div class="native-controls" id="native-player-controls" aria-label="Video controls">
+              <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
+              <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
+              <output class="native-time" data-player-time>0:00 / 0:00</output>
+              <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
+              <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
+              <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
+            </div>
+            <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
+          : youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null)}</div>
         <h1 class="watch-title">${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
@@ -1265,6 +1483,11 @@ async function renderHNWatch(requestedVideoId) {
       </aside>
     </section>`;
     syncSidebar();
+    if (state.settings.nativePlayer) {
+      startNativePlayer({ id: video.vid, title: video.title }, queue, playlistId, requestedRoute, autoplay);
+    } else if (queue.length > 1) {
+      startPlaylistPlayer(queue, playlistId, requestedRoute);
+    }
   } catch (error) {
     if (location.hash !== requestedRoute) return;
     view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
@@ -1418,7 +1641,7 @@ async function renderBuiltinPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}">${icon("play")} Play all</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} Play all</a>` : ""}
       <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
     </div>
     ${list.length
@@ -1448,7 +1671,7 @@ async function renderPlaylist(id) {
   if (!pl) return renderNotFound();
   const routeHash = location.hash;
   if (pl.ids.some((videoId) => !state.byId.has(videoId) && !state.hnById.has(videoId))) {
-    try { await loadHNVideos(); } catch { /* Keep available main-catalog entries visible. */ }
+    try { await loadHNVideos(); } catch { /* Keep available main-catalog videos visible. */ }
   }
   if (location.hash !== routeHash) return;
   const list = pl.ids.map(videoById).filter(Boolean);
@@ -1456,16 +1679,15 @@ async function renderPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(pl.name)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="${videoWatchHref(list[0])}">${icon("play")} Play</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="${playlistPlaybackHref(list[0], pl.id, true)}">${icon("play")} Play</a>` : ""}
       <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} Delete playlist</button>
     </div>
     ${list.length
-      ? `<div class="grid">${list.map((v) => card(v, { remove: "playlist", playlist: pl.id })).join("")}</div>`
+      ? `<div class="grid">${list.map((video) => card(video, { remove: "playlist", playlist: pl.id })).join("")}</div>`
       : `<div class="empty"><strong>Playlist is empty</strong><p>Add videos from a watch page with “Add to playlist”.</p><a class="btn" href="#/">Browse videos</a></div>`}
   </section>`;
   syncSidebar();
 }
-
 /* ---------- Settings ---------- */
 
 function renderSettings() {
@@ -1494,6 +1716,14 @@ function renderSettings() {
           ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
         </div>
       </div>
+    </div>
+    <div class="settings-group">
+      <h2>${icon("play")} Playback</h2>
+      <label class="setting-row">
+        <span class="row-ic">${icon("play")}</span>
+        <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
+        <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
+      </label>
     </div>
     <div class="settings-group">
       <h2>${icon("database")} Data</h2>
@@ -1723,6 +1953,9 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
+    if (key === "nativePlayer" && (
+      location.hash.startsWith("#/watch/") || location.hash.startsWith("#/hn-watch/")
+    )) render();
     if (key === "hideSeen" || key === "pageSize") {
       if (/^#\/($|longs|search\/|channel\/)/.test(location.hash || "#/")) renderFeed(state.scope);
     }
