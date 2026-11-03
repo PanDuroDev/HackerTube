@@ -970,3 +970,11 @@ test("main watch pages render a description when the catalog provides one", asyn
   assert.match(harness.view.innerHTML, /id="watch-description"/);
   assert.match(harness.view.innerHTML, /An Arabic explanation of the topic/);
 });
+
+test("the document loads the i18n runtime and a language picker", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.ok(html.indexOf('i18n.js?v=1') < html.indexOf('app.js?v='));
+  assert.match(html, /id="localeSelect"/);
+  assert.match(html, /data-i18n="app.title"/);
+  assert.match(html, /data-i18n-attr="placeholder:header.searchPlaceholder,aria-label:header.search"/);
+});
