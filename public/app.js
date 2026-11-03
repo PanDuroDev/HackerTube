@@ -1232,7 +1232,6 @@ async function renderHNWatch(requestedVideoId) {
       .map((item) => state.hnById.get(item.vid) || existing[item.vid])
       .filter(Boolean)
       .slice(0, 8);
-    const isRecommended = Number(hn.recommenders || 0) > 0;
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
         <div class="player"><iframe src="https://www.youtube-nocookie.com/embed/${video.vid}?rel=0" title="${esc(video.title)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
