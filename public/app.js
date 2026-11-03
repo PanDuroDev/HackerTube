@@ -28,7 +28,7 @@ const state = {
   scope: { type: "all" },
   current: null,
 };
-const ui = { topics: new Set(), level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
+const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
 
 const $ = (sel) => document.querySelector(sel);
@@ -105,7 +105,7 @@ async function init() {
 }
 
 function fetchJson(url) {
-  return fetch(url).then((r) => {
+  return fetch(url, { cache: "no-cache" }).then((r) => {
     if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
     return r.json();
   });
@@ -294,7 +294,7 @@ function syncSidebar() {
 
 function filterCount() {
   let n = ui.topics.size;
-  ["level", "kind", "duration", "year", "channel"].forEach((k) => { if (ui[k]) n++; });
+  ["lang", "level", "kind", "duration", "year", "channel"].forEach((k) => { if (ui[k]) n++; });
   return n;
 }
 
@@ -304,7 +304,7 @@ function hasFilters() {
 
 function resetFilters() {
   ui.topics.clear();
-  ui.level = ui.kind = ui.duration = ui.year = ui.channel = "";
+  ui.level = ui.kind = ui.duration = ui.year = ui.channel = ui.lang = "";
   ui.sort = "best";
   ui.limit = pageSize();
 }
@@ -319,6 +319,7 @@ function filtered(scope) {
       if (scope.kind && v.kind !== scope.kind) return false;
       if (tokens.length && !tokens.every((t) => v.search.includes(t))) return false;
       if (ui.topics.size && !v.topics.some((t) => ui.topics.has(t))) return false;
+      if (ui.lang && v.lang !== ui.lang) return false;
       if (ui.level && v.level !== ui.level) return false;
       if (ui.kind && v.kind !== ui.kind) return false;
       if (ui.year && v.year !== Number(ui.year)) return false;
@@ -377,6 +378,7 @@ function filtersPanel() {
     .join("");
   const selects = [
     field("channel", "Channel", "All channels", state.meta.channels.map((c) => [c.id, c.name]), ui.channel),
+    field("lang", "Language", "All languages", [["ar", "Arabic"], ["en", "English"]], ui.lang),
     field("level", "Level", "All levels", Object.entries(LEVEL_LABELS), ui.level),
     field("kind", "Type", "All types", Object.entries(KIND_LABELS), ui.kind),
     field("duration", "Duration", "Any length", [["short", "Under 5 min"], ["mid", "5–20 min"], ["long", "20–60 min"], ["xl", "Over 1 hour"]], ui.duration),
