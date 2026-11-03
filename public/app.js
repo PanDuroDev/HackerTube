@@ -28,9 +28,14 @@ const state = {
   scope: { type: "all" },
   current: null,
   homeOrder: [],
+  builtin: [],
+  builtinIds: null,
+  showAllPlaylists: false,
 };
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
+let playlistPlayer = null;
+let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 
 const $ = (sel) => document.querySelector(sel);
@@ -112,6 +117,7 @@ async function init() {
     ]);
     state.videos = videos;
     state.meta = meta;
+    state.builtin = meta.playlists || [];
     state.homeOrder = buildHomeOrder(videos);
     state.byId = new Map(videos.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
@@ -241,6 +247,10 @@ function setSidebar(open) {
 /* ---------- Routing ---------- */
 
 function render() {
+  if (playlistPlayer) {
+    playlistPlayer.destroy();
+    playlistPlayer = null;
+  }
   const hash = location.hash || "#/";
   const path = hash.replace(/^#\/?/, "");
   const [seg, ...rest] = path.split("/");
@@ -275,9 +285,14 @@ function render() {
   if (seg === "history") return renderCollection("history");
   if (seg === "categories") return renderCategories();
   if (seg === "playlists") return renderPlaylists();
-  if (seg === "playlist") return renderPlaylist(arg);
+  if (seg === "playlist") return arg.startsWith("pl_") ? renderPlaylist(arg) : renderBuiltinPlaylist(arg);
   if (seg === "settings") return renderSettings();
-  if (seg === "watch") return renderWatch(arg);
+  if (seg === "watch") {
+    const queryIndex = arg.indexOf("?");
+    const id = queryIndex < 0 ? arg : arg.slice(0, queryIndex);
+    const query = queryIndex < 0 ? "" : arg.slice(queryIndex + 1);
+    return renderWatch(id, new URLSearchParams(query).get("list"));
+  }
   if (seg === "channels") return renderChannels();
   return renderNotFound();
 }
@@ -577,38 +592,53 @@ function emptyState() {
 
 /* ---------- Watch ---------- */
 
-function renderWatch(id) {
+async function renderWatch(id, playlistId = null) {
+  const routeHash = location.hash;
   const v = state.byId.get(id);
   if (!v) return renderNotFound();
   state.current = id;
-  document.title = `${v.title} — HackerTube`;
   markSeen(id);
 
+  let queue = [];
+  if (playlistId) {
+    try {
+      if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+      const playlists = await state.builtinIds;
+      const ids = Array.isArray(playlists[playlistId]) ? playlists[playlistId] : [];
+      const index = ids.indexOf(id);
+      if (index >= 0) queue = ids.slice(index).filter((videoId) => state.byId.has(videoId));
+    } catch {
+      state.builtinIds = null;
+    }
+  }
+  if (location.hash !== routeHash) return;
+
+  document.title = `${v.title} — HackerTube`;
   const related = state.videos
     .filter((x) => x.id !== v.id && x.topics.some((t) => v.topics.includes(t)))
     .sort((a, b) => shared(b, v) - shared(a, v) || b.score - a.score)
     .slice(0, 8);
-
   const liked = state.likes.has(id);
   const later = state.saved.has(id);
   const ch = state.channels.get(v.channel_id);
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
+  const playerMarkup = queue.length > 1
+    ? `<div id="youtube-player" aria-label="Playlist player"></div>`
+    : `<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
+        title="${esc(v.title)}" loading="lazy" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
-      <div class="player">
-        <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
-          title="${esc(v.title)}" loading="lazy" allowfullscreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      </div>
+      <div class="player">${playerMarkup}</div>
       <h1 class="watch-title">${esc(v.title)}</h1>
       <div class="watch-bar">
-        <a class="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
-          <span class="avatar">${esc(v.channel.trim().charAt(0))}</span>
-          <span class="watch-channel-text"><b>${esc(v.channel)}</b><small>${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
+        <a class="watch-channel" id="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
+          <span class="avatar" id="watch-avatar">${esc(v.channel.trim().charAt(0))}</span>
+          <span class="watch-channel-text"><b id="watch-channel-name">${esc(v.channel)}</b><small id="watch-channel-count">${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
         </a>
         <div class="actions watch-actions">
           <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
@@ -616,13 +646,13 @@ function renderWatch(id) {
             ${icon("more")} <span>More</span>
           </button>
           <div class="watch-action-items" id="watchActionItems">
-            <button class="btn watch-action-item ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-            <button class="btn watch-action-item ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+            <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+            <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
             <details class="drop">
               <summary class="btn watch-action-item">${icon("playlists")} <span>Add to playlist</span>${icon("down-small-fill")}</summary>
               <div class="drop-panel">${playlistPanel}</div>
             </details>
-            <a class="btn watch-action-item watch-action-item--external" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+            <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
           </div>
         </div>
       </div>
@@ -640,6 +670,117 @@ function renderWatch(id) {
     </aside>
   </section>`;
   syncSidebar();
+  if (queue.length > 1) startPlaylistPlayer(v, queue, playlistId, routeHash);
+}
+
+function loadYouTubeIframeApi() {
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (youtubeApiPromise) return youtubeApiPromise;
+  youtubeApiPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+    script.src = "https://www.youtube.com/iframe_api";
+    script.onerror = () => {
+      youtubeApiPromise = null;
+      reject(new Error("Could not load the YouTube player API"));
+    };
+    document.head.appendChild(script);
+  });
+  return youtubeApiPromise;
+}
+
+async function startPlaylistPlayer(video, queue, playlistId, routeHash) {
+  const container = $("#youtube-player");
+  if (!container) return;
+  try {
+    const YT = await loadYouTubeIframeApi();
+    if (location.hash !== routeHash || !$("#youtube-player")) return;
+    playlistPlayer = new YT.Player("youtube-player", {
+      width: "100%",
+      height: "100%",
+      videoId: video.id,
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1, origin: location.origin },
+      events: {
+        onReady(event) {
+          if (location.hash === routeHash) event.target.loadPlaylist(queue, 0, 0);
+        },
+        onStateChange(event) {
+          if (event.data !== YT.PlayerState.PLAYING) return;
+          const playingId = event.target.getVideoData()?.video_id;
+          if (playingId && playingId !== state.current && queue.includes(playingId)) {
+            syncWatchVideo(playingId, playlistId);
+          }
+        },
+      },
+    });
+  } catch {
+    if (location.hash !== routeHash || !$("#youtube-player")) return;
+    const params = new URLSearchParams({ rel: "0", autoplay: "1", playsinline: "1", playlist: queue.slice(1).join(",") });
+    container.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${video.id}?${params}"
+      title="${esc(video.title)}" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  }
+}
+
+function syncWatchVideo(id, playlistId) {
+  const video = state.byId.get(id);
+  if (!video) return;
+  state.current = id;
+  markSeen(id);
+  document.title = `${video.title} — HackerTube`;
+
+  const channel = state.channels.get(video.channel_id);
+  const channelLink = $("#watch-channel");
+  const avatar = $("#watch-avatar");
+  const channelName = $("#watch-channel-name");
+  const channelCount = $("#watch-channel-count");
+  if (channelLink) {
+    channelLink.href = `#/channel/${video.channel_id}`;
+    channelLink.title = video.channel;
+  }
+  if (avatar) avatar.textContent = video.channel.trim().charAt(0);
+  if (channelName) channelName.textContent = video.channel;
+  if (channelCount) channelCount.textContent = channel ? `${videos(channel.count)} indexed` : "Channel";
+
+  const title = $(".watch-title");
+  if (title) title.textContent = video.title;
+  const likeButton = $("#watch-like");
+  const saveButton = $("#watch-save");
+  const liked = state.likes.has(id);
+  const saved = state.saved.has(id);
+  if (likeButton) {
+    likeButton.classList.toggle("on", liked);
+    likeButton.setAttribute("aria-pressed", String(liked));
+    likeButton.innerHTML = `${icon("liked")} <span>${liked ? "Liked" : "Like"}</span>`;
+  }
+  if (saveButton) {
+    saveButton.classList.toggle("on", saved);
+    saveButton.setAttribute("aria-pressed", String(saved));
+    saveButton.innerHTML = `${icon("later")} <span>${saved ? "Saved" : "Watch later"}</span>`;
+  }
+  const youtubeLink = $(".watch-youtube");
+  if (youtubeLink) youtubeLink.href = `https://www.youtube.com/watch?v=${id}`;
+
+  const meta = $(".watch-meta");
+  if (meta) {
+    meta.innerHTML = `<span>${icon("eye")} ${compact.format(video.views)} views</span>
+      ${video.year ? `<span>${icon("calendar")} ${video.year}</span>` : ""}
+      <span>${icon("clock")} ${fmtDuration(video.duration)}</span>
+      <span>${icon("tag")} ${esc(KIND_LABELS[video.kind] || "Tutorial")}</span>
+      <span>${icon("level")} ${esc(LEVEL_LABELS[video.level] || "General")}</span>`;
+  }
+  const related = state.videos
+    .filter((item) => item.id !== video.id && item.topics.some((topic) => video.topics.includes(topic)))
+    .sort((a, b) => shared(b, video) - shared(a, video) || b.score - a.score)
+    .slice(0, 8);
+  const relatedGrid = $(".related-grid");
+  if (relatedGrid) {
+    relatedGrid.innerHTML = related.map((item) => card(item)).join("")
+      || '<p class="count">Nothing related yet.</p>';
+  }
+  closeWatchActionMenu(true);
+  history.replaceState(null, "", `${location.pathname}${location.search}#/watch/${encodeURIComponent(id)}?list=${encodeURIComponent(playlistId)}`);
 }
 
 function shared(a, b) {
@@ -729,15 +870,59 @@ function addToPlaylist(plId, videoId) {
 
 function renderPlaylists() {
   document.title = "Playlists — HackerTube";
+  const total = state.builtin.length + state.playlists.length;
+  const creators = state.showAllPlaylists ? state.builtin : state.builtin.slice(0, 24);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>Playlists</h1><span class="count">${state.playlists.length} ${state.playlists.length === 1 ? "playlist" : "playlists"}</span></div>
+    <div class="feed-head"><h1>Playlists</h1><span class="count">${total} ${total === 1 ? "playlist" : "playlists"}</span></div>
     <form class="create-pl" data-create-playlist>
       <input name="name" placeholder="New playlist name" maxlength="40" required aria-label="New playlist name">
       <button class="btn primary" type="submit">${icon("plus")} Create</button>
     </form>
+    ${state.builtin.length ? `<h2 class="section-title">From creators <span class="count">${state.builtin.length}</span></h2>
+      <div class="pl-grid">${creators.map(creatorPlaylistCard).join("")}</div>
+      ${creators.length < state.builtin.length ? `<div class="more"><button class="btn" data-more-playlists>Show all ${state.builtin.length} playlists</button></div>` : ""}` : ""}
+    <h2 class="section-title">Your playlists</h2>
     ${state.playlists.length
       ? `<div class="pl-grid">${state.playlists.map(playlistCard).join("")}</div>`
       : `<div class="empty"><strong>No playlists yet</strong><p>Create one, then add videos from any watch page.</p></div>`}
+  </section>`;
+  syncSidebar();
+}
+
+function creatorPlaylistCard(p) {
+  return `<article class="pl-card">
+    <a class="pl-cover" href="#/playlist/${p.id}" aria-label="${esc(p.title)}">
+      ${p.cover ? `<img src="${thumbSrc(p.cover)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${p.cover}/hqdefault.jpg'">` : icon("playlists")}
+      <span>${p.count}</span>
+    </a>
+    <div class="pl-row">
+      <div><a href="#/playlist/${p.id}">${esc(p.title)}</a><small>${esc(p.channel)} · ${videos(p.count)}</small></div>
+    </div>
+  </article>`;
+}
+
+async function renderBuiltinPlaylist(id) {
+  const meta = state.builtin.find((p) => p.id === id);
+  if (!meta) return renderNotFound();
+  document.title = `${meta.title} — HackerTube`;
+  let ids = [];
+  try {
+    if (!state.builtinIds) state.builtinIds = fetchJson("data/playlists.json");
+    ids = (await state.builtinIds)[id] || [];
+  } catch {
+    state.builtinIds = null;
+  }
+  if (location.hash !== `#/playlist/${id}`) return;
+  const list = ids.map((vid) => state.byId.get(vid)).filter(Boolean);
+  view.innerHTML = `<section>
+    <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
+    <div class="pl-head">
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}">${icon("play")} Play all</a>` : ""}
+      <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
+    </div>
+    ${list.length
+      ? `<div class="grid">${list.map((v) => card(v)).join("")}</div>`
+      : `<div class="empty"><strong>Nothing from this playlist is indexed</strong><p>Its videos may be short, private or outside the current index.</p><a class="btn" href="#/playlists">All playlists</a></div>`}
   </section>`;
   syncSidebar();
 }
@@ -940,6 +1125,12 @@ function onViewClick(e) {
     else ui.topics.add(id);
     ui.limit = pageSize();
     renderFeed(state.scope);
+    return;
+  }
+
+  if (e.target.closest("[data-more-playlists]")) {
+    state.showAllPlaylists = true;
+    renderPlaylists();
     return;
   }
 
