@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, streamApiUrl: "" };
+const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, customYoutubeControls: true, streamApiUrl: "" };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -936,8 +936,9 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
 }
 
 function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
+  const customControls = state.settings.customYoutubeControls !== false;
   const params = new URLSearchParams({
-    controls: "0",
+    controls: customControls ? "0" : "1",
     enablejsapi: "1",
     origin: location.origin,
     rel: "0",
@@ -945,13 +946,16 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   });
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
-  return `<div class="youtube-player-frame">
-    <iframe id="youtube-player"
-      src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
-      title="${esc(title)}" loading="lazy" allowfullscreen
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  </div>
+
+  const iframe = `<iframe ${customControls || (queue && queue.length > 1) ? 'id="youtube-player"' : ""}
+    src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
+    title="${esc(title)}" loading="lazy" allowfullscreen
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+
+  if (!customControls) return iframe;
+
+  return `<div class="youtube-player-frame">${iframe}</div>
   <div class="native-controls youtube-controls" aria-label="Custom video controls">
     <button class="native-control-btn" type="button" data-youtube-toggle aria-label="Play">Play</button>
     <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-youtube-seek aria-label="Seek" disabled>
@@ -1196,6 +1200,8 @@ function loadYouTubeIframeApi() {
 }
 
 async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
+  const customControls = state.settings.customYoutubeControls !== false;
+  if (!customControls && queue.length <= 1) return;
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
   try {
@@ -1205,7 +1211,7 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
       events: {
         onReady(event) {
           if (location.hash !== routeHash) return;
-          attachYouTubePlayerControls(event.target, YT);
+          if (customControls) attachYouTubePlayerControls(event.target, YT);
           if (queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
           else if (autoplay) event.target.playVideo();
         },
@@ -1220,8 +1226,10 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
     });
   } catch {
     if (location.hash !== routeHash || !playerFrame.isConnected) return;
-    restoreYouTubeNativeControls(playerFrame.closest(".player"));
-    toast("Custom controls could not load. Using YouTube controls.", "info");
+    if (customControls) {
+      restoreYouTubeNativeControls(playerFrame.closest(".player"));
+      toast("Custom controls could not load. Using YouTube controls.", "info");
+    }
   }
 }
 
@@ -1876,6 +1884,11 @@ function renderSettings() {
     <div class="settings-group">
       <h2>${icon("play")} Playback</h2>
       <label class="setting-row">
+        <span class="row-ic">${icon("settings")}</span>
+        <span class="setting-text"><b>Custom YouTube controls</b><small>Use HackerTube's playback buttons instead of YouTube's built-in controls. Turn this off to restore YouTube's original controls.</small></span>
+        <input class="switch" type="checkbox" data-setting="customYoutubeControls" ${s.customYoutubeControls !== false ? "checked" : ""}>
+      </label>
+      <label class="setting-row">
         <span class="row-ic">${icon("play")}</span>
         <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
         <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
@@ -2117,7 +2130,7 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
-    if (key === "nativePlayer" && (
+    if (["nativePlayer", "customYoutubeControls"].includes(key) && (
       location.hash.startsWith("#/watch/") || location.hash.startsWith("#/hn-watch/")
     )) render();
     if (key === "hideSeen" || key === "pageSize") {
