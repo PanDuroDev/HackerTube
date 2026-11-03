@@ -61,7 +61,7 @@ def write_gzip_json(path: Path, value: Any) -> None:
 def normalize_identity(value: str) -> str:
     """Normalize punctuation, casing, and Unicode for title/channel comparisons."""
     text = unicodedata.normalize("NFKC", value or "").casefold()
-    return " ".join(re.findall(r"[^\\W_]+", text, flags=re.UNICODE))
+    return " ".join(re.findall(r"[^\W_]+", text, flags=re.UNICODE))
 
 
 def load_existing_records() -> list[dict]:
