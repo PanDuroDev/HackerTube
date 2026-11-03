@@ -501,9 +501,11 @@ test("YouTube control preference restores native controls without custom control
 test("YouTube API failure restores native iframe controls and removes custom controls", async () => {
   const harness = createHarness();
   const { api, context, location } = harness;
+  api.state.settings.hideYoutubeOverlays = true;
   const customMarkup = api.youtubeIframeMarkup("video123", "Test video");
   const customSrc = customMarkup.match(/src="([^"]+)"/)?.[1];
   assert.ok(customSrc, "custom mode should render an iframe source");
+  assert.ok(customMarkup.includes("youtube-player-frame--cropped"));
 
   let customControlsRemoved = false;
   const customControls = {
