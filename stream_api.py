@@ -1,6 +1,7 @@
 """HTTP API for extracting and proxying temporary YouTube media streams."""
 from __future__ import annotations
 
+import ipaddress
 import os
 import re
 import secrets
@@ -13,11 +14,8 @@ from urllib.parse import urlparse
 
 import yt_dlp
 from flask import Flask, Response, jsonify, request, stream_with_context, url_for
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-# Render terminates TLS at its proxy. Trust the single proxy hop Render adds.
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 ALLOWED_ORIGINS = {
@@ -79,6 +77,18 @@ def _get_stream(token: str):
         return record[1], dict(record[2])
 
 
+def _client_ip() -> str:
+    # Render routes public traffic through Cloudflare, which supplies this
+    # single-value header. Never trust the leftmost X-Forwarded-For entry.
+    forwarded_ip = request.headers.get("CF-Connecting-IP", "").strip()
+    if forwarded_ip:
+        try:
+            return str(ipaddress.ip_address(forwarded_ip))
+        except ValueError:
+            pass
+    return request.remote_addr or "unknown"
+
+
 def _allow_request(client_ip: str, now: float) -> bool:
     global _last_rate_cleanup
     with _rate_lock:
@@ -127,7 +137,7 @@ def stream(video_id: str):
     if not VIDEO_ID_RE.fullmatch(video_id):
         return jsonify({"error": "Invalid YouTube video ID"}), 400
 
-    client_ip = request.remote_addr or "unknown"
+    client_ip = _client_ip()
     if not _allow_request(client_ip, time.monotonic()):
         return jsonify({"error": "Too many stream requests. Try again shortly."}), 429
 
@@ -137,7 +147,9 @@ def stream(video_id: str):
             "no_warnings": True,
             "noplaylist": True,
             "skip_download": True,
-            "format": "best[ext=mp4][protocol=https]",
+            # Let yt-dlp return all formats. Our explicit filter below handles
+            # the no-compatible-MP4 case without format-selection exceptions.
+            "ignore_no_formats_error": True,
             "socket_timeout": 20,
             "extractor_retries": 1,
         }
