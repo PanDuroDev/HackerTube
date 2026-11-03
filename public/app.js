@@ -99,7 +99,7 @@ async function init() {
     renderSidebar();
     addEventListener("hashchange", () => {
       setSidebar(false);
-      scrollTo(0, 0);
+      scrollTo({ top: 0, left: 0, behavior: "instant" });
       render();
     });
     render();
@@ -166,12 +166,15 @@ function fmtDuration(seconds) {
   return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
-function toast(message) {
+function toast(message, kind = "check") {
   const el = $("#toast");
-  el.textContent = message;
+  el.querySelector(".toast-ic").innerHTML = icon(kind);
+  el.querySelector(".toast-msg").textContent = message;
+  el.classList.remove("show");
+  void el.offsetWidth;
   el.classList.add("show");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.classList.remove("show"), 1900);
+  toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
 }
 
 function applyTheme(pref) {
@@ -496,37 +499,41 @@ function renderWatch(id) {
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
 
   view.innerHTML = `<section class="watch">
-    <div class="player">
-      <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
-        title="${esc(v.title)}" loading="lazy" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"></iframe>
-    </div>
-    <h1 class="watch-title">${esc(v.title)}</h1>
-    <div class="watch-bar">
-      <a class="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
-        <span class="avatar">${esc(v.channel.trim().charAt(0))}</span>
-        <span class="watch-channel-text"><b>${esc(v.channel)}</b><small>${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
-      </a>
-      <div class="actions">
-        <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
-        <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
-        <details class="drop">
-          <summary class="btn">${icon("playlists")} Add to playlist</summary>
-          <div class="drop-panel">${playlistPanel}</div>
-        </details>
-        <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+    <div class="watch-main">
+      <div class="player">
+        <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
+          title="${esc(v.title)}" loading="lazy" allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <h1 class="watch-title">${esc(v.title)}</h1>
+      <div class="watch-bar">
+        <a class="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
+          <span class="avatar">${esc(v.channel.trim().charAt(0))}</span>
+          <span class="watch-channel-text"><b>${esc(v.channel)}</b><small>${ch ? `${videos(ch.count)} indexed` : "Channel"}</small></span>
+        </a>
+        <div class="actions">
+          <button class="btn ${liked ? "on" : ""}" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? "Liked" : "Like"}</span></button>
+          <button class="btn ${later ? "on" : ""}" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? "Saved" : "Watch later"}</span></button>
+          <details class="drop">
+            <summary class="btn">${icon("playlists")} Add to playlist</summary>
+            <div class="drop-panel">${playlistPanel}</div>
+          </details>
+          <a class="btn" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">${icon("external")} YouTube</a>
+        </div>
+      </div>
+      <div class="watch-meta">
+        <span>${icon("eye")} ${compact.format(v.views)} views</span>
+        ${v.year ? `<span>${icon("calendar")} ${v.year}</span>` : ""}
+        <span>${icon("clock")} ${fmtDuration(v.duration)}</span>
+        <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
+        <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
       </div>
     </div>
-    <div class="watch-meta">
-      <span>${icon("eye")} ${compact.format(v.views)} views</span>
-      ${v.year ? `<span>${icon("calendar")} ${v.year}</span>` : ""}
-      <span>${icon("clock")} ${fmtDuration(v.duration)}</span>
-      <span>${icon("tag")} ${esc(KIND_LABELS[v.kind] || "Tutorial")}</span>
-      <span>${icon("level")} ${esc(LEVEL_LABELS[v.level] || "General")}</span>
-    </div>
-    <h2 class="section-title">Related videos</h2>
-    <div class="related-grid">${related.map((x) => card(x)).join("") || '<p class="count">Nothing related yet.</p>'}</div>
+    <aside class="watch-side">
+      <h2 class="section-title">Related videos</h2>
+      <div class="related-grid">${related.map((x) => card(x)).join("") || '<p class="count">Nothing related yet.</p>'}</div>
+    </aside>
   </section>`;
   syncSidebar();
 }
@@ -607,12 +614,12 @@ function addToPlaylist(plId, videoId) {
   const pl = playlistById(plId);
   if (!pl || !videoId) return;
   if (pl.ids.includes(videoId)) {
-    toast("Already in this playlist");
+    toast("Already in this playlist", "playlists");
     return;
   }
   pl.ids.push(videoId);
   savePlaylists();
-  toast(`Added to “${pl.name}”`);
+  toast(`Added to “${pl.name}”`, "playlists");
   syncSidebar();
 }
 
@@ -900,7 +907,7 @@ function onViewSubmit(e) {
   createPlaylist(name);
   form.reset();
   renderPlaylists();
-  toast(`Created “${name}”`);
+  toast(`Created “${name}”`, "plus");
 }
 
 function toggleAct(act) {
@@ -918,7 +925,7 @@ function toggleAct(act) {
     const label = act === "like" ? (on ? "Liked" : "Like") : (on ? "Saved" : "Watch later");
     b.innerHTML = `${icon(act === "like" ? "liked" : "later")} <span>${label}</span>`;
   });
-  toast(on ? (act === "like" ? "Liked" : "Added to Watch later") : "Removed");
+  toast(on ? (act === "like" ? "Liked" : "Added to Watch later") : "Removed", on ? (act === "like" ? "liked" : "later") : "close");
   syncSidebar();
 }
 
@@ -933,7 +940,7 @@ function toggleLater(id) {
     b.setAttribute("aria-label", on ? "Remove from Watch later" : "Add to Watch later");
   });
   syncSidebar();
-  toast(on ? "Added to Watch later" : "Removed from Watch later");
+  toast(on ? "Added to Watch later" : "Removed from Watch later", on ? "later" : "close");
   if ((location.hash || "#/") === "#/later") render();
 }
 
@@ -952,7 +959,7 @@ function removeItem(kind, id, plId) {
   storeSet(STORE.seen, state.seen);
   syncSidebar();
   render();
-  toast("Removed");
+  toast("Removed", "close");
 }
 
 function clearCollection(kind) {
@@ -966,7 +973,7 @@ function clearCollection(kind) {
   storeSet(STORE.later, [...state.saved]);
   syncSidebar();
   render();
-  toast(`Cleared ${label}`);
+  toast(`Cleared ${label}`, "trash");
 }
 
 function deletePlaylist(id) {
@@ -978,7 +985,7 @@ function deletePlaylist(id) {
   syncSidebar();
   if ((location.hash || "#/").startsWith("#/playlist/")) location.hash = "#/playlists";
   else render();
-  toast("Playlist deleted");
+  toast("Playlist deleted", "trash");
 }
 
 function resetAll() {
@@ -995,5 +1002,5 @@ function resetAll() {
   storeSet(STORE.theme, state.theme);
   syncSidebar();
   render();
-  toast("All data deleted");
+  toast("All data deleted", "trash");
 }
