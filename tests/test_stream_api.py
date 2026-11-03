@@ -110,6 +110,7 @@ def test_returns_local_proxy_url_for_muxed_mp4():
 
 
 def test_retries_with_android_client_when_default_has_no_muxed_mp4():
+    """Retry extraction when the default client exposes only adaptive formats."""
     default_info = {
         "title": "Adaptive-only default client",
         "formats": [{
