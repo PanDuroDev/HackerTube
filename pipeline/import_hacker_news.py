@@ -23,6 +23,21 @@ OUT = ROOT / "public" / "data" / "hacker-news"
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
 SOURCE_ROOT = "hackertube-data/"
 
+PUBLISHED_LAYOUT_NOTE = b"""
+
+## Published layout
+
+This directory contains the generated site-ready files, not the source JSONL files:
+
+- `videos.json`: an array of video records, keyed by `vid`.
+- `existing.json`: source video records already represented in the main catalog, keyed by canonical YouTube ID.
+- `aliases.json`: duplicate source IDs mapped to their canonical video ID.
+- `related.json`: related-video records. Join `vid` and `related[].vid` to `videos.json` or `existing.json`.
+- `mentions/<prefix>.json.gz`: gzip-compressed JSON objects grouped by canonical video ID. Each comment's `vid` joins to `videos.json` or `existing.json`.
+- `taxonomy.json`: the topic tree. Join `videos.categories[].id` to category `id`.
+- `embeddings.npy` and `embedding_ids.json`: row `i` maps to `embedding_ids.json[i]`, then to the source video's `vid`.
+"""
+
 
 def read_jsonl(archive: zipfile.ZipFile, member: str):
     """Yield JSON objects from one UTF-8 JSONL member."""
@@ -186,6 +201,34 @@ def import_archive() -> dict[str, int]:
             if canonical_id in overlaps:
                 mentions_for_existing += 1
 
+        # Keep canonical counters aligned with the comments published after alias remapping.
+        for video_id, video in canonical_records.items():
+            comments = mentions_by_prefix[video_id[0]].get(video_id, [])
+            hn = dict(video.get("hn") or {})
+            stance_counts: dict[str, int] = defaultdict(int)
+            for comment in comments:
+                stance = comment.get("stance")
+                if isinstance(stance, str) and stance:
+                    stance_counts[stance] += 1
+            recommended = [
+                comment for comment in comments
+                if comment.get("stance") in {"rec", "strong_rec"}
+            ]
+            hn["mentions"] = len(comments)
+            hn["stances"] = dict(sorted(stance_counts.items()))
+            hn["recommenders"] = len({
+                comment["author"] for comment in recommended
+                if isinstance(comment.get("author"), str) and comment["author"]
+            })
+            hn["rec_months"] = len({
+                comment["month"] for comment in recommended
+                if isinstance(comment.get("month"), str) and comment["month"]
+            })
+            hn["strong_recs"] = sum(
+                comment.get("stance") == "strong_rec" for comment in comments
+            )
+            video["hn"] = hn
+
         related_build: dict[str, dict[str, dict]] = defaultdict(dict)
         for record in read_jsonl(archive, SOURCE_ROOT + "related.jsonl"):
             source_id = record.get("vid")
@@ -233,7 +276,7 @@ def import_archive() -> dict[str, int]:
     write_json(OUT / "taxonomy.json", taxonomy, compact=False)
     write_json(OUT / "embedding_ids.json", embedding_ids)
     (OUT / "embeddings.npy").write_bytes(embeddings)
-    (OUT / "DATA.md").write_bytes(data_documentation)
+    (OUT / "DATA.md").write_bytes(data_documentation + PUBLISHED_LAYOUT_NOTE)
     for prefix, grouped in sorted(mentions_by_prefix.items()):
         write_gzip_json(OUT / "mentions" / f"{prefix}.json.gz", grouped)
 
