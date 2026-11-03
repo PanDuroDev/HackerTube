@@ -1525,7 +1525,7 @@ async function renderBuiltinPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}">${icon("play")} Play all</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} Play all</a>` : ""}
       <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
     </div>
     ${list.length
@@ -1557,7 +1557,7 @@ function renderPlaylist(id) {
   view.innerHTML = `<section>
     <div class="feed-head"><h1>${esc(pl.name)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
-      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}">${icon("play")} Play</a>` : ""}
+      ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} Play</a>` : ""}
       <button class="btn danger" data-delete-playlist="${pl.id}">${icon("trash")} Delete playlist</button>
     </div>
     ${list.length
