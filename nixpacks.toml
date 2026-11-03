@@ -1,0 +1,10 @@
+[phases.setup]
+nixPkgs = ["...", "deno", "git"]
+
+[phases.install]
+cmds = [
+  "...",
+  "mkdir -p vendor",
+  "git clone --depth 1 --branch 2.0.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git vendor/bgutil-ytdlp-pot-provider",
+  "cd vendor/bgutil-ytdlp-pot-provider/server && deno install --allow-scripts=npm:canvas --frozen"
+]
