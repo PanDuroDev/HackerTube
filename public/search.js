@@ -4,7 +4,7 @@
 
   const FIELD_WEIGHTS = Object.freeze({
     title: 12, channel: 8, topics: 7, topic: 7, primary_topic: 7,
-    categories: 6, tags: 6, metadata: 2, id: 2, summary: 4, why_hn: 3,
+    categories: 6, tags: 6, metadata: 2, id: 2, summary: 4, why_hn: 3, description: 4,
   });
 
   const STOP_WORDS = new Set([

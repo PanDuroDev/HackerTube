@@ -14,6 +14,7 @@ Inspired by [HackerTube](https://hackertube.org), but with a different focus: th
 - Shareable topic and filter URLs, canonical/Open Graph metadata, a copy/native share action on watch pages, and generated sitemap/robots files.
 - Keyboard-accessible filter menus, Arabic language/direction metadata, a skip link, and active navigation state.
 - Watch progress with resume and Continue watching, optional autoplay-next, and video descriptions when the catalog provides them.
+- Description/tag-aware classification, explicit **Unspecified** levels, and description-based language detection with channel fallback.
 - A separate Hacker News search index covering titles, channels, summaries, recommendation context, tags, and categories. Results from the two catalogs are kept separate. The Hacker News page supports programming/all scope, recommendation status, content type, level, shelf life, area filters, and sorting.
 - A dedicated Hacker News section for recommendations, discussions, categories, and related links, without mixing them into the main programming-channel catalog.
 - Original relationship data, Hacker News comments, and embedding files are preserved for future semantic-search work.
@@ -56,7 +57,7 @@ The YouTube.js fallback requires a one-time installation:
 cd pipeline/ytjs && npm install
 \`\`\`
 
-Restrict the key in Google Cloud to YouTube Data API v3 only. Never expose it in the frontend.
+Restrict the key in Google Cloud to YouTube Data API v3 only. Never expose it in the frontend. Descriptions and tags come from the existing videos.list snippet response, so they add no extra API calls; the usual 10,000-units-per-day quota still applies to channel and video requests.
 
 ## Project structure
 
@@ -80,8 +81,8 @@ tests/           Tests for normalization, classification, sources, and data
 
 ## Known limitations
 
-- The main catalog search indexes video titles, channels, topics, categories, language, level, content type, and year. Video descriptions and transcripts are not included in the index, so search does not claim to cover spoken content. The current search is not semantic.
-- Classification in the main programming catalog is based on video titles only. It does not use descriptions or a language model.
+- The main catalog search indexes video titles, channels, topics, categories, language, level, content type, year, and descriptions/tags when available. Transcripts are not included, so search does not claim to cover spoken content. The current search is not semantic.
+- Classification in the main programming catalog uses titles plus descriptions and tags when the source provides them. It does not use a language model, and videos with no clear signal are marked **Unspecified** instead of guessing a level.
 - Hacker News data is kept separate because the source dataset does not provide video durations or view counts.
 - HackerTube data is licensed under ODC-By 1.0. Attribution to HackerTube and open-index/hacker-news is required.
 - The fetcher retrieves the latest 500 videos per channel, so older videos from large channels may not be included.
