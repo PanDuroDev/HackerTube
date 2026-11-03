@@ -13,6 +13,7 @@ Hacker News بالإنجليزية، وهذا المشروع يركّز على �
 - رئيسية بتوصيات متنوعة تتعلم محليًا من الإعجابات وسجل المشاهدة وقوائم التشغيل والمشاهدة لاحقًا، إلى جانب الفيديوهات الطويلة والإعجاب والسجل.
 - واجهة إنجليزية باتجاه LTR، وزر «Filters» واحد يجمع الموضوع واللغة والقناة والمستوى والنوع والمدة والسنة والترتيب.
 - 20 تصنيفًا مع عدد الفيديوهات، وقوائم تشغيل ينشئها المستخدم ويضيف إليها من صفحة المشاهدة.
+- قوائم تشغيل جاهزة من صنّاع المحتوى، تُجلب وتُنظّف تلقائيًا وتظهر في صفحة Playlists.
 - أغلفة الفيديو من لقطات داخل المقطع (hq1/hq2/hq3) بدل الصورة المصغّرة الثابتة، مع بديل عند غيابها.
 - إعدادات للمظهر (داكن/فاتح/النظام)، إخفاء المشاهد، حجم الصفحة، ومسح البيانات المحلية.
 - تصميم بسيط بألوان محايدة مستوحى من HackerTube وUber Base، وأيقونات
@@ -33,9 +34,10 @@ python -m http.server 8080 -d public
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env         # ضع YOUTUBE_API_KEY هنا (اختياري لكنه الأسرع)
+cp .env.example .env         # المفتاح اختياري لـ fetch، ومطلوب لـ fetch_playlists
 python -m pipeline.fetch     # أحدث 500 فيديو لكل قناة إلى data/raw/
-python -m pipeline.build     # ينتج public/data/videos.json و meta.json
+python -m pipeline.fetch_playlists  # يتطلب YOUTUBE_API_KEY؛ قوائم صنّاع المحتوى إلى data/playlists/
+python -m pipeline.build     # ينتج videos.json و meta.json و playlists.json
 pytest                       # الاختبارات
 ```
 
