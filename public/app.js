@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false };
+const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -72,6 +72,7 @@ const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", yea
 let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
+const STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 
 const $ = (sel) => document.querySelector(sel);
@@ -764,16 +765,10 @@ async function renderWatch(id, playlistId = null) {
     rel: "0",
     playsinline: "1",
   });
-  const playerMarkup = queue.length > 1
-    ? `<iframe id="youtube-player"
-        src="https://www.youtube-nocookie.com/embed/${v.id}?${playerParams}"
-        title="${esc(v.title)}" loading="lazy" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"></iframe>`
-    : `<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
-        title="${esc(v.title)}" loading="lazy" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  const playerMarkup = state.settings.nativePlayer
+    ? `<video id="native-video-player" controls playsinline preload="metadata"
+        aria-label="${esc(v.title)}"></video><p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
+    : youtubeIframeMarkup(v.id, v.title, queue.length > 1 ? queue : null);
 
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
@@ -816,7 +811,54 @@ async function renderWatch(id, playlistId = null) {
   </section>`;
   syncSidebar();
   renderHNEvidence(id);
+  if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash);
+  else if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+}
+
+function youtubeIframeMarkup(videoId, title, queue = null) {
+  const params = new URLSearchParams({ rel: "0", playsinline: "1" });
+  if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
+  return `<iframe ${queue && queue.length > 1 ? 'id="youtube-player"' : ""}
+    src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
+    title="${esc(title)}" loading="lazy" allowfullscreen
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+
+async function startNativePlayer(video, queue, playlistId, routeHash) {
+  const player = $("#native-video-player");
+  const status = $("#native-player-status");
+  if (!player || !status) return;
+  if (queue.length > 1) {
+    player.addEventListener("ended", () => {
+      if (location.hash !== routeHash) return;
+      const next = queue[queue.indexOf(video.id) + 1];
+      if (next) location.hash = `#/watch/${encodeURIComponent(next)}?list=${encodeURIComponent(playlistId || "")}`;
+    });
+  }
+  try {
+    const response = await fetch(`${STREAM_API_BASE_URL}/api/stream/${encodeURIComponent(video.id)}`, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.url) throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
+    if (location.hash !== routeHash || !$("#native-video-player")) return;
+    player.src = payload.url;
+    player.load();
+    status.remove();
+    player.addEventListener("error", () => fallbackToYouTubePlayer(video, queue, playlistId, routeHash), { once: true });
+  } catch (error) {
+    fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
+  }
+}
+
+function fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error = null) {
+  const container = $(".player");
+  if (!container || location.hash !== routeHash) return;
+  container.innerHTML = youtubeIframeMarkup(video.id, video.title, queue);
   if (queue.length > 1) startPlaylistPlayer(queue, playlistId, routeHash);
+  if (error) toast("Direct playback unavailable. Using YouTube player.", "info");
 }
 
 function loadYouTubeIframeApi() {
@@ -1439,6 +1481,14 @@ function renderSettings() {
       </div>
     </div>
     <div class="settings-group">
+      <h2>${icon("play")} Playback</h2>
+      <label class="setting-row">
+        <span class="row-ic">${icon("play")}</span>
+        <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
+        <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
+      </label>
+    </div>
+    <div class="settings-group">
       <h2>${icon("database")} Data</h2>
       <div class="setting-row">
         <span class="row-ic">${icon("history")}</span>
@@ -1666,6 +1716,7 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
+    if (key === "nativePlayer" && location.hash.startsWith("#/watch/")) render();
     if (key === "hideSeen" || key === "pageSize") {
       if (/^#\/($|longs|search\/|channel\/)/.test(location.hash || "#/")) renderFeed(state.scope);
     }

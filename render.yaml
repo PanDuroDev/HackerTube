@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hackertube-stream-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn stream_api:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: HT_ALLOWED_ORIGINS
+        value: https://pandurodev.github.io,http://localhost:8080,http://127.0.0.1:8080
