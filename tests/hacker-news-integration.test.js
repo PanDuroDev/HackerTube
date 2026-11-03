@@ -974,7 +974,17 @@ test("main watch pages render a description when the catalog provides one", asyn
 test("the document loads the i18n runtime and a language picker", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.ok(html.indexOf('i18n.js?v=1') < html.indexOf('app.js?v='));
-  assert.match(html, /id="localeSelect"/);
+  assert.doesNotMatch(html, /id="localeSelect"/);
+  assert.match(html, /id="i-language"/);
   assert.match(html, /data-i18n="app.title"/);
   assert.match(html, /data-i18n-attr="placeholder:header.searchPlaceholder,aria-label:header.search"/);
+});
+
+test("language selection lives in Settings and uses site-styled buttons", () => {
+  const { api, view } = createHarness();
+  api.renderSettings();
+  assert.match(view.innerHTML, /data-locale-pref="en"/);
+  assert.match(view.innerHTML, /data-locale-pref="ar"/);
+  assert.match(view.innerHTML, /class="active"[^>]*data-locale-pref="en"|data-locale-pref="en"[^>]*class="active"/);
+  assert.doesNotMatch(view.innerHTML, /localeSelect/);
 });

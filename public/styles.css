@@ -111,17 +111,6 @@ img { max-width: 100%; }
 .top-start { min-width: 208px; }
 .top-end { min-width: 48px; justify-content: flex-end; }
 
-.locale-select {
-  height: 36px;
-  max-width: 120px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font-size: 12px;
-  cursor: pointer;
-}
 
 .brand {
   display: flex;

@@ -22,7 +22,7 @@ test("Arabic and English dictionaries share the required keys", () => {
   for (const key of enKeys) assert.ok(arKeys.has(key), `missing Arabic key: ${key}`);
   for (const key of [
     "app.title", "header.language", "nav.home", "nav.hackerNews",
-    "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext",
+    "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext", "settings.language",
     "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
     "watch.continueWatching", "collections.likedEmpty", "collections.historyHint", "collections.browseVideos",
     "playlists.create", "playlists.fromCreators", "playlists.emptyHint", "playlists.playAll", "playlists.delete",
