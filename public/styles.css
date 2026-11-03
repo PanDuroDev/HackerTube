@@ -229,15 +229,6 @@ img { max-width: 100%; }
   font-weight: 500;
 }
 
-.side-link .side-count {
-  margin-inline-start: auto;
-  font-size: 12px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.side-link.active .side-count { color: var(--text); }
-
 .side-title {
   margin: 20px 12px 6px;
   font-size: 12px;
