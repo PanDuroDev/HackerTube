@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false, nativePlayer: false, customYoutubeControls: true, streamApiUrl: "" };
+const DEFAULTS = { pageSize: 36, hideSeen: false };
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent" };
 
 const state = {
@@ -68,24 +68,17 @@ const state = {
   builtinIds: null,
   showAllPlaylists: false,
 };
+
+const savedSettings = storeGet(STORE.settings, {});
+const removedPlaybackSettings = ["nativePlayer", "customYoutubeControls", "streamApiUrl"];
+if (savedSettings && removedPlaybackSettings.some((key) => Object.prototype.hasOwnProperty.call(savedSettings, key))) {
+  for (const key of removedPlaybackSettings) delete state.settings[key];
+  storeSet(STORE.settings, state.settings);
+}
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let pendingTopic = null;
 let playlistPlayer = null;
-let youtubePlayerPoll = null;
 let youtubeApiPromise = null;
-const DEFAULT_STREAM_API_BASE_URL = "https://hackertube-stream-api.onrender.com";
-
-function getStreamApiBaseUrl() {
-  const configured = String(state.settings.streamApiUrl || "").trim();
-  if (!configured) return DEFAULT_STREAM_API_BASE_URL;
-  try {
-    const url = new URL(configured);
-    const isLocalHttp = url.protocol === "http:"
-      && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
-    if (url.protocol === "https:" || isLocalHttp) return url.origin;
-  } catch {}
-  return DEFAULT_STREAM_API_BASE_URL;
-}
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
 let confirmationResolver = null;
@@ -378,8 +371,6 @@ function setSidebar(open) {
 /* ---------- Routing ---------- */
 
 function render() {
-  clearInterval(youtubePlayerPoll);
-  youtubePlayerPoll = null;
   if (playlistPlayer) {
     playlistPlayer.destroy();
     playlistPlayer = null;
@@ -890,19 +881,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
     .sort((a, b) => shared(b, v) - shared(a, v) || b.score - a.score)
     .slice(0, 8);
   const ch = state.channels.get(v.channel_id);
-  const playerMarkup = state.settings.nativePlayer
-    ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous"
-        aria-label="${esc(v.title)}"></video>
-        <div class="native-controls" id="native-player-controls" aria-label="Video controls">
-          <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
-          <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
-          <output class="native-time" data-player-time>0:00 / 0:00</output>
-          <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
-          <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
-          <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
-        </div>
-        <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
-    : youtubeIframeMarkup(v.id, v.title, queue.length > 1 ? queue : null);
+  const playerMarkup = youtubeIframeMarkup(v.id, v.title, queue.length > 1 ? queue : null, autoplay);
 
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
@@ -931,18 +910,17 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   </section>`;
   syncSidebar();
   renderHNEvidence(id);
-  if (state.settings.nativePlayer) startNativePlayer(v, queue, playlistId, routeHash, autoplay);
-  else startYouTubePlayer(v.id, queue, playlistId, routeHash, autoplay);
+  startYouTubePlayer(v.id, queue, playlistId, routeHash, autoplay);
 }
 
 function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
-  const customControls = state.settings.customYoutubeControls !== false;
+  const needsApi = autoplay || (queue && queue.length > 1);
   const params = new URLSearchParams({
-    controls: customControls ? "0" : "1",
-    disablekb: customControls ? "1" : "0",
+    controls: "1",
+    disablekb: "0",
     enablejsapi: "1",
-    fs: customControls ? "0" : "1",
-    iv_load_policy: customControls ? "3" : "1",
+    fs: "1",
+    iv_load_policy: "1",
     origin: location.origin,
     rel: "0",
     playsinline: "1",
@@ -950,243 +928,11 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
 
-  const iframe = `<iframe ${customControls || (queue && queue.length > 1) ? 'id="youtube-player"' : ""}
+  return `<iframe ${needsApi ? 'id="youtube-player"' : ""}
     src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
     title="${esc(title)}" loading="lazy" allowfullscreen
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-
-  if (!customControls) return iframe;
-
-  return `<div class="youtube-player-frame">${iframe}</div>
-  <div class="native-controls youtube-controls" aria-label="Custom video controls">
-    <button class="native-control-btn" type="button" data-youtube-toggle aria-label="Play">Play</button>
-    <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-youtube-seek aria-label="Seek" disabled>
-    <output class="native-time" data-youtube-time>0:00 / 0:00</output>
-    <button class="native-control-btn" type="button" data-youtube-mute aria-label="Mute">Mute</button>
-    <input class="native-volume" type="range" min="0" max="100" value="100" step="1" data-youtube-volume aria-label="Volume">
-    <label class="youtube-speed-label">Speed
-      <select class="youtube-speed" data-youtube-speed aria-label="Playback speed">
-        <option value="1">1×</option>
-      </select>
-    </label>
-    <button class="native-control-btn" type="button" data-youtube-fullscreen aria-label="Fullscreen">Full</button>
-  </div>`;
-}
-
-function formatPlayerTime(seconds) {
-  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
-  const total = Math.floor(seconds);
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const remaining = String(total % 60).padStart(2, "0");
-  return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${remaining}` : `${minutes}:${remaining}`;
-}
-
-function attachYouTubePlayerControls(player, YT) {
-  const container = player.getIframe()?.closest(".player") || $(".player");
-  const toggle = container?.querySelector("[data-youtube-toggle]");
-  const seek = container?.querySelector("[data-youtube-seek]");
-  const time = container?.querySelector("[data-youtube-time]");
-  const mute = container?.querySelector("[data-youtube-mute]");
-  const volume = container?.querySelector("[data-youtube-volume]");
-  const speed = container?.querySelector("[data-youtube-speed]");
-  const fullscreen = container?.querySelector("[data-youtube-fullscreen]");
-  if (!container || !toggle || !seek || !time || !mute || !volume || !speed || !fullscreen) return;
-
-  const update = () => {
-    const duration = Math.max(0, Number(player.getDuration()) || 0);
-    const current = Math.max(0, Number(player.getCurrentTime()) || 0);
-    const playerState = player.getPlayerState();
-    const playing = playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING;
-    const muted = player.isMuted();
-    toggle.textContent = playing ? "Pause" : "Play";
-    toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
-    seek.disabled = duration <= 0;
-    if (document.activeElement !== seek && duration > 0) {
-      seek.value = String(Math.min(1000, Math.round(current / duration * 1000)));
-    }
-    time.textContent = `${formatPlayerTime(current)} / ${formatPlayerTime(duration)}`;
-    mute.textContent = muted ? "Unmute" : "Mute";
-    mute.setAttribute("aria-label", muted ? "Unmute" : "Mute");
-    volume.value = String(muted ? 0 : Math.max(0, Math.min(100, player.getVolume())));
-    const activeRate = Number(player.getPlaybackRate()) || 1;
-    if ([...speed.options].some((option) => Number(option.value) === activeRate)) {
-      speed.value = String(activeRate);
-    }
-  };
-
-  toggle.addEventListener("click", () => {
-    const playerState = player.getPlayerState();
-    if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING) {
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
-    update();
-  });
-  seek.addEventListener("change", () => {
-    const duration = Number(player.getDuration()) || 0;
-    if (duration > 0) player.seekTo(duration * Number(seek.value) / 1000, true);
-    update();
-  });
-  mute.addEventListener("click", () => {
-    if (player.isMuted()) player.unMute();
-    else player.mute();
-    update();
-  });
-  volume.addEventListener("input", () => {
-    const nextVolume = Number(volume.value);
-    player.setVolume(nextVolume);
-    if (nextVolume === 0) player.mute();
-    else if (player.isMuted()) player.unMute();
-    update();
-  });
-  speed.addEventListener("change", () => {
-    player.setPlaybackRate(Number(speed.value));
-    update();
-  });
-  fullscreen.addEventListener("click", () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      container.requestFullscreen?.().catch(() => toast("Fullscreen is unavailable.", "info"));
-    }
-  });
-
-  const rates = player.getAvailablePlaybackRates?.() || [1];
-  speed.innerHTML = rates.map((rate) =>
-    `<option value="${Number(rate)}">${Number(rate)}×</option>`
-  ).join("");
-  speed.disabled = rates.length <= 1;
-  update();
-
-  clearInterval(youtubePlayerPoll);
-  youtubePlayerPoll = setInterval(update, 500);
-}
-
-function restoreYouTubeNativeControls(container) {
-  const frame = container?.querySelector("#youtube-player");
-  if (!frame) return;
-  const url = new URL(frame.src);
-  url.searchParams.set("controls", "1");
-  url.searchParams.set("disablekb", "0");
-  url.searchParams.set("fs", "1");
-  url.searchParams.set("iv_load_policy", "1");
-  frame.src = url.href;
-  container.querySelector(".youtube-controls")?.remove();
-}
-
-function attachNativePlayerControls(player) {
-  const container = player.closest(".player");
-  const toggle = container.querySelector("[data-player-toggle]");
-  const seek = container.querySelector("[data-player-seek]");
-  const time = container.querySelector("[data-player-time]");
-  const mute = container.querySelector("[data-player-mute]");
-  const volume = container.querySelector("[data-player-volume]");
-  const fullscreen = container.querySelector("[data-player-fullscreen]");
-  const update = () => {
-    const duration = Number.isFinite(player.duration) ? player.duration : 0;
-    seek.value = duration ? String(Math.round(player.currentTime / duration * 1000)) : "0";
-    time.textContent = `${formatPlayerTime(player.currentTime)} / ${formatPlayerTime(duration)}`;
-    toggle.textContent = player.paused ? "Play" : "Pause";
-    toggle.setAttribute("aria-label", player.paused ? "Play" : "Pause");
-    mute.textContent = player.muted || player.volume === 0 ? "Unmute" : "Mute";
-    mute.setAttribute("aria-label", player.muted || player.volume === 0 ? "Unmute" : "Mute");
-    volume.value = String(player.muted ? 0 : player.volume);
-  };
-  toggle.addEventListener("click", () => {
-    if (player.paused) player.play().catch(() => toast("Could not start playback.", "info"));
-    else player.pause();
-  });
-  seek.addEventListener("input", () => {
-    if (Number.isFinite(player.duration) && player.duration > 0) {
-      player.currentTime = Number(seek.value) / 1000 * player.duration;
-    }
-  });
-  mute.addEventListener("click", () => { player.muted = !player.muted; update(); });
-  volume.addEventListener("input", () => {
-    player.volume = Number(volume.value);
-    player.muted = player.volume === 0;
-    update();
-  });
-  fullscreen.addEventListener("click", () => {
-    const target = container;
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else target.requestFullscreen?.().catch(() => {});
-  });
-  ["loadedmetadata", "durationchange", "timeupdate", "play", "pause", "volumechange", "ended"].forEach((event) => {
-    player.addEventListener(event, update);
-  });
-  update();
-}
-
-async function startNativePlayer(video, queue, playlistId, routeHash, autoplay = false) {
-  const player = $("#native-video-player");
-  const status = $("#native-player-status");
-  if (!player || !status) return;
-
-  attachNativePlayerControls(player);
-  if (queue.length > 1) {
-    player.addEventListener("ended", () => {
-      if (location.hash !== routeHash) return;
-      const currentIndex = queue.indexOf(video.id);
-      const next = currentIndex >= 0 ? queue[currentIndex + 1] : null;
-      if (next) {
-        location.hash = playlistPlaybackHref(videoById(next), playlistId, true);
-      }
-    });
-  }
-
-  let fallbackStarted = false;
-  let mediaTimeout = null;
-  const fallback = (error = null) => {
-    if (fallbackStarted || location.hash !== routeHash || !player.isConnected) return;
-    fallbackStarted = true;
-    clearTimeout(mediaTimeout);
-    fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error);
-  };
-
-  player.addEventListener("error", () => fallback(new Error("The browser could not play the extracted stream.")), { once: true });
-  player.addEventListener("loadedmetadata", () => status.remove(), { once: true });
-  player.addEventListener("canplay", () => clearTimeout(mediaTimeout), { once: true });
-
-  const streamApiBaseUrl = getStreamApiBaseUrl();
-  const controller = new AbortController();
-  const fetchTimeout = setTimeout(() => controller.abort(), 52000);
-  try {
-    const response = await fetch(`${streamApiBaseUrl}/api/stream/${encodeURIComponent(video.id)}`, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload.url) {
-      throw new Error(payload.error || `Stream service returned HTTP ${response.status}`);
-    }
-    if (location.hash !== routeHash || !player.isConnected) return;
-    player.src = new URL(payload.url, streamApiBaseUrl).href;
-    player.load();
-    if (autoplay) {
-      player.play().catch(() => toast("Autoplay was blocked. Press Play to continue.", "info"));
-    }
-    mediaTimeout = setTimeout(
-      () => fallback(new Error("The stream did not become playable in time.")),
-      35000,
-    );
-  } catch (error) {
-    fallback(error);
-  } finally {
-    clearTimeout(fetchTimeout);
-  }
-}
-
-function fallbackToYouTubePlayer(video, queue, playlistId, routeHash, error = null) {
-  const container = $(".player");
-  if (!container || location.hash !== routeHash) return;
-  container.innerHTML = youtubeIframeMarkup(video.id, video.title, queue);
-  startYouTubePlayer(video.id, queue, playlistId, routeHash);
-  if (error) toast("Direct playback unavailable. Using YouTube player.", "info");
 }
 
 function loadYouTubeIframeApi() {
@@ -1215,8 +961,7 @@ function loadYouTubeIframeApi() {
 }
 
 async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
-  const customControls = state.settings.customYoutubeControls !== false;
-  if (!customControls && queue.length <= 1) return;
+  if ((!queue || queue.length <= 1) && !autoplay) return;
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
   try {
@@ -1226,25 +971,20 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
       events: {
         onReady(event) {
           if (location.hash !== routeHash) return;
-          if (customControls) attachYouTubePlayerControls(event.target, YT);
-          if (queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
+          if (queue && queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
           else if (autoplay) event.target.playVideo();
         },
         onStateChange(event) {
           if (event.data !== YT.PlayerState.PLAYING) return;
           const playingId = event.target.getVideoData()?.video_id;
-          if (playingId && playingId !== state.current && queue.includes(playingId)) {
+          if (playingId && playingId !== state.current && queue?.includes(playingId)) {
             syncWatchVideo(playingId, playlistId);
           }
         },
       },
     });
   } catch {
-    if (location.hash !== routeHash || !playerFrame.isConnected) return;
-    if (customControls) {
-      restoreYouTubeNativeControls(playerFrame.closest(".player"));
-      toast("Custom controls could not load. Using YouTube controls.", "info");
-    }
+    // The embedded player keeps working with its native controls if the API fails.
   }
 }
 
@@ -1632,18 +1372,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
       .slice(0, 8);
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
-        <div class="player">${state.settings.nativePlayer
-          ? `<video id="native-video-player" playsinline preload="metadata" crossorigin="anonymous" aria-label="${esc(video.title)}"></video>
-            <div class="native-controls" id="native-player-controls" aria-label="Video controls">
-              <button class="native-control-btn" type="button" data-player-toggle aria-label="Play">Play</button>
-              <input class="native-seek" type="range" min="0" max="1000" value="0" step="1" data-player-seek aria-label="Seek">
-              <output class="native-time" data-player-time>0:00 / 0:00</output>
-              <button class="native-control-btn" type="button" data-player-mute aria-label="Mute">Mute</button>
-              <input class="native-volume" type="range" min="0" max="1" value="1" step="0.05" data-player-volume aria-label="Volume">
-              <button class="native-control-btn" type="button" data-player-fullscreen aria-label="Fullscreen">Full</button>
-            </div>
-            <p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
-          : youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
+        <div class="player">${youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
         <h1 class="watch-title">${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b>${esc(video.channel || "Unknown channel")}</b><small>Referenced on Hacker News</small></span></div>
@@ -1662,11 +1391,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
       </aside>
     </section>`;
     syncSidebar();
-    if (state.settings.nativePlayer) {
-      startNativePlayer({ id: video.vid, title: video.title }, queue, playlistId, routeHash, autoplay);
-    } else {
-      startYouTubePlayer(video.vid, queue, playlistId, routeHash, autoplay && queue.length <= 1);
-    }
+    startYouTubePlayer(video.vid, queue, playlistId, routeHash, autoplay && queue.length <= 1);
   } catch (error) {
     if (location.hash !== routeHash) return;
     view.innerHTML = `<section class="error"><strong>Could not load this video.</strong><p>${esc(error.message)}</p></section>`;
@@ -1897,27 +1622,6 @@ function renderSettings() {
       </div>
     </div>
     <div class="settings-group">
-      <h2>${icon("play")} Playback</h2>
-      <label class="setting-row">
-        <span class="row-ic">${icon("settings")}</span>
-        <span class="setting-text"><b>Custom YouTube controls</b><small>Use HackerTube's playback buttons instead of YouTube's built-in controls. Turn this off to restore YouTube's original controls.</small></span>
-        <input class="switch" type="checkbox" data-setting="customYoutubeControls" ${s.customYoutubeControls !== false ? "checked" : ""}>
-      </label>
-      <label class="setting-row">
-        <span class="row-ic">${icon("play")}</span>
-        <span class="setting-text"><b>Direct video playback</b><small>Use yt-dlp to extract a temporary MP4 stream and play it with the browser player. YouTube iframe remains the default.</small></span>
-        <input class="switch" type="checkbox" data-setting="nativePlayer" ${s.nativePlayer ? "checked" : ""}>
-      </label>
-      <div class="setting-row">
-        <span class="row-ic">${icon("settings")}</span>
-        <span class="setting-text"><b>Stream API URL</b><small>Paste the HTTPS URL from your running Cloudflare Quick Tunnel. The default Render endpoint only works when its backend has been deployed.</small></span>
-        <form class="setting-api-form" data-stream-api-form>
-          <input type="url" name="streamApiUrl" value="${esc(s.streamApiUrl || "")}" placeholder="https://example.trycloudflare.com" autocomplete="url" spellcheck="false" aria-label="Stream API base URL">
-          <button class="btn" type="submit">Save</button>
-        </form>
-      </div>
-    </div>
-    <div class="settings-group">
       <h2>${icon("database")} Data</h2>
       <div class="setting-row">
         <span class="row-ic">${icon("history")}</span>
@@ -2145,9 +1849,6 @@ function onViewChange(e) {
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast("Saved");
-    if (["nativePlayer", "customYoutubeControls"].includes(key) && (
-      location.hash.startsWith("#/watch/") || location.hash.startsWith("#/hn-watch/")
-    )) render();
     if (key === "hideSeen" || key === "pageSize") {
       if (/^#\/($|longs|search\/|channel\/)/.test(location.hash || "#/")) renderFeed(state.scope);
     }
@@ -2156,49 +1857,6 @@ function onViewChange(e) {
 }
 
 function onViewSubmit(e) {
-  const streamApiForm = e.target.closest("[data-stream-api-form]");
-  if (streamApiForm) {
-    e.preventDefault();
-    const input = streamApiForm.elements.streamApiUrl;
-    const value = input.value.trim();
-    if (!value) {
-      delete state.settings.streamApiUrl;
-      storeSet(STORE.settings, state.settings);
-      renderSettings();
-      toast("Using the default stream API");
-      return;
-    }
-
-    let url;
-    try {
-      url = new URL(value);
-    } catch {
-      toast("Enter a valid stream API URL.", "info");
-      input.focus();
-      return;
-    }
-    const isLocalHttp = url.protocol === "http:"
-      && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
-    if (
-      (url.protocol !== "https:" && !isLocalHttp)
-      || url.username
-      || url.password
-      || url.pathname !== "/"
-      || url.search
-      || url.hash
-    ) {
-      toast("Use an HTTPS base URL without a path or credentials.", "info");
-      input.focus();
-      return;
-    }
-
-    state.settings.streamApiUrl = url.origin;
-    storeSet(STORE.settings, state.settings);
-    renderSettings();
-    toast("Stream API URL saved");
-    return;
-  }
-
   const form = e.target.closest("[data-create-playlist]");
   if (!form) return;
   e.preventDefault();
