@@ -1281,11 +1281,13 @@ const COLLECTIONS = {
 async function renderCollection(kind) {
   const cfg = COLLECTIONS[kind];
   const routeHash = location.hash;
-  const ids = kind === "history" ? [...state.seen] : [...cfg.set()];
+  let ids = kind === "history" ? [...state.seen] : [...cfg.set()];
   if (ids.some((id) => !state.byId.has(id) && !state.hnById.has(id))) {
     try { await loadHNVideos(); } catch { /* Keep available main-catalog entries visible. */ }
   }
   if (location.hash !== routeHash) return;
+  // Read the collection again after async loading so changes made while loading are not lost.
+  ids = kind === "history" ? [...state.seen] : [...cfg.set()];
   const list = kind === "history"
     ? ids.map(videoById).filter(Boolean)
     : [
