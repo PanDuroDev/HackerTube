@@ -73,6 +73,8 @@ let pendingTopic = null;
 let playlistPlayer = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
+let themeChangeVersion = 0;
+
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
@@ -272,15 +274,33 @@ function toast(message, kind = "check") {
 }
 
 function applyTheme(pref) {
-  state.theme = pref;
-  storeSet(STORE.theme, pref);
+  const root = document.documentElement;
   const dark = pref === "dark" || (pref === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const nextTheme = dark ? "dark" : "light";
+  const themeChanged = root.dataset.theme !== nextTheme;
+
+  state.theme = pref;
+  if (themeChanged) {
+    // Stop hover/focus transitions from animating every control during a theme swap.
+    root.dataset.themeChanging = "true";
+    root.dataset.theme = nextTheme;
+
+    const version = ++themeChangeVersion;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (version === themeChangeVersion) {
+          delete root.dataset.themeChanging;
+        }
+      });
+    });
+  }
+
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = dark ? "#0f0f0f" : "#ffffff";
   const btn = $("#themeBtn");
   btn.innerHTML = icon(dark ? "sun" : "moon");
   btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  storeSet(STORE.theme, pref);
 }
 
 function setSidebar(open) {
