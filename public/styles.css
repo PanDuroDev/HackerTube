@@ -614,6 +614,7 @@ a.card-sub:hover { color: var(--text); }
 .watch-side .dur { font-size: 11px; }
 
 .player {
+  position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius);
   overflow: hidden;
@@ -1498,4 +1499,13 @@ a.card-sub:hover { color: var(--text); }
 
 /* Direct HTML5 playback */
 .player video { width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
-.native-player-status { margin: 0; padding: 8px 12px; color: var(--muted); font-size: 12px; }
+.native-player-status {
+  position: absolute;
+  inset: auto 0 0;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+  font-size: 12px;
+  pointer-events: none;
+}
