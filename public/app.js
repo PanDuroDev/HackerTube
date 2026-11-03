@@ -759,12 +759,6 @@ async function renderWatch(id, playlistId = null) {
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
-  const playerParams = new URLSearchParams({
-    enablejsapi: "1",
-    origin: location.origin,
-    rel: "0",
-    playsinline: "1",
-  });
   const playerMarkup = state.settings.nativePlayer
     ? `<video id="native-video-player" controls playsinline preload="metadata"
         aria-label="${esc(v.title)}"></video><p class="native-player-status" id="native-player-status" role="status">Preparing direct playback…</p>`
