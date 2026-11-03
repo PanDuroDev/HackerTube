@@ -624,8 +624,18 @@ async function renderWatch(id, playlistId = null) {
   const playlistPanel = state.playlists.length
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>No playlists yet.</p><a href="#/playlists">Create one first</a>`;
+  const queueEmbedParams = new URLSearchParams({
+    enablejsapi: "1",
+    autoplay: "1",
+    playsinline: "1",
+    origin: location.origin,
+  });
   const playerMarkup = queue.length > 1
-    ? `<div id="youtube-player" aria-label="Playlist player"></div>`
+    ? `<iframe id="youtube-player" type="text/html" width="100%" height="100%"
+        src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?${queueEmbedParams}"
+        title="${esc(v.title)}" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>`
     : `<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0"
         title="${esc(v.title)}" loading="lazy" allowfullscreen
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -690,16 +700,15 @@ function loadYouTubeIframeApi() {
 }
 
 async function startPlaylistPlayer(video, queue, playlistId, routeHash) {
-  const container = $("#youtube-player");
-  if (!container) return;
+  const iframe = $("#youtube-player");
+  if (!iframe) return;
   try {
     const YT = await loadYouTubeIframeApi();
     if (location.hash !== routeHash || !$("#youtube-player")) return;
-    playlistPlayer = new YT.Player("youtube-player", {
-      width: "100%",
-      height: "100%",
-      videoId: video.id,
-      playerVars: { autoplay: 1, rel: 0, playsinline: 1, origin: location.origin },
+
+    // Attach the API to the existing youtube-nocookie iframe. Creating YT.Player
+    // from a div makes the API generate a youtube.com iframe instead.
+    playlistPlayer = new YT.Player(iframe, {
       events: {
         onReady(event) {
           if (location.hash === routeHash) event.target.loadPlaylist(queue, 0, 0);
@@ -715,11 +724,14 @@ async function startPlaylistPlayer(video, queue, playlistId, routeHash) {
     });
   } catch {
     if (location.hash !== routeHash || !$("#youtube-player")) return;
-    const params = new URLSearchParams({ rel: "0", autoplay: "1", playsinline: "1", playlist: queue.slice(1).join(",") });
-    container.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${video.id}?${params}"
-      title="${esc(video.title)}" allowfullscreen
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    const params = new URLSearchParams({
+      rel: "0",
+      autoplay: "1",
+      playsinline: "1",
+      playlist: queue.slice(1).join(","),
+    });
+    iframe.title = esc(video.title);
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.id)}?${params}`;
   }
 }
 
