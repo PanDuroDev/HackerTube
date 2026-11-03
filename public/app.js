@@ -166,12 +166,15 @@ function fmtDuration(seconds) {
   return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
-function toast(message) {
+function toast(message, kind = "check") {
   const el = $("#toast");
-  el.textContent = message;
+  el.querySelector(".toast-ic").innerHTML = icon(kind);
+  el.querySelector(".toast-msg").textContent = message;
+  el.classList.remove("show");
+  void el.offsetWidth;
   el.classList.add("show");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.classList.remove("show"), 1900);
+  toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
 }
 
 function applyTheme(pref) {
@@ -611,12 +614,12 @@ function addToPlaylist(plId, videoId) {
   const pl = playlistById(plId);
   if (!pl || !videoId) return;
   if (pl.ids.includes(videoId)) {
-    toast("Already in this playlist");
+    toast("Already in this playlist", "playlists");
     return;
   }
   pl.ids.push(videoId);
   savePlaylists();
-  toast(`Added to “${pl.name}”`);
+  toast(`Added to “${pl.name}”`, "playlists");
   syncSidebar();
 }
 
@@ -904,7 +907,7 @@ function onViewSubmit(e) {
   createPlaylist(name);
   form.reset();
   renderPlaylists();
-  toast(`Created “${name}”`);
+  toast(`Created “${name}”`, "plus");
 }
 
 function toggleAct(act) {
@@ -922,7 +925,7 @@ function toggleAct(act) {
     const label = act === "like" ? (on ? "Liked" : "Like") : (on ? "Saved" : "Watch later");
     b.innerHTML = `${icon(act === "like" ? "liked" : "later")} <span>${label}</span>`;
   });
-  toast(on ? (act === "like" ? "Liked" : "Added to Watch later") : "Removed");
+  toast(on ? (act === "like" ? "Liked" : "Added to Watch later") : "Removed", on ? (act === "like" ? "liked" : "later") : "close");
   syncSidebar();
 }
 
@@ -937,7 +940,7 @@ function toggleLater(id) {
     b.setAttribute("aria-label", on ? "Remove from Watch later" : "Add to Watch later");
   });
   syncSidebar();
-  toast(on ? "Added to Watch later" : "Removed from Watch later");
+  toast(on ? "Added to Watch later" : "Removed from Watch later", on ? "later" : "close");
   if ((location.hash || "#/") === "#/later") render();
 }
 
@@ -956,7 +959,7 @@ function removeItem(kind, id, plId) {
   storeSet(STORE.seen, state.seen);
   syncSidebar();
   render();
-  toast("Removed");
+  toast("Removed", "close");
 }
 
 function clearCollection(kind) {
@@ -970,7 +973,7 @@ function clearCollection(kind) {
   storeSet(STORE.later, [...state.saved]);
   syncSidebar();
   render();
-  toast(`Cleared ${label}`);
+  toast(`Cleared ${label}`, "trash");
 }
 
 function deletePlaylist(id) {
@@ -982,7 +985,7 @@ function deletePlaylist(id) {
   syncSidebar();
   if ((location.hash || "#/").startsWith("#/playlist/")) location.hash = "#/playlists";
   else render();
-  toast("Playlist deleted");
+  toast("Playlist deleted", "trash");
 }
 
 function resetAll() {
@@ -999,5 +1002,5 @@ function resetAll() {
   storeSet(STORE.theme, state.theme);
   syncSidebar();
   render();
-  toast("All data deleted");
+  toast("All data deleted", "trash");
 }

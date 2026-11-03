@@ -1040,18 +1040,62 @@ a.card-sub:hover { color: var(--text); }
   z-index: 90;
   bottom: 24px;
   left: 50%;
-  transform: translate(-50%, 16px);
-  padding: 9px 16px;
-  border-radius: 8px;
-  background: var(--strong);
-  color: var(--on-strong);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+  background: color-mix(in srgb, var(--soft) 92%, transparent);
+  color: var(--text);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .2);
+  backdrop-filter: blur(12px);
   font-size: 13px;
+  font-weight: 500;
   opacity: 0;
+  transform: translate(-50%, 20px) scale(.96);
   pointer-events: none;
-  transition: opacity .2s, transform .2s;
+  overflow: hidden;
+  transition: opacity .22s ease, transform .28s cubic-bezier(.2, .8, .25, 1);
 }
 
-#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+.toast-ic {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.toast-ic .ic { width: 16px; height: 16px; }
+
+.toast-msg { flex: 1; min-width: 0; }
+
+.toast-bar {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+#toast.show .toast-bar { animation: toastBar 2.2s linear forwards; }
+
+@keyframes toastBar {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
 
 .error {
   padding: 40px 20px;
