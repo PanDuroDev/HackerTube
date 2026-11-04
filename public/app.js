@@ -2763,11 +2763,11 @@ function desktopPlatform() {
   return "";
 }
 
-function desktopDownloadHref() {
-  switch (desktopPlatform()) {
+function desktopDownloadHref(platform = desktopPlatform()) {
+  switch (platform) {
     case "Windows": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-win-x64.exe`;
     case "macOS": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-mac-universal.dmg`;
-    case "Linux": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-linux-x64.AppImage`;
+    case "Linux": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-linux-x86_64.AppImage`;
     default: return DESKTOP_RELEASES_URL;
   }
 }
