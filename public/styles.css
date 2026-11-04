@@ -1771,6 +1771,7 @@ a.card-sub:hover { color: var(--text); }
   .mini-bar-btn[data-mini-size] { margin-inline-start: auto; }
   .mini-back .ic { transform: rotate(90deg); }
   [dir="rtl"] .mini-back .ic { transform: rotate(-90deg); }
+  [dir="rtl"] .directional-icon { transform: scaleX(-1); }
   .mini-frame.mini-player .player {
     width: 100%;
     margin: 0;
