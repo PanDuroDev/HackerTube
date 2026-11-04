@@ -321,7 +321,9 @@
     "unknownChannel": "قناة غير معروفة",
     "continueWatching": "متابعة المشاهدة",
     "addedToWatchLater": "أُضيف إلى المشاهدة لاحقاً",
-    "removedFromWatchLater": "أُزيل من المشاهدة لاحقاً"
+    "removedFromWatchLater": "أُزيل من المشاهدة لاحقاً",
+    "minimize": "تصغير المشغل",
+    "expand": "توسيع المشغل"
   },
   "collections": {
     "likedEmpty": "لا توجد فيديوهات معجب بها بعد.",

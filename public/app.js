@@ -387,6 +387,9 @@ async function init() {
     isMobileLayout = nextMobileLayout;
     setSidebar(false);
   });
+  matchMedia("(max-width: 720px)").addEventListener?.("change", (event) => {
+    if (!event.matches) restorePlayer();
+  });
   if (matchMedia("(prefers-color-scheme: dark)").addEventListener) {
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
       if (state.theme === "system") applyTheme("system");
@@ -645,6 +648,7 @@ function setSidebar(open) {
 /* ---------- Routing ---------- */
 
 function render() {
+  stopMiniPlayer();
   if (playlistPlayer) {
     saveCurrentProgress();
     stopProgressPoll();
@@ -1246,6 +1250,96 @@ function emptyState() {
 
 /* ---------- Watch ---------- */
 
+function playerContainerMarkup(markup) {
+  return `<div class="player">${markup}
+    <button class="player-grab" type="button" data-player-grab aria-label="${tr("watch.minimize", "Minimize player")}" title="${tr("watch.minimize", "Minimize player")}">${icon("chevron")}</button>
+  </div>`;
+}
+
+function miniPlayerMobile() {
+  return typeof matchMedia === "function" && matchMedia("(max-width: 720px)").matches;
+}
+
+function setGrabLabel(player, expanded) {
+  const grab = player.querySelector("[data-player-grab]");
+  if (!grab) return;
+  const label = expanded ? tr("watch.expand", "Expand player") : tr("watch.minimize", "Minimize player");
+  grab.setAttribute("aria-label", label);
+  grab.setAttribute("title", label);
+}
+
+function minimizePlayer() {
+  const player = $(".watch-main .player");
+  if (!player || !miniPlayerMobile() || player.classList.contains("mini-player")) return;
+  player.classList.add("mini-player");
+  setGrabLabel(player, true);
+}
+
+function restorePlayer(scroll = false) {
+  const player = $(".watch-main .player");
+  if (!player || !player.classList.contains("mini-player")) return;
+  player.classList.remove("mini-player", "dragging");
+  player.style.transform = "";
+  setGrabLabel(player, false);
+  if (scroll) player.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+}
+
+function stopMiniPlayer() {
+  const player = $(".watch-main .player.mini-player");
+  if (!player) return;
+  player.classList.remove("mini-player", "dragging");
+  player.style.transform = "";
+  setGrabLabel(player, false);
+}
+
+function setupMiniPlayer() {
+  const player = $(".watch-main .player");
+  if (!player) return;
+  const grab = player.querySelector("[data-player-grab]");
+  let startY = null;
+  let startX = 0;
+  let dragY = 0;
+  let dragging = false;
+
+  grab?.addEventListener("touchstart", (event) => {
+    if (!miniPlayerMobile() || player.classList.contains("mini-player")) return;
+    const touch = event.touches[0];
+    startY = touch.clientY;
+    startX = touch.clientX;
+    dragY = 0;
+    dragging = true;
+  }, { passive: true });
+
+  grab?.addEventListener("touchmove", (event) => {
+    if (startY == null) return;
+    const touch = event.touches[0];
+    dragY = touch.clientY - startY;
+    const dragX = touch.clientX - startX;
+    if (dragY > 6 && dragY > Math.abs(dragX)) {
+      if (event.cancelable) event.preventDefault();
+      player.classList.add("dragging");
+      player.style.transform = `translateY(${Math.min(dragY, 160)}px)`;
+    }
+  }, { passive: false });
+
+  const finishDrag = () => {
+    if (startY == null) return;
+    const shouldMinimize = dragging && dragY > 70;
+    startY = null;
+    dragging = false;
+    player.classList.remove("dragging");
+    player.style.transform = "";
+    if (shouldMinimize) minimizePlayer();
+  };
+  grab?.addEventListener("touchend", finishDrag);
+  grab?.addEventListener("touchcancel", finishDrag);
+  grab?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (player.classList.contains("mini-player")) restorePlayer(true);
+    else if (miniPlayerMobile()) minimizePlayer();
+  });
+}
+
 async function renderWatch(id, playlistId = null, autoplay = false) {
   const routeHash = location.hash;
   const v = state.byId.get(id);
@@ -1298,7 +1392,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
 
   view.innerHTML = `<section class="watch">
     <div class="watch-main">
-      <div class="player">${playerMarkup}</div>
+      ${playerContainerMarkup(playerMarkup)}
       <h1 class="watch-title"${langAttrs(v.title)}>${esc(v.title)}</h1>
       <div class="watch-bar">
         <a class="watch-channel" id="watch-channel" href="#/channel/${v.channel_id}" title="${esc(v.channel)}">
@@ -1323,6 +1417,7 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
     </aside>
   </section>`;
   syncSidebar();
+  setupMiniPlayer();
   renderHNEvidence(id);
   startYouTubePlayer(v.id, queue, playlistId, routeHash, autoplay);
 }
@@ -2087,7 +2182,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
       .slice(0, 8);
     view.innerHTML = `<section class="watch hn-watch">
       <div class="watch-main">
-        <div class="player">${youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1)}</div>
+        ${playerContainerMarkup(youtubeIframeMarkup(video.vid, video.title, queue.length > 1 ? queue : null, autoplay && queue.length <= 1))}
         <h1 class="watch-title"${langAttrs(video.title)}>${esc(video.title)}</h1>
         <div class="watch-bar">
           <div class="watch-channel"><span class="avatar">${esc((video.channel || "?").trim().charAt(0))}</span><span class="watch-channel-text"><b${langAttrs(video.channel || "")}>${esc(video.channel || tr("watch.unknownChannel", "Unknown channel"))}</b><small>${tr("watch.referenced", "Referenced on Hacker News")}</small></span></div>
@@ -2106,6 +2201,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
       </aside>
     </section>`;
     syncSidebar();
+    setupMiniPlayer();
     startYouTubePlayer(video.vid, queue, playlistId, routeHash, autoplay && queue.length <= 1);
   } catch (error) {
     if (location.hash !== routeHash) return;

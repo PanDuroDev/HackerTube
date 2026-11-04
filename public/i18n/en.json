@@ -313,7 +313,9 @@
     "unknownChannel": "Unknown channel",
     "continueWatching": "Continue watching",
     "addedToWatchLater": "Added to Watch later",
-    "removedFromWatchLater": "Removed from Watch later"
+    "removedFromWatchLater": "Removed from Watch later",
+    "minimize": "Minimize player",
+    "expand": "Expand player"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",

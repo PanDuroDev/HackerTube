@@ -637,6 +637,8 @@ a.card-sub:hover { color: var(--text); }
 
 .player iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+.player-grab { display: none; }
+
 .watch-title {
   margin: 16px 0 12px;  font-size: clamp(19px, 2.4vw, 24px);
   line-height: 1.4;
@@ -1489,7 +1491,7 @@ a.card-sub:hover { color: var(--text); }
 
 .layout { transition: grid-template-columns .2s ease; }
 
-#view > section { animation: viewIn .22s ease-out both; }
+#view > section { animation: viewIn .22s ease-out; }
 
 .filters,
 .select-menu,
@@ -1621,6 +1623,50 @@ a.card-sub:hover { color: var(--text); }
   html { scrollbar-gutter: auto; }
   .watch-bar { align-items: center; gap: 12px; }
   .watch-main .player { width: calc(100% + 28px); margin-inline: -14px; border-radius: 0; }
+  .player-grab {
+    position: absolute;
+    z-index: 6;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .45);
+    color: #fff;
+    opacity: .75;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .player-grab .ic { width: 18px; height: 18px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+  .player.mini-player {
+    position: fixed;
+    z-index: 60;
+    inset-block-start: auto;
+    inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px));
+    inset-inline-start: auto;
+    inset-inline-end: 12px;
+    width: min(320px, calc(100vw - 24px));
+    margin: 0;
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+    animation: miniIn .18s ease-out both;
+  }
+  .player.mini-player .player-grab {
+    top: 4px;
+    width: 64px;
+    height: 24px;
+    opacity: .6;
+  }
+  .player.mini-player .player-grab .ic { transform: rotate(180deg); }
+  .player.mini-player .player-grab:hover,
+  .player.mini-player .player-grab:focus-visible { opacity: 1; }
+  .player.dragging { transition: none; }
 
   .brand-name { display: none; }
   .brand small { display: none; }
@@ -1805,4 +1851,14 @@ a.card-sub:hover { color: var(--text); }
   margin-top: 6px;
   font-size: 12px;
   text-underline-offset: 2px;
+}
+
+
+@keyframes miniIn {
+  from { opacity: .65; transform: translateY(18px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player.mini-player { animation: none; }
 }
