@@ -28,6 +28,9 @@ def test_built_dataset_schema():
         assert "search" not in v
         assert 0 <= v["year"] <= 2030
 
+    rust_course = next((v for v in videos if v["id"] == "BpPEoZW5IiY"), None)
+    assert rust_course is not None and "rust" in rust_course["topics"]
+
 
 
 def test_site_payload_budget():

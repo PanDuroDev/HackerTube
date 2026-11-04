@@ -105,6 +105,11 @@ CHANNEL_TOPIC = {
     "UCRPMAqdtSgd0Ipeef7iFsKw": "cs",
 }
 
+# قنوات كبيرة نغطيها بالكامل بدل حد 500، حتى لا يضيع محتوى قديم مهم مثل كورس Rust.
+CHANNEL_LIMITS = {
+    "UC8butISFwT-Wl7EV0hUK0BQ": 2500,  # freeCodeCamp.org (2,341 فيديو)
+}
+
 # حد أقصى لكل قناة: أحدث 500 فيديو. رفع الرقم يوسّع التغطية ويبطئ الجلب.
 MAX_PER_CHANNEL = 500
 MIN_DURATION = 60  # ثانية؛ تحتها shorts غالبًا بلا قيمة تعليمية

@@ -1,12 +1,17 @@
 {
- "generated_at": "2026-11-04T01:20:14+00:00",
- "total": 16797,
- "total_hours": 7704,
+ "generated_at": "2026-11-04T01:39:38+00:00",
+ "total": 18140,
+ "total_hours": 12094,
  "languages": {
-  "en": 10839,
+  "en": 12182,
   "ar": 5958
  },
  "channels": [
+  {
+   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "name": "freeCodeCamp.org",
+   "count": 1561
+  },
   {
    "id": "UC7OGxluGpaD5NHMNoKj33pw",
    "name": "Muhammed Essa",
@@ -188,11 +193,6 @@
    "count": 220
   },
   {
-   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
-   "name": "freeCodeCamp.org",
-   "count": 218
-  },
-  {
    "id": "UC4JX40jDee_tINbkjycV4Sg",
    "name": "Tech With Tim",
    "count": 206
@@ -337,107 +337,107 @@
   {
    "id": "python",
    "label": "بايثون",
-   "count": 2466
+   "count": 2643
   },
   {
    "id": "javascript",
    "label": "جافاسكربت",
-   "count": 2081
+   "count": 2436
   },
   {
    "id": "web",
    "label": "تطوير الويب",
-   "count": 4696
+   "count": 5205
   },
   {
    "id": "php",
    "label": "PHP",
-   "count": 464
+   "count": 489
   },
   {
    "id": "java",
    "label": "جافا",
-   "count": 1308
+   "count": 1335
   },
   {
    "id": "cpp",
    "label": "C++",
-   "count": 863
+   "count": 879
   },
   {
    "id": "rust",
    "label": "Rust",
-   "count": 443
+   "count": 447
   },
   {
    "id": "csharp",
    "label": "C#",
-   "count": 211
+   "count": 249
   },
   {
    "id": "mobile",
    "label": "تطبيقات الموبايل",
-   "count": 1010
+   "count": 1088
   },
   {
    "id": "database",
    "label": "قواعد البيانات",
-   "count": 952
+   "count": 1015
   },
   {
    "id": "linux",
    "label": "لينكس",
-   "count": 291
+   "count": 336
   },
   {
    "id": "devops",
    "label": "ديفوبس والسحابة",
-   "count": 479
+   "count": 560
   },
   {
    "id": "git",
    "label": "Git",
-   "count": 458
+   "count": 501
   },
   {
    "id": "security",
    "label": "الأمن السيبراني",
-   "count": 380
+   "count": 437
   },
   {
    "id": "ai",
    "label": "الذكاء الاصطناعي",
-   "count": 2281
+   "count": 2385
   },
   {
    "id": "data",
    "label": "تحليل البيانات",
-   "count": 105
+   "count": 144
   },
   {
    "id": "algorithms",
    "label": "الخوارزميات",
-   "count": 1075
+   "count": 1092
   },
   {
    "id": "cs",
    "label": "علوم الحاسب",
-   "count": 1013
+   "count": 1098
   },
   {
    "id": "testing",
    "label": "الاختبار",
-   "count": 579
+   "count": 628
   },
   {
    "id": "networking",
    "label": "الشبكات",
-   "count": 405
+   "count": 423
   },
   {
    "id": "tools",
    "label": "أدوات المطوّر",
-   "count": 570
+   "count": 599
   }
  ],
  "playlists": [
@@ -3342,7 +3342,7 @@
    "title": "Vanilla JavaScript Projects",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 7,
+   "count": 8,
    "cover": "s_Ie_yh_4Co"
   },
   {
@@ -3826,12 +3826,404 @@
    "cover": "s--J-CubxU8"
   },
   {
+   "id": "PLWKjhJtqVAbmSg8HtUEs0SJ-mzBIN3nEm",
+   "title": "A day at...",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "woufKp6HPXI"
+  },
+  {
+   "id": "PLWKjhJtqVAbm0gPNunWf4pr4xV8I3Geh-",
+   "title": "Agile Software Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "dfR6UBEBVvo"
+  },
+  {
+   "id": "PLWKjhJtqVAblNvGKk6aQVPAJHxrRXxHTs",
+   "title": "Angular Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "2OHbjep_WjQ"
+  },
+  {
+   "id": "PLWKjhJtqVAbnUeereoJWjWOhlcWUynq_Z",
+   "title": "Ask Preethi",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "VqiEhZYmvKk"
+  },
+  {
+   "id": "PLWKjhJtqVAbn21gs5UnLhCQ82f923WCgM",
+   "title": "Back End Developer Learning Path",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 15,
+   "cover": "tN6oJu2DqCM"
+  },
+  {
+   "id": "PLWKjhJtqVAbmoiNlqLJg1gxEjEuKHHcn_",
+   "title": "Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 92,
+   "cover": "t2CEgPsws3U"
+  },
+  {
+   "id": "PLWKjhJtqVAbmUE5IqyfGYEYjrZBYzaT4m",
+   "title": "C / C++",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "KJgsSFOSQv0"
+  },
+  {
+   "id": "PLWKjhJtqVAbkK24EaPurzMq0-kw5U9pJh",
+   "title": "Clean Code - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "b9c5GmmS7ks"
+  },
+  {
+   "id": "PLWKjhJtqVAblv09G3sFgRMSeR0jnKQmJ9",
+   "title": "Coding Interview",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "51gc7-eskU8"
+  },
+  {
+   "id": "PLWKjhJtqVAbmfoj2Th9fvxhHIeqFO7wOy",
+   "title": "Computer Science and Software Engineering Theory with Briana",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 39,
+   "cover": "q7tlgZg4Q1o"
+  },
+  {
+   "id": "PLWKjhJtqVAbn5emQ3RRG8gEBqkhf_5vxD",
+   "title": "Computer Science Concepts",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 17,
+   "cover": "RBSGKlAvoiM"
+  },
+  {
+   "id": "PLWKjhJtqVAbluXJKKbCIb4xd7fcRkpzoz",
+   "title": "CS50's Introduction to Game Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "smRX1XItAjU"
+  },
+  {
+   "id": "PLWKjhJtqVAbl1AfjiGyYxwpdAPi5v-1OU",
+   "title": "CSS3 in 30 Days",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 31,
+   "cover": "pmKyG3NBY_k"
+  },
+  {
+   "id": "PLWKjhJtqVAblQe2CCWqV4Zy3LY01Z8aF1",
+   "title": "Data Science",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 19,
+   "cover": "ua-CiDNNj30"
+  },
+  {
+   "id": "PLWKjhJtqVAbkso-IbgiiP48n-O-JQA9PJ",
+   "title": "Data Structures and Algorithms - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 13,
+   "cover": "Gj5qBheGOEo"
+  },
+  {
+   "id": "PLWKjhJtqVAbnZtkAI3BqcYxKnfWn_C704",
+   "title": "Design Patterns - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "bgU7FeiWKzc"
+  },
+  {
+   "id": "PLWKjhJtqVAbkzvvpY12KkfiIGso9A_Ixs",
+   "title": "DevOps Courses",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 18,
+   "cover": "SOTamWNgDKc"
+  },
+  {
+   "id": "PLWKjhJtqVAblFnET3DbnAik--u4CBz62G",
+   "title": "Django Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "JIFqqdRxmVo"
+  },
+  {
+   "id": "PLWKjhJtqVAbljtmmeS0c-CEl2LdE-eR_F",
+   "title": "ES6 - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "1mgLWu69ijU"
+  },
+  {
+   "id": "PLWKjhJtqVAbnklGh3FNRLECx_2D_vK3mu",
+   "title": "Ethical Hacking",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "3Kq1MIfTWCE"
+  },
+  {
+   "id": "PLWKjhJtqVAbmMuZ3saqRIBimAKIMYkt0E",
+   "title": "Front End Developer Learning Path",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 22,
+   "cover": "9He4UBLyk8Y"
+  },
+  {
+   "id": "PLWKjhJtqVAblKO_wHAvlpZwAYvYPbHKOp",
+   "title": "Front End Web Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "RGOj5yH7evk"
+  },
+  {
+   "id": "PLWKjhJtqVAbnupwRFOq9zGOWjdvPRtCmO",
+   "title": "Full Courses in One Video",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 47,
+   "cover": "rfscVS0vtbw"
+  },
+  {
+   "id": "PLWKjhJtqVAbnadueQ-C5keMQQiQau_i0D",
+   "title": "Full Stack Web App in Vue.js & Express.js",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "Fa4cRMaTDUI"
+  },
+  {
+   "id": "PLWKjhJtqVAbmqFs83T4W-FZQ9kK983tZC",
+   "title": "Game Programming Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 27,
+   "cover": "9Fd9hw329fY"
+  },
+  {
+   "id": "PLWKjhJtqVAbkFiqHnNaxpOPhh9tSWMXIF",
+   "title": "Git & GitHub",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "vR-y_2zWrIE"
+  },
+  {
+   "id": "PLWKjhJtqVAbnSe1qUNMG7AbPmjIG54u88",
+   "title": "HTML and CSS Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "kUMe1FH4CHE"
+  },
+  {
+   "id": "PLWKjhJtqVAbmGw5fN5BQlwuug-8bDmabi",
+   "title": "Introduction to Computer Science - Harvard's CS50",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "F0WoVEr0-44"
+  },
+  {
+   "id": "PLWKjhJtqVAbnRT_hue-3zyiuIYj0OlpyG",
+   "title": "Java Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "GoXwIVyNvX0"
+  },
+  {
+   "id": "PLWKjhJtqVAbllLK6r2dnGjUVWB_cFNcuO",
+   "title": "JavaScript and the HTML DOM - Tutorial Playlist",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 11,
+   "cover": "eaLKqoB9Fu0"
+  },
+  {
+   "id": "PLWKjhJtqVAbk2qRZtWSzCIN38JC_NdhW5",
+   "title": "JavaScript Basics Course",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 36,
+   "cover": "le-URjBhevE"
+  },
+  {
+   "id": "PLWKjhJtqVAbleDe3_ZA8h3AO2rXar-q2V",
+   "title": "JavaScript Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "PkZNo7MFNFg"
+  },
+  {
+   "id": "PLWKjhJtqVAbkyK9woUZUtunToLtNGoQHB",
+   "title": "jQuery - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "KhtEmR2A1Fw"
+  },
+  {
+   "id": "PLWKjhJtqVAblStefaz_YOVpDWqcRScc2s",
+   "title": "Machine Learning",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 17,
+   "cover": "i_LwzRVP7bg"
+  },
+  {
+   "id": "PLWKjhJtqVAbl5SlE6aBHzUVZ1e6q1Wz0v",
+   "title": "Mathematics",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 5,
+   "cover": "i7vOAcUo5iA"
+  },
+  {
+   "id": "PLWKjhJtqVAbndUuYBE5sVViMIvyzp_dB1",
+   "title": "Maths for Programmers",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 20,
+   "cover": "LSBC3n9x52Q"
+  },
+  {
+   "id": "PLWKjhJtqVAblzbwhT83fRh5nNSHqywxrw",
+   "title": "Networks",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "OV9rruR09HM"
+  },
+  {
+   "id": "PLWKjhJtqVAbmGQoa3vFjeRbRADAOC9drk",
+   "title": "Node.js Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "RLtyhwFtXQA"
+  },
+  {
+   "id": "PLWKjhJtqVAbkoMsX4hgwxbJZW4aB0cbaB",
+   "title": "PHP Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "ImtZ5yENzgE"
+  },
+  {
+   "id": "PLWKjhJtqVAblfum5WiQblKPwIbqYXkDoC",
+   "title": "Popular Programming Courses",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 11,
+   "cover": "8mAITcNt710"
+  },
+  {
+   "id": "PLWKjhJtqVAbnqBxcdjVGgT3uVR10bzTEB",
+   "title": "Python Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 12,
+   "cover": "eWRfhZUzrAc"
+  },
+  {
+   "id": "PLWKjhJtqVAbkArDMazoARtNz1aMwNWmvC",
+   "title": "React Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 27,
+   "cover": "DLX62G4lc44"
+  },
+  {
+   "id": "PLWKjhJtqVAbkXQS12WiLsH1oaNZBSoWuV",
+   "title": "Serverless",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "jWdEM6XLKqI"
+  },
+  {
+   "id": "PLWKjhJtqVAbl9yptoxdSJDDoTVdcysyPo",
+   "title": "Talks",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 98,
+   "cover": "pmvxHOpms0g"
+  },
+  {
+   "id": "PLWKjhJtqVAbk7zM11M36sGvU29hB8EDC4",
+   "title": "The Daily Programmer",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "bcPahhyYEIk"
+  },
+  {
+   "id": "PLWKjhJtqVAbkyQnSv-DNXOKsglcHhYAV2",
+   "title": "The Doer Vlog",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 20,
+   "cover": "TWFNnbAylHI"
+  },
+  {
    "id": "PLWKjhJtqVAbm04DK8TSUCRheRjW2P9TR7",
    "title": "the freeCodeCamp.org podcast",
    "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
    "channel": "freeCodeCamp.org",
-   "count": 40,
+   "count": 102,
    "cover": "GmtOxMl39Tc"
+  },
+  {
+   "id": "PLWKjhJtqVAbmDGFE_pZ-PDJ1GWe3KtT-M",
+   "title": "Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 152,
+   "cover": "p65AHm9MX80"
+  },
+  {
+   "id": "PLWKjhJtqVAbmh6kzCSUon-SoTaMvXnHMB",
+   "title": "Unity Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 6,
+   "cover": "gcF66q-UPCs"
+  },
+  {
+   "id": "PLWKjhJtqVAbnon7MZndnKeGEfQbXjwOqd",
+   "title": "WordPress",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "KibbYf9avko"
   },
   {
    "id": "PLMCXHnjXnTnt-aA0yHoa6QcVdQ0Mu3g9j",
@@ -6574,8 +6966,8 @@
    "title": "تعلم بايثون في فيديو واحد | أفضل كورسات بايثون المجانية",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 12,
-   "cover": "_uQrJ0TkZlc"
+   "count": 26,
+   "cover": "8mAITcNt710"
   },
   {
    "id": "PLUQDw_ve-LUDLEAmKyzNoMZeciTU1GjGo",

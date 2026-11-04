@@ -48,7 +48,7 @@ Content language is separate from UI locale: video titles and channel names keep
 \`\`\`bash
 pip install -r requirements.txt
 cp .env.example .env         # Optional for fetch; required for fetch_playlists
-python -m pipeline.fetch     # Fetch the latest 500 videos per channel into data/raw/
+python -m pipeline.fetch     # Fetch the latest 500 videos per channel (2,500 for freeCodeCamp.org) into data/raw/
 python -m pipeline.fetch_playlists  # Requires YOUTUBE_API_KEY; fetches creator playlists into data/playlists/
 python -m pipeline.build     # Generates videos.json, meta.json, and playlists.json
 python -m pipeline.import_hacker_news  # Imports Hacker News recommendations without duplicate videos
@@ -93,7 +93,7 @@ tests/           Tests for normalization, classification, sources, and data
 - Classification in the main programming catalog uses titles plus descriptions and tags when the source provides them. It does not use a language model, and videos with no clear signal are marked **Unspecified** instead of guessing a level.
 - Hacker News data is kept separate because the source dataset does not provide video durations or view counts.
 - HackerTube data is licensed under ODC-By 1.0. Attribution to HackerTube and open-index/hacker-news is required.
-- The fetcher retrieves the latest 500 videos per channel, so older videos from large channels may not be included.
+- The fetcher retrieves the latest 500 videos per channel, except freeCodeCamp.org where the full catalog is fetched, so older videos from other large channels may not be included.
 - YouTube API quota is limited per day. When the quota is exhausted, fetching automatically falls back to yt-dlp.
 - Publish dates from the API are exact; dates from yt-dlp are approximate and marked as \`approximate_date\`.
 - Personal recommendations use local interactions only. There are no accounts or tracking, and likes, history, and playlists remain in the browser.

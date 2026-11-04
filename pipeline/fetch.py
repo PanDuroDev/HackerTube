@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-from .config import CHANNEL_LANG, CHANNELS, MAX_PER_CHANNEL
+from .config import CHANNEL_LANG, CHANNEL_LIMITS, CHANNELS, MAX_PER_CHANNEL
 from .sources import FetchError, api_key, fetch_with_fallback
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,7 +49,9 @@ def main() -> int:
 
     for i, (cid, name) in enumerate(channels, 1):
         try:
-            payload, source, attempts = fetch_with_fallback(cid, name, args.limit, order, key)
+            payload, source, attempts = fetch_with_fallback(
+                cid, name, CHANNEL_LIMITS.get(cid, args.limit), order, key
+            )
         except FetchError as exc:
             failed += 1
             print(f"[{i}/{len(channels)}] FAIL {name}: {exc}", file=sys.stderr)
