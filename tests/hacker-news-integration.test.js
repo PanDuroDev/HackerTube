@@ -629,13 +629,11 @@ test("HN list defaults to programming scope and can switch to All HN", async () 
   await harness.api.renderHackerNews("");
   assert.match(harness.view.innerHTML, /Software engineering video/);
   assert.doesNotMatch(harness.view.innerHTML, /Stand-up comedy video/);
-  assert.match(harness.view.innerHTML, /1 video/);
 
   harness.api.state.hnFilters.scope = "all";
   await harness.api.renderHackerNews("");
   assert.match(harness.view.innerHTML, /Software engineering video/);
   assert.match(harness.view.innerHTML, /Stand-up comedy video/);
-  assert.match(harness.view.innerHTML, /2 videos/);
 });
 
 test("HN recommendation filtering and score sorting work together", async () => {
@@ -842,12 +840,12 @@ test("HN renders a preview before the full catalog resolves", async () => {
   const pending = harness.api.renderHackerNews("");
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(harness.view.innerHTML, /Preview video/);
-  assert.match(harness.view.innerHTML, /loading full catalog/);
+  assert.doesNotMatch(harness.view.innerHTML, /class="count"/, "the feed head should not print a count");
 
   resolveFull([sampleHNVideo("full1", { title: "Full catalog video" })]);
   await pending;
   assert.match(harness.view.innerHTML, /Full catalog video/);
-  assert.doesNotMatch(harness.view.innerHTML, /loading full catalog/);
+  assert.doesNotMatch(harness.view.innerHTML, /Preview video/);
 });
 
 test("feed filters hydrate from shareable URLs and categories use real links", () => {

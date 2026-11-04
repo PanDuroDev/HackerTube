@@ -1820,36 +1820,14 @@ a.card-sub:hover { color: var(--text); }
 
 /* ---------- Hacker News data ---------- */
 
-.hn-context, .hn-discussion, .hn-evidence { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--border); }
+.hn-context,
+.hn-discussion,
+.hn-evidence {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
 
-.hn-quote {
-  margin: 18px 0;
-  padding: 12px 16px;
-  border-inline-start: 3px solid var(--border);
-  color: var(--text);
-  background: var(--soft);
-}
-.hn-quote span { color: var(--muted); font-size: 12px; }
-.hn-comments { display: grid; gap: 10px; margin-top: 14px; }
-.hn-comment {
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.hn-comment-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 5px 14px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.hn-comment-head b { color: var(--text); }
-.hn-story { margin-top: 8px; font-weight: 600; }
-.hn-comment p { margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.hn-why { color: var(--muted); font-size: 13px; }
-.hn-source-link { display: inline-block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .hn-watch .watch-main { min-width: 0; }
 
 .hn-desc {
@@ -1857,28 +1835,16 @@ a.card-sub:hover { color: var(--text); }
   margin: 18px 0 6px;
 }
 
-.hn-top-line {
-  margin-bottom: 10px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
+.hn-desc .watch-description { margin: 12px 0 0; }
 
-.hn-desc > p {
+.hn-desc-why {
   max-width: 76ch;
-  margin: 0;
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.65;
-}
-
-.hn-desc > p + p {
-  margin-top: 9px;
-}
-
-.hn-desc .hn-desc-why {
+  margin: 12px 0 0;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--border);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 13.5px;
+  line-height: 1.65;
 }
 
 .hn-desc-tags {
@@ -1891,7 +1857,7 @@ a.card-sub:hover { color: var(--text); }
 .hn-desc-tags .hn-tag {
   display: inline-flex;
   align-items: center;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
@@ -1910,6 +1876,122 @@ a.card-sub:hover { color: var(--text); }
   color: var(--text);
 }
 
+.hn-quote {
+  max-width: 76ch;
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--soft);
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.hn-quote span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hn-comments {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.hn-comment {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.hn-comment-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hn-avatar {
+  flex: 0 0 32px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--soft-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hn-comment-who { min-width: 0; }
+
+.hn-comment-who b {
+  display: block;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.hn-comment-who small {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.hn-stance {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--soft-2);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.hn-story {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.hn-comment p {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hn-why {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.hn-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.hn-source-link .ic { width: 13px; height: 13px; }
+.hn-source-link:hover { border-color: var(--muted); color: var(--text); }
+
 .hn-attribution {
   margin-top: 28px;
   padding-top: 14px;
@@ -1918,70 +2000,8 @@ a.card-sub:hover { color: var(--text); }
   font-size: 12px;
   line-height: 1.7;
 }
+
 .hn-attribution a { color: var(--text); text-underline-offset: 2px; }
-
-
-/* ---------- Simplified video summary and Hacker News comments ---------- */
-
-.hn-context,
-.hn-discussion {
-  margin-top: 22px;
-  padding-top: 14px;
-}
-
-.hn-comments {
-  gap: 0;
-  margin-top: 8px;
-}
-
-.hn-comment {
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-  background: transparent;
-}
-
-.hn-comment:first-child {
-  padding-top: 6px;
-}
-
-.hn-comment:last-child {
-  border-bottom: 0;
-}
-
-.hn-comment-head {
-  justify-content: flex-start;
-  align-items: baseline;
-  gap: 4px 12px;
-  font-size: 12px;
-}
-
-.hn-comment-head b {
-  font-weight: 600;
-}
-
-.hn-story {
-  margin-top: 6px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.hn-comment p {
-  margin: 6px 0;
-  line-height: 1.6;
-}
-
-.hn-why {
-  margin-top: 4px;
-  line-height: 1.55;
-}
-
-.hn-source-link {
-  margin-top: 6px;
-  font-size: 12px;
-  text-underline-offset: 2px;
-}
 
 
 @keyframes miniIn {
