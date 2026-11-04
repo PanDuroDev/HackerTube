@@ -23,7 +23,10 @@
   "sidebar": {
     "navigation": "التنقل",
     "menu": "القائمة",
-    "explore": "استكشف"
+    "explore": "استكشف",
+    "downloadFor": "تنزيل لـ{platform}",
+    "downloadDesktop": "تطبيق سطح المكتب",
+    "downloadHint": "تنزيل تطبيق سطح المكتب لويندوز أو ماك أو لينكس"
   },
   "nav": {
     "home": "الرئيسية",

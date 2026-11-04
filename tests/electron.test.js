@@ -33,7 +33,18 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.appId);
   assert.ok(pkg.build?.win?.target);
+  assert.equal(pkg.build?.win?.artifactName, "HackerTube-win-${arch}.${ext}");
+  assert.equal(pkg.build?.mac?.artifactName, "HackerTube-mac-${arch}.${ext}");
+  assert.equal(pkg.build?.linux?.artifactName, "HackerTube-linux-${arch}.${ext}");
   assert.ok(fs.existsSync(path.join(ROOT, "electron/build/icon.ico")));
+
+  const workflow = read(".github/workflows/electron-release.yml");
+  assert.match(workflow, /windows-latest/);
+  assert.match(workflow, /macos-latest/);
+  assert.match(workflow, /ubuntu-latest/);
+  assert.match(workflow, /npm run dist:win/);
+  assert.match(workflow, /--universal/);
+  assert.match(workflow, /softprops\/action-gh-release/);
 });
 
 test("the web app renders window controls and hides the PWA install row in Electron", () => {
@@ -54,6 +65,9 @@ test("the web app renders window controls and hides the PWA install row in Elect
   assert.match(app, /data-uninstall-app/);
   assert.match(app, /data-uninstall-pwa/);
   assert.match(app, /const appGroup = window\.electronWindow \? electronAppGroup : installGroup/);
+  assert.match(app, /data-desktop-download/);
+  assert.match(app, /function desktopDownloadHref\(\)/);
+  assert.match(app, /const showBrowserInstall = !window\.electronWindow/);
 
   const css = read("public/styles.css");
   assert.match(css, /html\.electron-app \.topbar \{ -webkit-app-region: drag; \}/);

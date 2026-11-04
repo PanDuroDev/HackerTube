@@ -34,6 +34,8 @@ const TOPIC_SEARCH_ALIASES = {
 const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const SITE_URL = "https://pandurodev.github.io/HackerTube/";
+const DESKTOP_RELEASES_URL = "https://github.com/PanDuroDev/HackerTube/releases/latest";
+const DESKTOP_DOWNLOAD_BASE = `${DESKTOP_RELEASES_URL}/download`;
 const SORT_VALUES = new Set(["foryou", "best", "newest", "views", "longest", "shortest"]);
 const STORE = { likes: "ht_likes", later: "ht_saved", seen: "ht_seen", playlists: "ht_playlists", settings: "ht_settings", theme: "ht_theme", homeRecent: "ht_home_recent", progress: "ht_progress", locale: "ht_locale" };
 const I18N = window.HackerTubeI18n || null;
@@ -804,6 +806,11 @@ function renderSidebar() {
     ["hacker-news", "#/hacker-news", "categories", tr("nav.hackerNews", "Hacker News")],
     ["settings", "#/settings", "settings", tr("nav.settings", "Settings")],
   ];
+  const showDesktopDownload = !window.electronWindow && !isMobileDevice();
+  const desktopOS = desktopPlatform();
+  const downloadLabel = desktopOS
+    ? tr("sidebar.downloadFor", "Download for {platform}", { platform: desktopOS })
+    : tr("sidebar.downloadDesktop", "Desktop app");
   $("#sidebar").innerHTML = `
     <div class="side-head">
       <span class="side-heading">${tr("sidebar.menu", "Menu")}</span>
@@ -813,7 +820,10 @@ function renderSidebar() {
       ${nav.map(([key, href, ic, label]) => `<a class="side-link" data-nav="${key}" href="${href}" title="${label}">${icon(ic)}<span>${label}</span></a>`).join("")}
     </nav>
     <div class="side-title">${tr("sidebar.explore", "Explore")}</div>
-    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span></a>`;
+    <a class="side-link" data-nav="channels" href="#/channels" title="${tr("nav.channels", "Channels")}">${icon("channels")}<span>${tr("nav.channels", "Channels")}</span></a>
+    ${showDesktopDownload ? `<div class="side-cta">
+      <a class="side-link side-download" href="${desktopDownloadHref()}" data-desktop-download title="${esc(tr("sidebar.downloadHint", "Download the desktop app for Windows, macOS or Linux"))}" aria-label="${esc(downloadLabel)}">${icon("monitor")}<span>${esc(downloadLabel)}</span></a>
+    </div>` : ""}`;
   syncSidebar();
   $("#sidebar").addEventListener("click", (e) => {
     if (e.target.closest(".side-close")) {
@@ -2736,6 +2746,32 @@ async function renderPlaylist(id) {
 }
 /* ---------- Settings ---------- */
 
+function isMobileDevice() {
+  if (typeof navigator === "undefined") return false;
+  const ua = String(navigator.userAgent || "");
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return true;
+  return navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints) > 1;
+}
+
+function desktopPlatform() {
+  if (typeof navigator === "undefined") return "";
+  const platform = String(navigator.userAgentData?.platform || navigator.platform || "");
+  const ua = String(navigator.userAgent || "");
+  if (/win/i.test(platform) || /Windows/i.test(ua)) return "Windows";
+  if (/mac/i.test(platform) || /Macintosh|Mac OS X/i.test(ua)) return "macOS";
+  if (/linux/i.test(platform) || (/Linux/i.test(ua) && !/Android/i.test(ua))) return "Linux";
+  return "";
+}
+
+function desktopDownloadHref() {
+  switch (desktopPlatform()) {
+    case "Windows": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-win-x64.exe`;
+    case "macOS": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-mac-universal.dmg`;
+    case "Linux": return `${DESKTOP_DOWNLOAD_BASE}/HackerTube-linux-x64.AppImage`;
+    default: return DESKTOP_RELEASES_URL;
+  }
+}
+
 function setupElectronWindow() {
   const api = window.electronWindow;
   if (!api) return;
@@ -2856,14 +2892,15 @@ function renderSettings() {
   const installAction = installed
     ? `<button class="btn danger" type="button" data-uninstall-pwa aria-label="${esc(uninstallLabel)}">${icon("trash")} <span>${esc(uninstallLabel)}</span></button>`
     : `<button class="btn" type="button" data-install-app aria-label="${esc(installLabel)}">${icon("download")} <span>${esc(installLabel)}</span></button>`;
-  const installGroup = window.electronWindow ? "" : `<div class="settings-group">
+  const showBrowserInstall = !window.electronWindow && (typeof navigator === "undefined" || isMobileDevice());
+  const installGroup = showBrowserInstall ? `<div class="settings-group">
       <h2>${icon("monitor")} ${tr("settings.app", "App")}</h2>
       <div class="setting-row">
         <span class="row-ic">${icon("monitor")}</span>
         <span class="setting-text"><b>${tr("settings.installTitle", "Install HackerTube")}</b><small data-install-hint>${esc(installHintText())}</small></span>
         ${installAction}
       </div>
-    </div>`;
+    </div>` : "";
   const electronAppGroup = window.electronWindow ? `<div class="settings-group">
       <h2>${icon("monitor")} ${tr("settings.app", "App")}</h2>
       <div class="setting-row">

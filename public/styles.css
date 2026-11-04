@@ -269,6 +269,25 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
   color: var(--muted);
 }
 
+.side-cta {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.side-download {
+  border: 1px solid var(--border);
+  background: var(--soft);
+  font-weight: 500;
+}
+
+.side-download .ic { color: var(--accent); }
+.side-download:hover { background: var(--soft-2); }
+
+@media (max-width: 980px) {
+  .side-cta { display: none; }
+}
+
 main {
   min-width: 0;
   padding: 16px 24px 64px;

@@ -1206,3 +1206,11 @@ test("filter dropdowns stack above the video grid and playlists reuse the shared
   assert.match(plFilterRule, /z-index: 20/);
   assert.match(css, /\.pl-filter \.select-btn \{/);
 });
+
+test("desktop visitors get a sidebar download link for the Electron app", () => {
+  const harness = createHarness();
+  harness.api.renderSidebar();
+  assert.match(harness.sidebar.innerHTML, /data-desktop-download/);
+  assert.match(harness.sidebar.innerHTML, /github\.com\/PanDuroDev\/HackerTube\/releases\/latest/);
+  assert.match(harness.sidebar.innerHTML, /Desktop app/);
+});
