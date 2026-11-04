@@ -323,7 +323,11 @@
     "addedToWatchLater": "أُضيف إلى المشاهدة لاحقاً",
     "removedFromWatchLater": "أُزيل من المشاهدة لاحقاً",
     "minimize": "تصغير المشغل",
-    "expand": "توسيع المشغل"
+    "playerWindow": "نافذة المشغل",
+    "backToVideo": "العودة إلى الفيديو",
+    "enlarge": "تكبير النافذة",
+    "shrink": "تصغير النافذة",
+    "closePlayer": "إغلاق المشغل"
   },
   "collections": {
     "likedEmpty": "لا توجد فيديوهات معجب بها بعد.",

@@ -315,7 +315,11 @@
     "addedToWatchLater": "Added to Watch later",
     "removedFromWatchLater": "Removed from Watch later",
     "minimize": "Minimize player",
-    "expand": "Expand player"
+    "playerWindow": "Player window",
+    "backToVideo": "Back to video",
+    "enlarge": "Enlarge window",
+    "shrink": "Shrink window",
+    "closePlayer": "Close player"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",
