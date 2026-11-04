@@ -1029,6 +1029,32 @@ test("icon-and-label buttons collapse to their icon on mobile", () => {
   assert.match(css, /font-size: 0;/);
 });
 
+test("Page size options stay in ascending order inside right-to-left layouts", () => {
+  const { api, view } = createHarness();
+  api.renderSettings();
+
+  const group = view.innerHTML.match(/<div class="segmented" dir="ltr"[^>]*aria-label="Page size">[\s\S]*?<\/div>/);
+  assert.ok(group, "the Page size control should be a left-to-right group");
+  const markup = group[0];
+  assert.ok(
+    markup.indexOf('data-pagesize="24"') < markup.indexOf('data-pagesize="36"')
+      && markup.indexOf('data-pagesize="36"') < markup.indexOf('data-pagesize="60"'),
+    "Page size buttons should read 24, 36, 60 from left to right",
+  );
+});
+
+test("the Electron Settings group shows the installed version and an update action", () => {
+  const harness = createHarness();
+  harness.context.window.electronWindow = { checkForUpdate() {} };
+  harness.api.renderSettings();
+
+  assert.match(harness.view.innerHTML, /data-app-version/);
+  assert.match(harness.view.innerHTML, /data-check-updates/);
+  assert.match(harness.view.innerHTML, /Check for updates/);
+  assert.match(harness.view.innerHTML, /data-uninstall-app/);
+  assert.doesNotMatch(harness.view.innerHTML, /data-install-app/);
+});
+
 test("route skeletons match the current page instead of showing feed cards everywhere", () => {
   const harness = createHarness();
   const { api, location, view } = harness;

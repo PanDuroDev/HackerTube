@@ -1,5 +1,5 @@
 /* HackerTube service worker: app shell precache, runtime data cache, offline fallback. */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL_CACHE = `ht-shell-${VERSION}`;
 const DATA_CACHE = `ht-data-${VERSION}`;
 const SCOPE = new URL("./", self.location.href).href;
@@ -24,10 +24,12 @@ const PRECACHE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting()),
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(PRECACHE)),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

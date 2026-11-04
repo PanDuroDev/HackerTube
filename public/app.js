@@ -99,6 +99,13 @@ let playlistMetaPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
 let confirmationResolver = null;
+let appVersion = "";
+let pendingUpdate = null;
+let updateBusy = false;
+let webRegistration = null;
+let reloadingForUpdate = false;
+let lastUpdateCheck = 0;
+const UPDATE_CHECK_INTERVAL = 10 * 60 * 1000;
 
 
 const $ = (sel) => document.querySelector(sel);
@@ -325,7 +332,9 @@ function renderRouteSkeleton() {
 async function init() {
   applyTheme(state.theme);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {
+    navigator.serviceWorker.register("sw.js").then((registration) => {
+      setupWebUpdates(registration);
+    }).catch(() => {
       // The site keeps working online if service worker registration is unavailable.
     });
   }
@@ -347,6 +356,11 @@ async function init() {
     state.locale = "en";
   }
   setupElectronWindow();
+  addEventListener("focus", () => refreshUpdateChecks());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshUpdateChecks();
+  });
+  setInterval(() => refreshUpdateChecks(), UPDATE_CHECK_INTERVAL);
   if (view.querySelector(".skeleton-screen")) renderRouteSkeleton();
   if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
   $("#menuBtn").addEventListener("click", () => {
@@ -366,6 +380,7 @@ async function init() {
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
   });
+  $("#updateBtn")?.addEventListener("click", applyUpdate);
   $("#searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const q = $("#q").value.trim();
@@ -636,6 +651,7 @@ const TOAST_ICONS = {
   close: "close",
   trash: "trash",
   info: "playlists",
+  refresh: "refresh",
 };
 
 function toast(message, kind = "check") {
@@ -2815,6 +2831,168 @@ function setupElectronWindow() {
       api.isMaximized().then((maximized) => setMaximized(Boolean(maximized))).catch(() => {});
     }
   }
+
+  if (typeof api.getAppVersion === "function") {
+    api.getAppVersion().then((version) => {
+      appVersion = String(version || "");
+      document.querySelectorAll("[data-app-version]").forEach((node) => {
+        node.textContent = appVersion;
+      });
+    }).catch(() => {});
+  }
+  refreshUpdateChecks(true);
+}
+
+function refreshUpdateChecks(force = false) {
+  const now = Date.now();
+  if (updateBusy || (!force && now - lastUpdateCheck < UPDATE_CHECK_INTERVAL)) return;
+  lastUpdateCheck = now;
+  if (window.electronWindow) {
+    if (typeof window.electronWindow.checkForUpdate === "function") checkDesktopUpdate(false);
+    return;
+  }
+  webRegistration?.update?.().catch(() => {});
+}
+
+function renderUpdateButton() {
+  const button = $("#updateBtn");
+  if (!button) return;
+  button.hidden = !pendingUpdate;
+  button.classList.toggle("is-busy", updateBusy);
+  const label = updateBusy
+    ? tr("header.updating", "Updating…")
+    : pendingUpdate?.version
+      ? tr("header.updateTo", "Update to version {version}", { version: pendingUpdate.version })
+      : tr("header.update", "Update");
+  button.setAttribute("aria-label", label);
+  button.setAttribute("title", label);
+}
+
+function showUpdate(update, { announce = true } = {}) {
+  const changed = !pendingUpdate
+    || pendingUpdate.kind !== update.kind
+    || pendingUpdate.version !== update.version;
+  pendingUpdate = update;
+  updateBusy = false;
+  renderUpdateButton();
+  if (!announce || !changed) return;
+  if (update.kind === "web") {
+    toast(tr("settings.updateWebReady", "A new version is ready. Select Update to reload the app."), "refresh");
+  } else {
+    toast(tr("settings.updateAvailable", "Version {version} is available.", { version: update.version }), "refresh");
+  }
+}
+
+async function checkDesktopUpdate(manual = false) {
+  const api = window.electronWindow;
+  if (!api || typeof api.checkForUpdate !== "function") {
+    if (manual) toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+    return;
+  }
+  if (manual) toast(tr("settings.checkingUpdates", "Checking for updates…"), "refresh");
+  try {
+    const result = await api.checkForUpdate();
+    if (result?.ok && result.available) {
+      showUpdate({ kind: "electron", version: result.version });
+      if (manual) toast(tr("settings.updateAvailable", "Version {version} is available.", { version: result.version }), "refresh");
+      return;
+    }
+    if (manual) {
+      const failed = result?.ok === false;
+      toast(
+        failed
+          ? tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub.")
+          : tr("settings.upToDate", "You’re up to date."),
+        failed ? "info" : "check",
+      );
+    }
+  } catch {
+    if (manual) toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+  }
+}
+
+function applyWebUpdate() {
+  const waiting = webRegistration?.waiting;
+  if (!waiting) {
+    webRegistration?.update?.().then(() => {
+      if (webRegistration?.waiting) {
+        applyWebUpdate();
+        return;
+      }
+      pendingUpdate = null;
+      updateBusy = false;
+      renderUpdateButton();
+      toast(tr("settings.upToDate", "You’re up to date."), "check");
+    }).catch(() => {
+      updateBusy = false;
+      renderUpdateButton();
+      toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+    });
+    return;
+  }
+  reloadingForUpdate = true;
+  waiting.postMessage({ type: "SKIP_WAITING" });
+  setTimeout(() => {
+    if (reloadingForUpdate) location.reload();
+  }, 4000);
+}
+
+async function applyUpdate() {
+  if (!pendingUpdate || updateBusy) return;
+  const update = pendingUpdate;
+  updateBusy = true;
+  renderUpdateButton();
+
+  if (update.kind === "web") {
+    applyWebUpdate();
+    return;
+  }
+
+  const api = window.electronWindow;
+  if (!api || typeof api.installUpdate !== "function") {
+    updateBusy = false;
+    renderUpdateButton();
+    toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+    return;
+  }
+
+  try {
+    toast(tr("settings.updateInstalling", "Downloading the update. The installer will open when it is ready."), "refresh");
+    const result = await api.installUpdate();
+    if (result?.manual) {
+      toast(tr("settings.updateManual", "The update was downloaded. Close the app and run the new file to finish."), "info");
+    } else if (result?.ok === false && !result.canceled) {
+      toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+    }
+  } catch {
+    toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
+  } finally {
+    updateBusy = false;
+    renderUpdateButton();
+  }
+}
+
+function setupWebUpdates(registration) {
+  webRegistration = registration;
+  lastUpdateCheck = Date.now();
+  if (window.electronWindow) return;
+
+  const offer = () => {
+    if (!registration.waiting || !navigator.serviceWorker.controller) return;
+    showUpdate({ kind: "web" });
+  };
+
+  offer();
+  registration.addEventListener("updatefound", () => {
+    const worker = registration.installing;
+    if (!worker) return;
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "installed") offer();
+    });
+  });
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloadingForUpdate) location.reload();
+  });
 }
 
 function isStandalone() {
@@ -2894,6 +3072,7 @@ function renderSettings() {
   const installed = isStandalone();
   const installLabel = tr("settings.install", "Install");
   const uninstallLabel = tr("settings.uninstall", "Uninstall");
+  const checkUpdatesLabel = tr("settings.checkUpdates", "Check for updates");
   const installAction = installed
     ? `<button class="btn danger" type="button" data-uninstall-pwa aria-label="${esc(uninstallLabel)}">${icon("trash")} <span>${esc(uninstallLabel)}</span></button>`
     : `<button class="btn" type="button" data-install-app aria-label="${esc(installLabel)}">${icon("download")} <span>${esc(installLabel)}</span></button>`;
@@ -2908,6 +3087,11 @@ function renderSettings() {
     </div>` : "";
   const electronAppGroup = window.electronWindow ? `<div class="settings-group">
       <h2>${icon("monitor")} ${tr("settings.app", "App")}</h2>
+      <div class="setting-row">
+        <span class="row-ic">${icon("refresh")}</span>
+        <span class="setting-text"><b>${tr("settings.version", "Version")} <span data-app-version>${esc(appVersion || "…")}</span></b><small>${tr("settings.updateNote", "Updates keep your likes, history, playlists and settings.")}</small></span>
+        <button class="btn" type="button" data-check-updates aria-label="${esc(checkUpdatesLabel)}" title="${esc(checkUpdatesLabel)}">${icon("refresh")} <span>${esc(checkUpdatesLabel)}</span></button>
+      </div>
       <div class="setting-row">
         <span class="row-ic danger">${icon("trash")}</span>
         <span class="setting-text"><b>${tr("settings.uninstallTitle", "Uninstall HackerTube")}</b><small>${tr("settings.uninstallHint", "Remove the desktop app from this computer.")}</small></span>
@@ -2941,7 +3125,7 @@ function renderSettings() {
       <div class="setting-row">
         <span class="row-ic">${icon("categories")}</span>
         <span class="setting-text"><b>${tr("settings.pageSize", "Page size")}</b><small>${tr("settings.pageSizeHint", "Videos shown before “Show more”.")}</small></span>
-        <div class="segmented" role="group" aria-label="${tr("settings.pageSize", "Page size")}">
+        <div class="segmented" dir="ltr" role="group" aria-label="${tr("settings.pageSize", "Page size")}">
           ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
         </div>
       </div>
@@ -3148,6 +3332,12 @@ function onViewClick(e) {
   if (uninstallButton) {
     e.preventDefault();
     uninstallApp();
+    return;
+  }
+
+  if (e.target.closest("[data-check-updates]")) {
+    e.preventDefault();
+    checkDesktopUpdate(true);
     return;
   }
 

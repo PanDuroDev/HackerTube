@@ -51,12 +51,19 @@ test("the app registers the service worker and exposes an install action", () =>
   assert.match(app, /beforeinstallprompt/);
   assert.match(app, /data-install-app/);
   assert.match(app, /settings\.installTitle/);
+  assert.match(app, /function setupWebUpdates\(registration\)/);
+  assert.match(app, /navigator\.serviceWorker\.controller/);
+  assert.match(app, /postMessage\(\{ type: "SKIP_WAITING" \}\)/);
+  assert.match(app, /registration\.addEventListener\("updatefound"/);
 
   const sw = read("sw.js");
   assert.match(sw, /addEventListener\("install"/);
   assert.match(sw, /addEventListener\("fetch"/);
-  assert.match(sw, /const VERSION = "v1"/);
+  assert.match(sw, /const VERSION = "v2"/);
   assert.match(sw, /ht-shell-\$\{VERSION\}/);
   assert.match(sw, /networkFirst/);
   assert.match(sw, /searchParams\.has\("v"\)/);
+  assert.match(sw, /addEventListener\("message"/);
+  assert.match(sw, /SKIP_WAITING/);
+  assert.doesNotMatch(sw, /cache\.addAll\(PRECACHE\)\)\s*\.then\(\(\) => self\.skipWaiting\(\)\)/);
 });

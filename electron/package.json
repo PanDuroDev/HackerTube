@@ -1,6 +1,6 @@
 {
   "name": "hackertube-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Frameless Electron desktop app for HackerTube",
   "author": "PanDuroDev",
@@ -27,6 +27,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "update.js",
       "build/icon.png"
     ],
     "win": {

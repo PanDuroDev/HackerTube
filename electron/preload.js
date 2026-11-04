@@ -6,6 +6,9 @@ if (window.top === window) {
     toggleMaximize: () => ipcRenderer.send("window:toggle-maximize"),
     close: () => ipcRenderer.send("window:close"),
     isMaximized: () => ipcRenderer.invoke("window:is-maximized"),
+    getAppVersion: () => ipcRenderer.invoke("app:version"),
+    checkForUpdate: () => ipcRenderer.invoke("app:check-update"),
+    installUpdate: () => ipcRenderer.invoke("app:install-update"),
     uninstall: () => ipcRenderer.invoke("app:uninstall"),
     onMaximizedChange: (callback) => {
       const listener = (_event, maximized) => callback(Boolean(maximized));

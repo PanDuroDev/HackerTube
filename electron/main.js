@@ -1,7 +1,10 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, net, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
+const { Readable } = require("node:stream");
+const { pipeline } = require("node:stream/promises");
+const update = require("./update");
 
 const APP_URL = (process.env.HACKERTUBE_URL || "https://pandurodev.github.io/HackerTube/").replace(/\/?$/, "/");
 const APP_ID = "com.pandurodev.hackertube";
@@ -20,6 +23,61 @@ function findWindowsUninstaller() {
   } catch {
     return null;
   }
+}
+
+async function latestReleaseInfo() {
+  const response = await net.fetch(update.RELEASES_API, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "HackerTube-Desktop",
+    },
+  });
+  if (!response.ok) return { ok: false, reason: `http-${response.status}` };
+
+  const release = await response.json();
+  const current = app.getVersion();
+  const tag = String(release.tag_name || release.name || "");
+  if (!update.isNewerVersion(current, tag)) return { ok: true, available: false, current };
+
+  const asset = update.pickReleaseAsset(release.assets || [], process.platform, process.arch);
+  if (!asset) return { ok: false, reason: "no-asset", current };
+
+  return {
+    ok: true,
+    available: true,
+    current,
+    version: tag.replace(/^v/i, ""),
+    asset: {
+      name: path.basename(asset.name),
+      url: asset.browser_download_url,
+      size: asset.size,
+    },
+  };
+}
+
+async function downloadUpdate(asset) {
+  if (!update.isReleaseDownloadUrl(asset?.url)) throw new Error("Untrusted update URL");
+  const response = await net.fetch(asset.url, { headers: { "User-Agent": "HackerTube-Desktop" } });
+  if (!response.ok || !response.body) throw new Error(`Update download failed: HTTP ${response.status}`);
+
+  const file = path.join(app.getPath("temp"), `hackertube-${Date.now()}-${path.basename(asset.name)}`);
+  await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(file));
+  return file;
+}
+
+async function launchInstaller(file) {
+  if (process.platform === "linux") {
+    // Running the new AppImage from temp would not replace the installed one.
+    fs.chmodSync(file, 0o755);
+    shell.showItemInFolder(file);
+    return false;
+  }
+  const error = await shell.openPath(file);
+  if (error) {
+    shell.showItemInFolder(file);
+    return false;
+  }
+  return true;
 }
 
 function createWindow() {
@@ -77,6 +135,52 @@ ipcMain.on("window:close", (event) => {
 ipcMain.handle("window:is-maximized", (event) => (
   isTrusted(event) && win ? win.isMaximized() : false
 ));
+
+ipcMain.handle("app:version", (event) => (isTrusted(event) ? app.getVersion() : null));
+
+ipcMain.handle("app:check-update", async (event) => {
+  if (!isTrusted(event)) return { ok: false, reason: "untrusted" };
+  try {
+    return await latestReleaseInfo();
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+});
+
+ipcMain.handle("app:install-update", async (event) => {
+  if (!isTrusted(event) || !win) return { ok: false, reason: "untrusted" };
+
+  let info;
+  try {
+    info = await latestReleaseInfo();
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+  if (!info.available) return info;
+  if (!update.isReleaseDownloadUrl(info.asset.url)) return { ok: false, reason: "untrusted-asset" };
+
+  const { response } = await dialog.showMessageBox(win, {
+    type: "question",
+    buttons: ["Cancel", "Install update"],
+    defaultId: 1,
+    cancelId: 0,
+    noLink: true,
+    title: "Update HackerTube",
+    message: `Install HackerTube ${info.version}?`,
+    detail: "The update downloads from GitHub. The app will close while the installer opens. Your likes, history, playlists and settings are kept.",
+  });
+  if (response !== 1) return { ok: false, canceled: true };
+
+  try {
+    const file = await downloadUpdate(info.asset);
+    const launched = await launchInstaller(file);
+    if (!launched) return { ok: true, version: info.version, manual: true };
+    setTimeout(() => app.quit(), 700);
+    return { ok: true, version: info.version };
+  } catch {
+    return { ok: false, reason: "download" };
+  }
+});
 
 ipcMain.handle("app:uninstall", async (event) => {
   if (!isTrusted(event) || !win) return { ok: false, reason: "untrusted" };
