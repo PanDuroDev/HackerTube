@@ -66,7 +66,7 @@ test("the web app renders window controls and hides the PWA install row in Elect
   assert.match(app, /data-uninstall-pwa/);
   assert.match(app, /const appGroup = window\.electronWindow \? electronAppGroup : installGroup/);
   assert.match(app, /data-desktop-download/);
-  assert.match(app, /function desktopDownloadHref\(\)/);
+  assert.match(app, /function desktopDownloadHref\(platform = desktopPlatform\(\)\)/);
   assert.match(app, /const showBrowserInstall = !window\.electronWindow/);
 
   const css = read("public/styles.css");

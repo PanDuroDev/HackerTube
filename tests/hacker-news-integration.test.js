@@ -69,7 +69,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -1213,4 +1213,7 @@ test("desktop visitors get a sidebar download link for the Electron app", () => 
   assert.match(harness.sidebar.innerHTML, /data-desktop-download/);
   assert.match(harness.sidebar.innerHTML, /github\.com\/PanDuroDev\/HackerTube\/releases\/latest/);
   assert.match(harness.sidebar.innerHTML, /Desktop app/);
+  assert.match(harness.api.desktopDownloadHref("Windows"), /HackerTube-win-x64\.exe$/);
+  assert.match(harness.api.desktopDownloadHref("macOS"), /HackerTube-mac-universal\.dmg$/);
+  assert.match(harness.api.desktopDownloadHref("Linux"), /HackerTube-linux-x86_64\.AppImage$/);
 });
