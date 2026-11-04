@@ -1011,6 +1011,8 @@ test("language selection lives in Settings and uses site-styled buttons", () => 
   assert.match(view.innerHTML, /data-locale-pref="ar"/);
   assert.match(view.innerHTML, /class="active"[^>]*data-locale-pref="en"|data-locale-pref="en"[^>]*class="active"/);
   assert.doesNotMatch(view.innerHTML, /localeSelect/);
+  assert.match(view.innerHTML, /data-install-app/);
+  assert.match(view.innerHTML, /Install HackerTube/);
 });
 
 test("icon-and-label buttons collapse to their icon on mobile", () => {

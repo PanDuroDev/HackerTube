@@ -7,3 +7,5 @@ data/raw/
 data/playlists/
 node_modules/
 hackertube-data.zip
+
+electron/dist/

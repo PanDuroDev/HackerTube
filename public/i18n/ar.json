@@ -13,6 +13,12 @@
     "switchDark": "التبديل إلى السمة الداكنة",
     "closeMenu": "إغلاق القائمة"
   },
+  "window": {
+    "minimize": "تصغير النافذة",
+    "maximize": "تكبير النافذة",
+    "restore": "استعادة النافذة",
+    "close": "إغلاق النافذة"
+  },
   "skipToContent": "انتقل إلى المحتوى",
   "sidebar": {
     "navigation": "التنقل",
@@ -255,7 +261,16 @@
     "saved": "تم الحفظ",
     "playlistsHint": "{count} محفوظة",
     "videosIndexed": "الفيديوهات المفهرسة",
-    "language": "اللغة"
+    "language": "اللغة",
+    "app": "التطبيق",
+    "installTitle": "تثبيت HackerTube",
+    "install": "تثبيت",
+    "installed": "مثبّت",
+    "installHint": "ثبّت HackerTube للوصول السريع والتصفح دون اتصال.",
+    "installIos": "على iPhone أو iPad، افتح مشاركة واختر «إضافة إلى الشاشة الرئيسية».",
+    "installUnavailable": "افتح قائمة المتصفح واختر «تثبيت التطبيق».",
+    "installedHint": "HackerTube مثبّت على هذا الجهاز.",
+    "installDismissed": "تم إلغاء التثبيت"
   },
   "dialogs": {
     "clearTitle": "مسح {label}؟",

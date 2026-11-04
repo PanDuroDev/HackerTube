@@ -13,6 +13,12 @@
     "switchDark": "Switch to dark theme",
     "closeMenu": "Close menu"
   },
+  "window": {
+    "minimize": "Minimize window",
+    "maximize": "Maximize window",
+    "restore": "Restore window",
+    "close": "Close window"
+  },
   "skipToContent": "Skip to content",
   "sidebar": {
     "navigation": "Navigation",
@@ -247,7 +253,16 @@
     "saved": "Saved",
     "playlistsHint": "{count} saved",
     "videosIndexed": "Videos indexed",
-    "language": "Language"
+    "language": "Language",
+    "app": "App",
+    "installTitle": "Install HackerTube",
+    "install": "Install",
+    "installed": "Installed",
+    "installHint": "Install HackerTube for quick access and offline browsing.",
+    "installIos": "On iPhone or iPad, open Share and choose “Add to Home Screen”.",
+    "installUnavailable": "Open your browser menu and choose “Install app”.",
+    "installedHint": "HackerTube is installed on this device.",
+    "installDismissed": "Install dismissed"
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",
