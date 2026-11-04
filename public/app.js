@@ -100,7 +100,7 @@ let confirmationResolver = null;
 
 const $ = (sel) => document.querySelector(sel);
 const view = $("#view");
-const icon = (name) => `<svg class="ic" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+const icon = (name, className = "") => `<svg class="ic${className ? ` ${className}` : ""}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
 function interpolateFallback(text, params) {
   return String(text).replace(/\{(\w+)\}/g, (match, key) => (
     params && Object.prototype.hasOwnProperty.call(params, key) ? String(params[key]) : match
@@ -2515,7 +2515,7 @@ function renderCategories() {
       ${topics.map((t) => `<a class="topic-card" href="#/?topics=${encodeURIComponent(t.id)}" data-goto-topic="${t.id}">
         <span class="topic-name">${esc(state.topicLabels[t.id] || t.id)}</span>
         <span class="topic-num">${t.count}</span>
-        ${icon("arrowRight")}
+        ${icon("arrowRight", "directional-icon")}
       </a>`).join("")}
     </div>
   </section>`;
@@ -2787,7 +2787,7 @@ function renderSettings() {
       <div class="setting-row">
         <span class="row-ic">${icon("playlists")}</span>
         <span class="setting-text"><b>${tr("settings.playlists", "Playlists")}</b><small>${tr("settings.playlistsHint", "{count} saved", { count: I18N ? I18N.formatNumber(state.playlists.length) : state.playlists.length })}</small></span>
-        <a class="btn" href="#/playlists">${tr("settings.manage", "Manage")} ${icon("arrowRight")}</a>
+        <a class="btn" href="#/playlists">${tr("settings.manage", "Manage")} ${icon("arrowRight", "directional-icon")}</a>
       </div>
       <div class="setting-row">
         <span class="row-ic danger">${icon("trash")}</span>
