@@ -1094,7 +1094,6 @@ function renderFeed(scope) {
     list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
   }
   const shown = list.slice(0, ui.limit);
-  const count = scope.type === "all" && !hasFilters() && !state.catalogLoaded ? (state.meta?.total || list.length) : list.length;
   const title = scope.title || "";
   const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
   const description = title
@@ -1109,7 +1108,6 @@ function renderFeed(scope) {
       <button class="btn filter-btn ${hasFilters() ? "on" : ""}" data-filter-toggle aria-expanded="${ui.open}">
         ${icon("filter")} ${tr("filters.button", "Filters")}${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
       </button>
-      <span class="count">${videos(count)}</span>
     </div>
     ${ui.open ? filtersPanel() : ""}
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
@@ -1969,16 +1967,18 @@ function hnCommentsHTML(comments, unavailable = false) {
   if (!comments.length) return `<p class="count">${tr("watch.noComments", "No archived Hacker News comments for this video.")}</p>`;
   return `<div class="hn-comments">${comments.map((comment) => {
     const stance = tr(`hn.stances.${comment.stance}`, HN_STANCE_LABELS[comment.stance] || comment.stance || tr("watch.comment", "Comment"));
+    const author = comment.author || tr("watch.anonymous", "Anonymous");
     return `
     <article class="hn-comment">
       <div class="hn-comment-head">
-        <span><b${langAttrs(comment.author || "")}>${esc(comment.author || tr("watch.anonymous", "Anonymous"))}</b> · ${esc(comment.month || "")}</span>
-        <span>${esc(stance)}</span>
+        <span class="hn-avatar" aria-hidden="true">${esc(author.trim().charAt(0))}</span>
+        <span class="hn-comment-who"><b${langAttrs(comment.author || "")}>${esc(author)}</b><small>${esc(comment.month || "")}</small></span>
+        <span class="hn-stance">${esc(stance)}</span>
       </div>
       ${comment.story_title ? `<div class="hn-story"${langAttrs(comment.story_title)}>${esc(comment.story_title)}</div>` : ""}
       <p${langAttrs(comment.text || "")}>${esc(comment.text || "")}</p>
       ${comment.why ? `<div class="hn-why"${langAttrs(comment.why)}>${esc(comment.why)}</div>` : ""}
-      <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">${tr("watch.openComment", "Open Hacker News comment")}</a>
+      <a class="hn-source-link" href="${esc(comment.hn_url || "#")}" target="_blank" rel="noopener noreferrer">${icon("external")} ${tr("watch.openComment", "Open Hacker News comment")}</a>
     </article>`;
   }).join("")}</div>`;
 }
@@ -2021,8 +2021,8 @@ function hnDescriptionHTML(video, mainVideo = null) {
   const tagLinks = categories + tags;
 
   return `<div class="hn-desc">
-    ${metadata.length ? `<div class="hn-top-line">${metadata.map(esc).join(" · ")}</div>` : ""}
-    ${video.summary ? `<p${langAttrs(video.summary)}>${esc(video.summary)}</p>` : ""}
+    ${metadata.length ? `<div class="watch-meta">${metadata.map((item) => `<span>${esc(item)}</span>`).join("")}</div>` : ""}
+    ${video.summary ? `<p class="watch-description"${langAttrs(video.summary)}>${esc(video.summary)}</p>` : ""}
     ${video.why_hn ? `<p class="hn-desc-why"${langAttrs(video.why_hn)}>${esc(video.why_hn)}</p>` : ""}
     ${tagLinks ? `<div class="hn-desc-tags">${tagLinks}</div>` : ""}
   </div>`;
@@ -2030,7 +2030,7 @@ function hnDescriptionHTML(video, mainVideo = null) {
 
 function hnContextHTML(video, comments, commentsUnavailable = false, mainVideo = null) {
   const quote = video.quote?.text
-    ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
+    ? `<blockquote class="hn-quote"${langAttrs(video.quote.text)}>“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
     : "";
   return `
     <section class="hn-context">
@@ -2238,21 +2238,17 @@ function ensureHNSearchIndex() {
   return state.hnSearchEngine;
 }
 
-function hnListMarkup(source, total, { query = "", partial = false } = {}) {
+function hnListMarkup(source, { query = "" } = {}) {
   let list = source.filter(hnMatchesFilters);
   if (state.hnFilters.sort !== "best" || !query) list = [...list].sort(hnComparator());
   const shown = list.slice(0, state.hnLimit);
   const activeFilters = hnFilterCount();
-  const count = partial
-    ? `${videos(list.length)} · loading full catalog…`
-    : `${videos(list.length)}${list.length !== total ? ` · ${total} total` : ""}`;
   return `<section class="feed">
     <div class="feed-head">
       <div><h1>${tr("pages.hackerNews", "Hacker News")}</h1></div>
       <button class="btn filter-btn ${activeFilters ? "on" : ""}" data-hn-filter-toggle aria-expanded="${state.hnUiOpen}">
         ${icon("filter")} ${tr("filters.button", "Filters")}${activeFilters ? ` <span class="filter-count">${activeFilters}</span>` : ""}
       </button>
-      <span class="count">${count}</span>
     </div>
     ${state.hnUiOpen ? hnFiltersPanel(source) : ""}
     ${shown.length ? `<div class="grid">${shown.map(hnCard).join("")}</div>` : `<div class="empty"><strong>${tr("hn.noMatches", "No matches")}</strong><p>${tr("hn.noMatchesHint", "Try another search or adjust the Hacker News filters.")}</p>${activeFilters ? `<button class="btn" data-hn-clear>${tr("hn.clearFilters", "Clear filters")}</button>` : ""}</div>`}
@@ -2282,7 +2278,7 @@ async function renderHackerNews(query = "", params = null) {
     if (!query && !state.hnVideos) {
       const preview = await loadHNPreview().catch(() => null);
       if (preview && !state.hnVideos && (location.hash || "#/").startsWith("#/hacker-news") && state.hnQuery === query) {
-        view.innerHTML = hnListMarkup(preview, state.hnTotal || preview.length, { partial: true });
+        view.innerHTML = hnListMarkup(preview);
         syncSidebar();
         syncHNUrl(query);
       }
@@ -2293,7 +2289,7 @@ async function renderHackerNews(query = "", params = null) {
     const source = query
       ? ensureHNSearchIndex().search(query).map((result) => result.item)
       : records;
-    view.innerHTML = hnListMarkup(source, records.length, { query });
+    view.innerHTML = hnListMarkup(source, { query });
     syncSidebar();
     syncHNUrl(query);
   } catch (error) {
@@ -2361,7 +2357,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
     });
     const mainVideo = state.byId.get(videoId);
     const quote = video.quote?.text
-      ? `<blockquote class="hn-quote">“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
+      ? `<blockquote class="hn-quote"${langAttrs(video.quote.text)}>“${esc(video.quote.text)}”${video.quote.year ? ` <span>· ${esc(video.quote.year)}</span>` : ""}</blockquote>`
       : "";
     const relatedCards = (related[videoId] || [])
       .map((item) => state.hnById.get(item.vid) || existing[item.vid])
@@ -2384,7 +2380,6 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
         <div class="related-grid">${relatedCards.map(hnCard).join("") || `<p class="count">${tr("watch.noRelated", "No related videos available.")}</p>`}</div>
         <h2 class="section-title">${tr("watch.source", "Source")}</h2>
         <a class="btn keep-label" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} ${tr("hn.title", "Hacker News")}</a>
-        ${hnAttributionHTML()}
       </aside>
     </section>`;
     syncSidebar();
@@ -2453,7 +2448,7 @@ function renderCategories() {
   });
   const topics = [...state.meta.topics].sort((a, b) => b.count - a.count);
   view.innerHTML = `<section>
-    <div class="feed-head"><h1>${tr("pages.categories", "Categories")}</h1><span class="count">${topics.length} topics</span></div>
+    <div class="feed-head"><h1>${tr("pages.categories", "Categories")}</h1></div>
     <div class="topic-grid">
       ${topics.map((t) => `<a class="topic-card" href="#/?topics=${encodeURIComponent(t.id)}" data-goto-topic="${t.id}">
         <span class="topic-name">${esc(state.topicLabels[t.id] || t.id)}</span>
@@ -2708,6 +2703,10 @@ function renderSettings() {
     </div>
     <div class="settings-group">
       <h2>${icon("database")} ${tr("settings.data", "Data")}</h2>
+      <div class="setting-row">
+        <span class="row-ic">${icon("play")}</span>
+        <span class="setting-text"><b>${tr("settings.videosIndexed", "Videos indexed")}</b><small>${state.meta?.total ? videos(state.meta.total) : ""}</small></span>
+      </div>
       <div class="setting-row">
         <span class="row-ic">${icon("history")}</span>
         <span class="setting-text"><b>${tr("settings.history", "History")}</b><small>${videos(state.seen.length)}</small></span>
