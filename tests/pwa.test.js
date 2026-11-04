@@ -41,6 +41,7 @@ test("the document links the install manifest and Apple metadata", () => {
   const html = read("index.html");
   assert.match(html, /rel="manifest" href="manifest\.webmanifest"/);
   assert.match(html, /rel="apple-touch-icon" href="icons\/apple-touch-icon\.png"/);
+  assert.match(html, /rel="icon" type="image\/svg\+xml" href="icons\/icon\.svg"/);
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /name="theme-color" content="#0f0f0f"/);
 });
@@ -59,7 +60,7 @@ test("the app registers the service worker and exposes an install action", () =>
   const sw = read("sw.js");
   assert.match(sw, /addEventListener\("install"/);
   assert.match(sw, /addEventListener\("fetch"/);
-  assert.match(sw, /const VERSION = "v2"/);
+  assert.match(sw, /const VERSION = "v3"/);
   assert.match(sw, /ht-shell-\$\{VERSION\}/);
   assert.match(sw, /networkFirst/);
   assert.match(sw, /searchParams\.has\("v"\)/);

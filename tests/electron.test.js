@@ -40,7 +40,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.1");
+  assert.equal(pkg.version, "1.0.2");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
@@ -113,8 +113,7 @@ test("the web app renders window controls and hides the PWA install row in Elect
   }
 });
 
-test("desktop updates compare versions, validate URLs and pick platform assets", () => {
-  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
+test("desktop updates compare versions, validate URLs and pick platform assets", () => {  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
   assert.equal(update.isNewerVersion("1.0.1", "v1.0.1"), false);
   assert.equal(update.isNewerVersion("1.2.0", "v1.1.9"), false);
   assert.equal(update.isNewerVersion("1.0.9", "1.1.0"), true);
@@ -140,4 +139,38 @@ test("desktop updates compare versions, validate URLs and pick platform assets",
   assert.equal(update.pickReleaseAsset(assets, "linux", "x64").name, "HackerTube-linux-x86_64.AppImage");
   assert.equal(update.pickReleaseAsset(assets, "linux", "arm64").name, "HackerTube-linux-arm64.AppImage");
   assert.equal(update.pickReleaseAsset(assets, "freebsd", "x64"), null);
+});
+
+test("the NSIS build uses the branded install and uninstall UI", () => {
+  const pkg = JSON.parse(read("electron/package.json"));
+  const nsisOptions = pkg.build.nsis;
+  assert.equal(nsisOptions.include, "build/installer.nsh");
+  assert.equal(nsisOptions.allowToChangeInstallationDirectory, false);
+  assert.equal(nsisOptions.oneClick, false);
+  for (const key of ["installerIcon", "uninstallerIcon", "installerHeader", "installerSidebar", "uninstallerSidebar"]) {
+    assert.ok(fs.existsSync(path.join(ROOT, "electron", nsisOptions[key])), `${key} asset should exist`);
+  }
+
+  const script = read("electron/build/installer.nsh");
+  for (const token of [
+    "customWelcomePage", "customFinishPage", "customUnWelcomePage", "customUnInstall",
+    "customPageAfterChangeDir", "DO_NOT_CREATE_DESKTOP_SHORTCUT", "MUI_BGCOLOR",
+    "MUI_HEADERIMAGE_UNBITMAP", "Install HackerTube", "Remove HackerTube?", "Uninstall",
+    "stay on this device", "htOptionsPageShow", "htFinishPageShow", "un.htUninstallPageShow",
+  ]) {
+    assert.ok(script.includes(token), `installer.nsh should include ${token}`);
+  }
+  assert.ok(!script.includes("allowToChangeInstallationDirectory"), "the stock directory page is replaced");
+
+  function bmpSize(file) {
+    const bytes = fs.readFileSync(path.join(ROOT, file));
+    assert.equal(bytes.toString("ascii", 0, 2), "BM");
+    return { width: bytes.readInt32LE(18), height: Math.abs(bytes.readInt32LE(22)) };
+  }
+  assert.deepEqual(bmpSize("electron/build/installerHeader.bmp"), { width: 150, height: 57 });
+  assert.deepEqual(bmpSize("electron/build/installerSidebar.bmp"), { width: 164, height: 314 });
+  assert.deepEqual(bmpSize("electron/build/uninstallerSidebar.bmp"), { width: 164, height: 314 });
+
+  const ico = fs.readFileSync(path.join(ROOT, "electron/build/icon.ico"));
+  assert.equal(ico.readUInt16LE(4), 7, "the Windows icon should contain seven sizes");
 });
