@@ -4,7 +4,7 @@ const KIND_LABELS = { course: "Course", tutorial: "Tutorial", project: "Project"
 const LEVEL_LABELS = { beginner: "Beginner", advanced: "Advanced", any: "General", unknown: "Unspecified" };
 const TOPIC_LABELS = {
   python: "Python", javascript: "JavaScript", web: "Web Development", php: "PHP",
-  java: "Java", cpp: "C++", csharp: "C#", mobile: "Mobile", database: "Databases",
+  java: "Java", cpp: "C++", rust: "Rust", csharp: "C#", mobile: "Mobile", database: "Databases",
   linux: "Linux", devops: "DevOps & Cloud", git: "Git", security: "Security",
   ai: "AI", data: "Data Analysis", algorithms: "Algorithms", cs: "Computer Science",
   testing: "Testing", networking: "Networking", tools: "Dev Tools",
@@ -920,8 +920,8 @@ function buildHomeOrder(videos, random = Math.random) {
   const previousHome = new Set(storeGet(STORE.homeRecent, []));
   const recentlyWatched = new Set(history.slice(0, 12));
 
-  // Weighted random sampling preserves discovery while letting quality and
-  // local interests influence the odds instead of imposing a rigid ranking.
+  // Quality and local interests rank the feed; a small bounded jitter keeps
+  // refreshes fresh without turning the first screen into a lottery.
   const ranked = videos.map((video) => {
     const topicAffinity = Math.min(1.5, (video.topics || []).reduce(
       (sum, topic) => sum + (topicWeights.get(topic) || 0) / maxTopic, 0
@@ -929,21 +929,17 @@ function buildHomeOrder(videos, random = Math.random) {
     const channelAffinity = (channelWeights.get(video.channel_id) || 0) / maxChannel;
     const languageAffinity = (languageWeights.get(video.lang) || 0) / maxLanguage;
     const quality = Math.max(0, Number(video.score) || 0);
-    const qualityBoost = Math.min(0.7, quality * 0.075);
+    const qualityBoost = Math.min(1.4, quality * 0.12);
     const seenPenalty = recentlyWatched.has(video.id) ? 0.48 : 0;
     const repeatPenalty = previousHome.has(video.id) ? 0.42 : 0;
     const interestBoost = profileStrength * (
       topicAffinity * 0.82 + languageAffinity * 0.18 + channelAffinity * 0.1
     );
-    const utility = Math.max(-1, Math.min(1.5,
+    const utility = Math.max(-1, Math.min(1.8,
       qualityBoost + interestBoost - seenPenalty - repeatPenalty
     ));
-    const weight = Math.exp(utility);
-    return {
-      video,
-      key: -Math.log(Math.max(random(), Number.EPSILON)) / weight,
-    };
-  }).sort((a, b) => a.key - b.key).map(({ video }) => video);
+    return { video, rank: utility + random() * 0.3 };
+  }).sort((a, b) => b.rank - a.rank).map(({ video }) => video);
 
   // Greedy diversity constraints keep the first screen from being dominated
   // by one creator or topic. Relax them only if the catalog cannot fill it.

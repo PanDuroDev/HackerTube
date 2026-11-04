@@ -17,6 +17,7 @@ TOPICS = [
     ("php", "PHP", ["php", "laravel", "لارافيل", "wordpress", "ووردبريس", "symfony"]),
     ("java", "جافا", ["java", "جافا", "spring", "سبرينج"]),
     ("cpp", "C++", ["c++", "cpp", "سي بلس", "سي++"]),
+    ("rust", "Rust", ["rust", "رست", "cargo", "rustc", "borrow checker", "ownership", "tokio", "crates.io"]),
     ("csharp", "C#", ["c#", "csharp", "سي شارب", "dotnet", ".net", "asp.net"]),
     ("mobile", "تطبيقات الموبايل", ["android", "اندرويد", "أندرويد", "ios", "flutter", "فلاتر", "swift", "kotlin", "كوتلن", "react native"]),
     ("database", "قواعد البيانات", ["sql", "mysql", "postgres", "postgresql", "mongodb", "sqlite", "database", "قواعد بيانات", "قاعدة بيانات", "داتا بيز", "اوراكل", "oracle", "redis"]),
@@ -116,10 +117,21 @@ def classify(
     year: int,
     description: str = "",
     tags: list[str] | None = None,
+    hints: list[str] | None = None,
 ) -> dict:
     """يعيد حقول التصنيف لفيديو واحد. year تقريبي من يوتيوب."""
-    text = normalize_ar(" ".join([title, description or "", " ".join(tags or [])]))
-    topics = _topic_ids(text)
+    title_text = normalize_ar(title)
+    hint_text = normalize_ar(" ".join(hints or []))
+    tag_text = normalize_ar(" ".join(tags or []))
+    desc_text = normalize_ar(description or "")
+    text = normalize_ar(" ".join([title, description or "", tag_text, hint_text]))
+    topics = _topic_ids(title_text)
+    if not topics:
+        topics = _topic_ids(hint_text)
+    if not topics:
+        topics = _topic_ids(tag_text)
+    if not topics and len(desc_text) >= 80:
+        topics = _topic_ids(desc_text[:200])[:2]
     kind = _kind(text, duration)
     level = _level(text)
     recency = max(0.0, min(1.5, (year - 2016) / 10))

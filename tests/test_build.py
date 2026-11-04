@@ -1,4 +1,4 @@
-from pipeline.build import build_meta, build_records, load_playlists
+from pipeline.build import build_meta, build_records, load_playlist_hints, load_playlists
 
 
 def entry(vid, title, duration=900, views=1000):
@@ -70,6 +70,38 @@ def test_channel_language_wins_over_title():
     assert meta["languages"] == {"en": 1}
 
 
+def test_channel_topic_fallback_for_known_channel():
+    records = build_records([payload(
+        [entry("a", "Introduction to the language")],
+        channel_id="UCSp-OaMpsO8K0KkOqyBl7_w",
+        channel="Let's Get Rusty",
+        lang="en",
+    )])
+    assert records[0]["topics"] == ["rust"]
+
+
+def test_playlist_hints_classify_video():
+    records = build_records(
+        [payload([entry("a", "Episode 4")], channel_id="UC_OTHER", lang="en")],
+        hints={"a": ["Rust for beginners"]},
+    )
+    assert records[0]["topics"] == ["rust"]
+
+
+def test_load_playlist_hints(tmp_path):
+    import json
+
+    (tmp_path / "ch.json").write_text(json.dumps({
+        "playlists": [
+            {"id": "PL1", "title": "Rust basics", "ids": ["a", "b"]},
+            {"id": "PL2", "title": "Python basics", "ids": ["a"]},
+        ],
+    }), encoding="utf-8")
+    hints = load_playlist_hints(tmp_path)
+    assert hints["a"] == ["Rust basics", "Python basics"]
+    assert hints["b"] == ["Rust basics"]
+
+
 def test_playlists_keep_only_indexed_videos(tmp_path):
     import json
 
@@ -90,12 +122,13 @@ def test_playlists_keep_only_indexed_videos(tmp_path):
     assert lists[0]["ids"] == ["a", "b"]
 
 
-def test_description_is_preserved_when_present():
+def test_description_is_used_but_not_shipped():
     records = build_records([payload([
         {"id": "a", "title": "دورة بايثون", "duration": 900, "views": 100,
          "description": "  وصف تفصيلي للفيديو  ", "timestamp": None},
     ])])
-    assert records[0]["description"] == "وصف تفصيلي للفيديو"
+    assert "description" not in records[0]
+    assert "tags" not in records[0]
 
 
 def test_description_language_and_tags_are_used():
@@ -113,5 +146,5 @@ def test_description_language_and_tags_are_used():
     record = records[0]
     assert record["lang"] == "en"
     assert record["lang_source"] == "description"
-    assert record["tags"] == ["python", "programming"]
+    assert "tags" not in record
     assert "python" in record["topics"]

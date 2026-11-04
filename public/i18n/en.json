@@ -103,6 +103,7 @@
     "php": "PHP",
     "java": "Java",
     "cpp": "C++",
+    "rust": "Rust",
     "csharp": "C#",
     "mobile": "Mobile",
     "database": "Databases",

@@ -63,3 +63,8 @@ def test_description_and_tags_contribute_to_classification():
     assert "python" in r["topics"]
     assert r["level"] == "beginner"
     assert r["level_confidence"] > 0
+
+
+def test_rust_topic():
+    r = c("Rust ownership and the borrow checker explained")
+    assert "rust" in r["topics"]

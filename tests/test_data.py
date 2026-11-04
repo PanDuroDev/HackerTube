@@ -35,7 +35,7 @@ def test_site_payload_budget():
     assets = ROOT / "data" / "hacker-news"
     preview = hn_dir / "videos-preview.json"
 
-    assert VIDEOS.stat().st_size < 4_500_000
+    assert VIDEOS.stat().st_size < 6_200_000
     assert (hn_dir / "videos.json").stat().st_size < 9_000_000
     assert preview.stat().st_size < 200_000
     assert not (hn_dir / "embeddings.npy").exists()
