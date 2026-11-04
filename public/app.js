@@ -360,8 +360,8 @@ async function init() {
   addEventListener("beforeunload", saveCurrentProgress);
   $(".skip-link")?.addEventListener("click", (event) => {
     event.preventDefault();
+    view.scrollTop = 0;
     view.focus();
-    view.scrollIntoView({ block: "start" });
   });
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
@@ -424,6 +424,11 @@ async function init() {
   view.addEventListener("keydown", onViewKeydown);
   view.addEventListener("change", onViewChange);
   view.addEventListener("submit", onViewSubmit);
+  view.addEventListener("scroll", () => {
+    document.querySelectorAll(".watch-submenu[open]").forEach(closeWatchSubmenu);
+    closeSelects();
+    closeWatchActionMenu();
+  }, { passive: true });
 
   const confirmDialog = $("#confirmDialog");
   $("#confirmAccept").addEventListener("click", () => confirmDialog.close("confirm"));
@@ -466,7 +471,7 @@ async function init() {
     renderSidebar();
     addEventListener("hashchange", () => {
       setSidebar(false);
-      scrollTo({ top: 0, left: 0, behavior: "instant" });
+      view.scrollTo({ top: 0, left: 0, behavior: "instant" });
       render();
     });
     render();

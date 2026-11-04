@@ -1108,7 +1108,17 @@ test("Like and Watch later stay beside More while the rest stay inside the menu"
   assert.match(css, /\.watch-action-items \{ display: none; \}/);
   assert.match(css, /\.watch-actions\.menu-open\.drop-up \.watch-action-items \{/);
   assert.match(css, /\.watch-main \.player \{ width: calc\(100% \+ 28px\); margin-inline: -14px; border-radius: 0; \}/);
-  assert.match(css, /html \{ scrollbar-gutter: auto; \}/);
+  assert.match(css, /#view \{ scrollbar-gutter: auto; \}/);
+
+  const bodyRule = css.match(/^body \{([\s\S]*?)\}/m)?.[1] || "";
+  assert.match(bodyRule, /overflow: hidden/);
+  assert.match(bodyRule, /flex-direction: column/);
+  const layoutRule = css.match(/^\.layout \{([\s\S]*?)\}/m)?.[1] || "";
+  assert.match(layoutRule, /grid-template-rows: minmax\(0, 1fr\)/);
+  assert.match(layoutRule, /flex: 1 1 auto/);
+  const mainRule = css.match(/^main \{([\s\S]*?)\}/m)?.[1] || "";
+  assert.match(mainRule, /overflow-y: auto/);
+  assert.match(mainRule, /scrollbar-gutter: stable/);
 
   assert.equal(api.watchActionMenuOpensUp(400, 100, 250), true, "more room above should open upward");
   assert.equal(api.watchActionMenuOpensUp(100, 400, 250), false, "more room below should open downward");
