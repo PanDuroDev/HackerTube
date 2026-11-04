@@ -2824,6 +2824,22 @@ async function requestInstall() {
   if (choice.outcome !== "accepted") toast(tr("settings.installDismissed", "Install dismissed"));
 }
 
+async function uninstallApp() {
+  const api = window.electronWindow;
+  if (!api || typeof api.uninstall !== "function") {
+    toast(tr("settings.uninstallBrowser", "Open your browser's app settings and remove HackerTube."));
+    return;
+  }
+  try {
+    const result = await api.uninstall();
+    if (result && result.ok === false && !result.canceled && !result.handled) {
+      toast(tr("settings.uninstallManual", "Use your system's app settings to uninstall HackerTube."));
+    }
+  } catch {
+    toast(tr("settings.uninstallManual", "Use your system's app settings to uninstall HackerTube."));
+  }
+}
+
 function renderSettings() {
   document.title = `${tr("pages.settings", "Settings")} — HackerTube`;
   const s = state.settings;
@@ -2835,15 +2851,28 @@ function renderSettings() {
     .map(({ code, name }) => `<button type="button" data-locale-pref="${esc(code)}" lang="${esc(code)}" class="${state.locale === code ? "active" : ""}" aria-pressed="${state.locale === code}">${esc(name)}</button>`)
     .join("");
   const installed = isStandalone();
-  const installLabel = installed ? tr("settings.installed", "Installed") : tr("settings.install", "Install");
+  const installLabel = tr("settings.install", "Install");
+  const uninstallLabel = tr("settings.uninstall", "Uninstall");
+  const installAction = installed
+    ? `<button class="btn danger" type="button" data-uninstall-pwa aria-label="${esc(uninstallLabel)}">${icon("trash")} <span>${esc(uninstallLabel)}</span></button>`
+    : `<button class="btn" type="button" data-install-app aria-label="${esc(installLabel)}">${icon("download")} <span>${esc(installLabel)}</span></button>`;
   const installGroup = window.electronWindow ? "" : `<div class="settings-group">
-      <h2>${icon("download")} ${tr("settings.app", "App")}</h2>
+      <h2>${icon("monitor")} ${tr("settings.app", "App")}</h2>
       <div class="setting-row">
-        <span class="row-ic">${icon("download")}</span>
+        <span class="row-ic">${icon("monitor")}</span>
         <span class="setting-text"><b>${tr("settings.installTitle", "Install HackerTube")}</b><small data-install-hint>${esc(installHintText())}</small></span>
-        <button class="btn" type="button" data-install-app aria-label="${esc(installLabel)}" ${installed ? "disabled" : ""}>${icon(installed ? "check" : "download")} <span>${esc(installLabel)}</span></button>
+        ${installAction}
       </div>
     </div>`;
+  const electronAppGroup = window.electronWindow ? `<div class="settings-group">
+      <h2>${icon("monitor")} ${tr("settings.app", "App")}</h2>
+      <div class="setting-row">
+        <span class="row-ic danger">${icon("trash")}</span>
+        <span class="setting-text"><b>${tr("settings.uninstallTitle", "Uninstall HackerTube")}</b><small>${tr("settings.uninstallHint", "Remove the desktop app from this computer.")}</small></span>
+        <button class="btn danger" type="button" data-uninstall-app aria-label="${esc(uninstallLabel)}">${icon("trash")} <span>${esc(uninstallLabel)}</span></button>
+      </div>
+    </div>` : "";
+  const appGroup = window.electronWindow ? electronAppGroup : installGroup;
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
@@ -2854,7 +2883,7 @@ function renderSettings() {
       <h2>${icon("language")} ${tr("settings.language", "Language")}</h2>
       <div class="segmented" role="group" aria-label="${tr("settings.language", "Language")}">${localeSeg}</div>
     </div>
-    ${installGroup}
+    ${appGroup}
     <div class="settings-group">
       <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
       <label class="setting-row">
@@ -3070,6 +3099,13 @@ function onViewClick(e) {
   if (installButton) {
     e.preventDefault();
     requestInstall();
+    return;
+  }
+
+  const uninstallButton = e.target.closest("[data-uninstall-app], [data-uninstall-pwa]");
+  if (uninstallButton) {
+    e.preventDefault();
+    uninstallApp();
     return;
   }
 
