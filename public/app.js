@@ -60,6 +60,7 @@ const state = {
   hnLimit: 36,
   hnFilters: Object.assign({}, HN_DEFAULTS),
   hnUiOpen: false,
+  hnFacets: null,
   hnTotal: 0,
   topicLabels: {},
   channels: new Map(),
@@ -83,7 +84,7 @@ const state = {
   playlistLimit: 24,
 };
 
-const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
+const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false, facets: null };
 let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
@@ -1073,19 +1074,30 @@ function filtersPanel() {
     field("year", tr("filters.year", "Year"), tr("filters.anyYear", "Any year"), years.map((y) => [y, String(y)]), ui.year),
     field("sort", tr("filters.sort", "Sort"), tr("filters.best", "Best"), sortOptions, ui.sort),
   ].join("");
+  const topicChips = `<div class="chips">
+    <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">${tr("filters.allTopics", "All")}</button>
+    ${topics}
+  </div>`;
   return `<div class="filters">
-    <div class="filter-group">
-      <span class="filter-label">${tr("filters.topic", "Topic")}</span>
-      <div class="chips">
-        <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">${tr("filters.allTopics", "All")}</button>
-        ${topics}
-      </div>
-    </div>
-    <div class="filter-grid">${selects}</div>
+    ${facet("topics", tr("filters.topic", "Topic"), ui.topics.size, topicChips)}
+    ${facet("fields", tr("filters.refine", "Refine"), filterCount() - ui.topics.size, `<div class="filter-grid">${selects}</div>`)}
     <div class="filter-foot">
       <button class="btn" data-clear ${hasFilters() ? "" : "disabled"}>${tr("filters.clearAll", "Clear all")}</button>
       <button class="btn primary" data-filter-close>${tr("filters.done", "Done")}</button>
     </div>
+  </div>`;
+}
+
+/* Topic chips and refine selects collapse on small screens so the panel opens compact. */
+function facet(key, label, count, body, group = "ui") {
+  const map = group === "hn" ? (state.hnFacets ||= {}) : (ui.facets ||= {});
+  if (map[key] === undefined) map[key] = !matchMedia("(max-width: 720px)").matches;
+  const open = map[key];
+  return `<div class="facet">
+    <button type="button" class="facet-head" data-facet="${key}" data-facet-group="${group}" aria-expanded="${open}">
+      <span>${esc(label)}</span>${count ? `<span class="facet-count">${count}</span>` : ""}${icon("chevron")}
+    </button>
+    <div class="facet-body"${open ? "" : " hidden"}>${body}</div>
   </div>`;
 }
 
@@ -2181,14 +2193,14 @@ function hnFiltersPanel(records) {
         <button type="button" data-hn-scope="all" class="${filters.scope === "all" ? "active" : ""}" aria-pressed="${filters.scope === "all"}">${tr("hn.allHn", "All HN")}</button>
       </div>
     </div>
-    <div class="filter-grid">
+    ${facet("fields", tr("filters.refine", "Refine"), hnFilterCount() - (filters.scope !== HN_DEFAULTS.scope ? 1 : 0), `<div class="filter-grid">
       ${field("recommendation", tr("hn.recommendation", "Recommendation"), tr("hn.allVideos", "All videos"), [["recommended", tr("hn.recommendedOnly", "Recommended only")], ["discussed", tr("hn.discussedOnly", "Discussed only")]], filters.recommendation, "hn")}
       ${field("contentType", tr("hn.type", "Type"), tr("hn.allTypes", "All types"), contentTypes, filters.contentType, "hn")}
       ${field("level", tr("hn.level", "Level"), tr("hn.allLevels", "All levels"), levels, filters.level, "hn")}
       ${field("shelfLife", tr("hn.shelfLife", "Shelf life"), tr("hn.allShelfLives", "All shelf lives"), shelfLives, filters.shelfLife, "hn")}
       ${field("area", tr("hn.area", "Area"), tr("hn.allAreas", "All areas"), areas, filters.area, "hn")}
       ${field("sort", tr("hn.sort", "Sort"), tr("hn.bestMatch", "Best match"), [["score", tr("hn.hnScore", "HN score")], ["recommenders", tr("hn.mostRecommenders", "Most recommenders")], ["mentions", tr("hn.mostMentions", "Most mentions")]], filters.sort, "hn")}
-    </div>
+    </div>`, "hn")}
     <div class="filter-foot">
       <button class="btn" data-hn-clear ${hnFilterCount() ? "" : "disabled"}>${tr("hn.clearAll", "Clear all")}</button>
       <button class="btn primary" data-hn-close>${tr("hn.done", "Done")}</button>
@@ -2776,6 +2788,17 @@ function onViewClick(e) {
     state.homeStale = false;
     renderFeed(state.scope);
     toast(tr("toasts.feedRefreshed", "Feed refreshed"));
+    return;
+  }
+
+  const facetBtn = e.target.closest("[data-facet]");
+  if (facetBtn) {
+    const group = facetBtn.dataset.facetGroup || "ui";
+    const map = group === "hn" ? state.hnFacets : ui.facets;
+    const open = !map[facetBtn.dataset.facet];
+    map[facetBtn.dataset.facet] = open;
+    facetBtn.setAttribute("aria-expanded", String(open));
+    facetBtn.nextElementSibling.hidden = !open;
     return;
   }
 

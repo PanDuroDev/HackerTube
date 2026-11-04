@@ -62,6 +62,7 @@
   "filters": {
     "button": "Filters",
     "topic": "Topic",
+    "refine": "Refine",
     "allTopics": "All",
     "channel": "Channel",
     "allChannels": "All channels",
