@@ -313,7 +313,11 @@
     "unknownChannel": "Unknown channel",
     "continueWatching": "Continue watching",
     "addedToWatchLater": "Added to Watch later",
-    "removedFromWatchLater": "Removed from Watch later"
+    "removedFromWatchLater": "Removed from Watch later",
+    "play": "Play",
+    "pause": "Pause",
+    "minimize": "Minimize player",
+    "seek": "Seek"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",
