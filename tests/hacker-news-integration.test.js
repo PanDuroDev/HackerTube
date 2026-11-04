@@ -999,6 +999,20 @@ test("language selection lives in Settings and uses site-styled buttons", () => 
   assert.doesNotMatch(view.innerHTML, /localeSelect/);
 });
 
+test("icon-and-label buttons collapse to their icon on mobile", () => {
+  const { api, view } = createHarness();
+  api.renderSettings();
+  for (const label of ["Light", "Dark", "System"]) {
+    assert.match(view.innerHTML, new RegExp(`data-theme-pref="[^"]+"[^>]*aria-label="${label}"`));
+    assert.match(view.innerHTML, new RegExp(`title="${label}"`));
+  }
+
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  assert.match(css, /\.btn:has\(> \.ic\):not\(\.filter-btn\):not\(\.watch-action-item\):not\(\.resume-btn\):not\(\.keep-label\)/);
+  assert.match(css, /\.segmented button:has\(> \.ic\) \{/);
+  assert.match(css, /font-size: 0;/);
+});
+
 test("route skeletons match the current page instead of showing feed cards everywhere", () => {
   const harness = createHarness();
   const { api, location, view } = harness;

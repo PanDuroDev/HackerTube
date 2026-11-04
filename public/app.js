@@ -2273,7 +2273,7 @@ async function renderHNWatch(requestedVideoId, playlistId = null, autoplay = fal
         <h2 class="section-title">${tr("watch.relatedPicks", "Related HackerTube picks")}</h2>
         <div class="related-grid">${relatedCards.map(hnCard).join("") || `<p class="count">${tr("watch.noRelated", "No related videos available.")}</p>`}</div>
         <h2 class="section-title">${tr("watch.source", "Source")}</h2>
-        <a class="btn" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} ${tr("hn.title", "Hacker News")}</a>
+        <a class="btn keep-label" href="${esc(comments[0]?.hn_url || "https://news.ycombinator.com/")}" target="_blank" rel="noopener noreferrer">${icon("external")} ${tr("hn.title", "Hacker News")}</a>
         ${hnAttributionHTML()}
       </aside>
     </section>`;
@@ -2498,7 +2498,7 @@ async function renderBuiltinPlaylist(id) {
     <div class="feed-head"><h1>${esc(meta.title)}</h1><span class="count">${videos(list.length)}</span></div>
     <div class="pl-head">
       ${list.length ? `<a class="btn primary" href="#/watch/${list[0].id}?list=${encodeURIComponent(id)}&autoplay=1">${icon("play")} ${tr("playlists.playAll", "Play all")}</a>` : ""}
-      <a class="btn" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
+      <a class="btn keep-label" href="#/channel/${meta.channel_id}">${icon("channels")} ${esc(meta.channel)}</a>
     </div>
     ${list.length
       ? `<div class="grid">${list.map((v) => card(v)).join("")}</div>`
@@ -2550,7 +2550,7 @@ function renderSettings() {
   document.title = `${tr("pages.settings", "Settings")} — HackerTube`;
   const s = state.settings;
   const seg = [["light", tr("settings.light", "Light"), "sun"], ["dark", tr("settings.dark", "Dark"), "moon"], ["system", tr("settings.system", "System"), "monitor"]]
-    .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}">${icon(ic)} ${label}</button>`)
+    .map(([value, label, ic]) => `<button data-theme-pref="${value}" class="${state.theme === value ? "active" : ""}" aria-pressed="${state.theme === value}" aria-label="${esc(label)}" title="${esc(label)}">${icon(ic)} ${esc(label)}</button>`)
     .join("");
   const locales = I18N ? I18N.locales() : [{ code: "en", name: "English" }, { code: "ar", name: "العربية" }];
   const localeSeg = locales

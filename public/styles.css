@@ -1711,6 +1711,20 @@ a.card-sub:hover { color: var(--text); }
   .mini-frame.mini-player .player-grab { display: none; }
   .player.dragging { transition: none; }
 
+  .btn:has(> .ic):not(.filter-btn):not(.watch-action-item):not(.resume-btn):not(.keep-label) {
+    flex: 0 0 auto;
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
+    gap: 0;
+    font-size: 0;
+  }
+  .segmented button:has(> .ic) {
+    gap: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
   .brand-name { display: none; }
   .brand small { display: none; }
   .search { margin-inline: 0; }
