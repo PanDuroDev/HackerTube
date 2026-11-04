@@ -2864,6 +2864,8 @@ function renderUpdateButton() {
     : pendingUpdate?.version
       ? tr("header.updateTo", "Update to version {version}", { version: pendingUpdate.version })
       : tr("header.update", "Update");
+  const text = button.querySelector("[data-update-label]");
+  if (text) text.textContent = updateBusy ? tr("header.updating", "Updating…") : tr("header.update", "Update");
   button.setAttribute("aria-label", label);
   button.setAttribute("title", label);
 }
