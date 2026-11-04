@@ -50,7 +50,7 @@ pip install -r requirements.txt
 cp .env.example .env         # Optional for fetch; required for fetch_playlists
 python -m pipeline.fetch     # Fetch the latest 500 videos per channel (2,500 for freeCodeCamp.org) into data/raw/
 python -m pipeline.fetch_playlists  # Requires YOUTUBE_API_KEY; fetches creator playlists into data/playlists/
-python -m pipeline.build     # Generates videos.json, meta.json, and playlists.json
+python -m pipeline.build     # Generates videos.json, home.json, meta.json, playlists.json, and playlists-meta.json
 python -m pipeline.import_hacker_news  # Imports Hacker News recommendations without duplicate videos
 python -m pipeline.build_sitemap       # Generates sitemap.xml and robots.txt
 pytest                       # Run the test suite
