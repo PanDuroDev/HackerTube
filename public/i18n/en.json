@@ -23,7 +23,10 @@
   "sidebar": {
     "navigation": "Navigation",
     "menu": "Menu",
-    "explore": "Explore"
+    "explore": "Explore",
+    "downloadFor": "Download for {platform}",
+    "downloadDesktop": "Desktop app",
+    "downloadHint": "Download the desktop app for Windows, macOS or Linux"
   },
   "nav": {
     "home": "Home",
