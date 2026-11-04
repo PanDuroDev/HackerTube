@@ -91,6 +91,7 @@ let progressPoll = null;
 let miniState = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
+let playlistMetaPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
 let confirmationResolver = null;
@@ -444,7 +445,7 @@ async function init() {
     state.catalogLoaded = false;
     state.meta = meta;
     state.hnTotal = Number(hnMeta?.imported_videos) || 0;
-    state.builtin = meta.playlists || [];
+    state.builtin = [];
     state.homeOrder = buildHomeOrder(home);
     state.byId = new Map(home.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
@@ -496,6 +497,22 @@ function showCatalogError(err) {
   view.innerHTML = `<div class="error"><strong>Could not load the catalog.</strong>
     <p>Run the site from a local server: <code>python -m http.server 8080 -d public</code></p>
     <p>${esc(err.message)}</p></div>`;
+}
+
+function ensurePlaylistMeta() {
+  if (state.builtin.length) return Promise.resolve(state.builtin);
+  if (!playlistMetaPromise) {
+    playlistMetaPromise = fetchJson("data/playlists-meta.json")
+      .then((list) => {
+        state.builtin = Array.isArray(list) ? list : [];
+        return state.builtin;
+      })
+      .catch((err) => {
+        playlistMetaPromise = null;
+        throw err;
+      });
+  }
+  return playlistMetaPromise;
 }
 
 function pageSize() {
@@ -2580,6 +2597,10 @@ function filteredCreatorPlaylists() {
 
 async function renderPlaylists() {
   const routeHash = location.hash;
+  try {
+    await ensurePlaylistMeta();
+  } catch { /* Keep local playlists usable if creator metadata fails. */ }
+  if (location.hash !== routeHash) return;
   const hasUnresolvedVideos = state.playlists.some((playlist) =>
     playlist.ids.some((id) => !state.byId.has(id) && !state.hnById.has(id) && !state.hnExisting?.[id])
   );
@@ -2639,6 +2660,12 @@ function creatorPlaylistCard(p) {
 }
 
 async function renderBuiltinPlaylist(id) {
+  try {
+    await ensurePlaylistMeta();
+  } catch {
+    return renderNotFound();
+  }
+  if (location.hash !== `#/playlist/${id}`) return;
   const meta = state.builtin.find((p) => p.id === id);
   if (!meta) return renderNotFound();
   document.title = `${meta.title} — HackerTube`;

@@ -158,6 +158,20 @@ def load_playlists(records: list[dict], folder: Path = PLAYLIST_RAW) -> list[dic
     return playlists
 
 
+def playlist_entries(playlists: list[dict]) -> list[dict]:
+    return [
+        {
+            "id": p["id"],
+            "title": p["title"],
+            "channel_id": p["channel_id"],
+            "channel": p["channel"],
+            "count": len(p["ids"]),
+            "cover": p["ids"][0],
+        }
+        for p in playlists
+    ]
+
+
 def build_meta(records: list[dict], payloads: list[dict], playlists: list[dict]) -> dict:
     topic_counts = Counter(t for r in records for t in r["topics"])
     channel_counts = Counter((r["channel_id"], r["channel"]) for r in records)
@@ -176,17 +190,7 @@ def build_meta(records: list[dict], payloads: list[dict], playlists: list[dict])
             for tid in TOPIC_LABELS
             if topic_counts[tid]
         ],
-        "playlists": [
-            {
-                "id": p["id"],
-                "title": p["title"],
-                "channel_id": p["channel_id"],
-                "channel": p["channel"],
-                "count": len(p["ids"]),
-                "cover": p["ids"][0],
-            }
-            for p in playlists
-        ],
+        "playlist_count": len(playlists),
         "fetched_channels": len(payloads),
     }
 
@@ -211,6 +215,10 @@ def main() -> int:
     )
     (OUT / "playlists.json").write_text(
         json.dumps({p["id"]: p["ids"] for p in playlists}, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    (OUT / "playlists-meta.json").write_text(
+        json.dumps(playlist_entries(playlists), ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
     )
     (OUT / "meta.json").write_text(
