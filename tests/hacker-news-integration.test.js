@@ -1081,16 +1081,22 @@ test("watch players expose the mobile drag handle without extra controls", async
 
   const markup = harness.view.innerHTML;
   assert.equal((markup.match(/class="player"/g) || []).length, 1, "the player must not be nested twice");
+  assert.match(markup, /class="mini-frame"/);
+  assert.match(markup, /class="mini-bar"/);
+  assert.match(markup, /data-mini-back/);
+  assert.match(markup, /data-mini-size/);
+  assert.match(markup, /data-mini-close/);
   assert.match(markup, /data-player-grab/);
   assert.doesNotMatch(markup, /mini-controls|data-mini-toggle|data-mini-seek|type="range"/);
   assert.match(markup, /id="youtube-player"/);
 
   const wrapper = api.playerContainerMarkup('<iframe id="youtube-player"></iframe>');
   assert.equal((wrapper.match(/class="player"/g) || []).length, 1);
+  assert.ok(wrapper.indexOf("mini-bar") < wrapper.indexOf('id="youtube-player"'));
   assert.ok(wrapper.indexOf('id="youtube-player"') < wrapper.indexOf("data-player-grab"));
 });
 
-test("the mini player keeps the native YouTube controls and uses the MingCute share icon", () => {
+test("the mini player window keeps the native YouTube controls and uses the MingCute share icon", () => {
   const root = path.join(__dirname, "..", "public");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
@@ -1098,15 +1104,20 @@ test("the mini player keeps the native YouTube controls and uses the MingCute sh
   const share = html.match(/<symbol id="i-share"[\s\S]*?<\/symbol>/)?.[0] || "";
   assert.match(share, /m16\.136 8\.081/, "share should use the MingCute share-2 path");
   assert.doesNotMatch(share, /M18 16\.08/);
+  assert.match(html, /<symbol id="i-expand-player"/);
+  assert.match(html, /<symbol id="i-miniplayer"/);
+  assert.match(html, /<div id="mini-host" hidden><\/div>/);
 
-  assert.match(css, /\.player\.mini-player \{/);
-  assert.match(css, /\.player\.mini-player \.player-grab \{/);
+  assert.match(css, /\.mini-frame\.mini-player \{/);
+  assert.match(css, /\.mini-frame\.mini-player\.mini-large \{/);
+  assert.match(css, /\.mini-frame\.mini-player \.mini-bar \{/);
+  assert.match(css, /\.mini-frame\.mini-player \.player-grab \{ display: none; \}/);
   assert.doesNotMatch(css, /\.player\.mini-player iframe \{ pointer-events: none; \}/);
   assert.doesNotMatch(css, /\.mini-(toggle|seek|controls)/);
 
   const en = JSON.parse(fs.readFileSync(path.join(root, "i18n", "en.json"), "utf8"));
   const ar = JSON.parse(fs.readFileSync(path.join(root, "i18n", "ar.json"), "utf8"));
-  for (const key of ["minimize", "expand"]) {
+  for (const key of ["minimize", "playerWindow", "backToVideo", "enlarge", "shrink", "closePlayer"]) {
     assert.ok(en.watch[key], `en watch.${key} is missing`);
     assert.ok(ar.watch[key], `ar watch.${key} is missing`);
   }

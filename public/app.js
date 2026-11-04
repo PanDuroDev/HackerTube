@@ -86,6 +86,7 @@ const state = {
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let playlistPlayer = null;
 let progressPoll = null;
+let miniState = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
@@ -388,7 +389,7 @@ async function init() {
     setSidebar(false);
   });
   matchMedia("(max-width: 720px)").addEventListener?.("change", (event) => {
-    if (!event.matches) restorePlayer();
+    if (!event.matches) restoreMiniPlayer();
   });
   if (matchMedia("(prefers-color-scheme: dark)").addEventListener) {
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
@@ -648,13 +649,6 @@ function setSidebar(open) {
 /* ---------- Routing ---------- */
 
 function render() {
-  stopMiniPlayer();
-  if (playlistPlayer) {
-    saveCurrentProgress();
-    stopProgressPoll();
-    playlistPlayer.destroy();
-    playlistPlayer = null;
-  }
   const hash = location.hash || "#/";
   const raw = hash.replace(/^#\/?/, "");
   const queryIndex = raw.indexOf("?");
@@ -662,6 +656,17 @@ function render() {
   const params = new URLSearchParams(queryIndex < 0 ? "" : raw.slice(queryIndex + 1));
   const [seg, ...rest] = path.split("/");
   const arg = decodeURIComponent(rest.join("/"));
+
+  const routeIsWatch = seg === "watch" || seg === "hn-watch";
+  if (miniState && routeIsWatch) {
+    const currentId = playerVideoId();
+    if (currentId && currentId === arg) {
+      const position = Number(playlistPlayer?.getCurrentTime?.() || 0);
+      if (position > 0) state.pendingResume = { id: currentId, position };
+    }
+  }
+  if (!miniState || routeIsWatch) destroyMiniPlayer();
+
   state.current = null;
   ui.open = false;
 
@@ -1251,8 +1256,15 @@ function emptyState() {
 /* ---------- Watch ---------- */
 
 function playerContainerMarkup(markup) {
-  return `<div class="player">${markup}
-    <button class="player-grab" type="button" data-player-grab aria-label="${tr("watch.minimize", "Minimize player")}" title="${tr("watch.minimize", "Minimize player")}">${icon("chevron")}</button>
+  return `<div class="mini-frame" data-mini-frame>
+    <div class="mini-bar" data-mini-bar role="toolbar" aria-label="${tr("watch.playerWindow", "Player window")}">
+      <button class="mini-bar-btn mini-back" type="button" data-mini-back aria-label="${tr("watch.backToVideo", "Back to video")}" title="${tr("watch.backToVideo", "Back to video")}">${icon("chevron")}</button>
+      <button class="mini-bar-btn" type="button" data-mini-size aria-label="${tr("watch.enlarge", "Enlarge window")}" title="${tr("watch.enlarge", "Enlarge window")}">${icon("expand-player")}</button>
+      <button class="mini-bar-btn" type="button" data-mini-close aria-label="${tr("watch.closePlayer", "Close player")}" title="${tr("watch.closePlayer", "Close player")}">${icon("close")}</button>
+    </div>
+    <div class="player">${markup}
+      <button class="player-grab" type="button" data-player-grab aria-label="${tr("watch.minimize", "Minimize player")}" title="${tr("watch.minimize", "Minimize player")}">${icon("chevron")}</button>
+    </div>
   </div>`;
 }
 
@@ -1260,49 +1272,87 @@ function miniPlayerMobile() {
   return typeof matchMedia === "function" && matchMedia("(max-width: 720px)").matches;
 }
 
-function setGrabLabel(player, expanded) {
-  const grab = player.querySelector("[data-player-grab]");
-  if (!grab) return;
-  const label = expanded ? tr("watch.expand", "Expand player") : tr("watch.minimize", "Minimize player");
-  grab.setAttribute("aria-label", label);
-  grab.setAttribute("title", label);
+function playerVideoId() {
+  try {
+    return playlistPlayer?.getVideoData?.()?.video_id || miniState?.videoId || null;
+  } catch {
+    return miniState?.videoId || null;
+  }
+}
+
+function destroyMiniPlayer() {
+  if (playlistPlayer) {
+    saveCurrentProgress();
+    stopProgressPoll();
+    playlistPlayer.destroy();
+    playlistPlayer = null;
+  }
+  const host = $("#mini-host");
+  if (host) {
+    host.innerHTML = "";
+    host.hidden = true;
+  }
+  miniState = null;
+}
+
+function setMiniSize(frame, large) {
+  frame.classList.toggle("mini-large", large);
+  const button = frame.querySelector("[data-mini-size]");
+  if (!button) return;
+  const label = large ? tr("watch.shrink", "Shrink window") : tr("watch.enlarge", "Enlarge window");
+  button.setAttribute("aria-label", label);
+  button.setAttribute("title", label);
+  button.innerHTML = icon(large ? "miniplayer" : "expand-player");
 }
 
 function minimizePlayer() {
-  const player = $(".watch-main .player");
-  if (!player || !miniPlayerMobile() || player.classList.contains("mini-player")) return;
-  player.classList.add("mini-player");
-  setGrabLabel(player, true);
+  const frame = $(".watch-main .mini-frame");
+  const host = $("#mini-host");
+  if (!frame || !host || !miniPlayerMobile() || miniState) return;
+  const framePlayer = frame.querySelector(".player");
+  framePlayer?.classList.remove("dragging");
+  if (framePlayer) framePlayer.style.transform = "";
+  const hash = location.hash;
+  const params = new URLSearchParams(hash.split("?")[1] || "");
+  miniState = {
+    href: hash,
+    videoId: state.current || playerVideoId(),
+    playlistId: params.get("list"),
+  };
+  host.hidden = false;
+  host.appendChild(frame);
+  frame.classList.add("mini-player");
+  setMiniSize(frame, false);
+  if (location.hash !== "#/") location.hash = "#/";
 }
 
-function restorePlayer(scroll = false) {
-  const player = $(".watch-main .player");
-  if (!player || !player.classList.contains("mini-player")) return;
-  player.classList.remove("mini-player", "dragging");
-  player.style.transform = "";
-  setGrabLabel(player, false);
-  if (scroll) player.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-}
-
-function stopMiniPlayer() {
-  const player = $(".watch-main .player.mini-player");
-  if (!player) return;
-  player.classList.remove("mini-player", "dragging");
-  player.style.transform = "";
-  setGrabLabel(player, false);
+function restoreMiniPlayer() {
+  if (!miniState) return;
+  const currentId = playerVideoId();
+  const changed = currentId && currentId !== miniState.videoId;
+  const video = changed ? videoById(currentId) : null;
+  const target = video ? videoWatchHref(video) : miniState.href.split("?")[0];
+  const params = new URLSearchParams();
+  if (miniState.playlistId) params.set("list", miniState.playlistId);
+  params.set("autoplay", "1");
+  location.hash = `${target}?${params}`;
 }
 
 function setupMiniPlayer() {
-  const player = $(".watch-main .player");
-  if (!player) return;
-  const grab = player.querySelector("[data-player-grab]");
+  const frame = $(".watch-main .mini-frame");
+  if (!frame) return;
+  const player = frame.querySelector(".player");
+  const grab = player?.querySelector("[data-player-grab]");
+  const back = frame.querySelector("[data-mini-back]");
+  const size = frame.querySelector("[data-mini-size]");
+  const close = frame.querySelector("[data-mini-close]");
   let startY = null;
   let startX = 0;
   let dragY = 0;
   let dragging = false;
 
   grab?.addEventListener("touchstart", (event) => {
-    if (!miniPlayerMobile() || player.classList.contains("mini-player")) return;
+    if (!miniPlayerMobile() || miniState) return;
     const touch = event.touches[0];
     startY = touch.clientY;
     startX = touch.clientX;
@@ -1327,16 +1377,28 @@ function setupMiniPlayer() {
     const shouldMinimize = dragging && dragY > 70;
     startY = null;
     dragging = false;
-    player.classList.remove("dragging");
-    player.style.transform = "";
+    player?.classList.remove("dragging");
+    if (player) player.style.transform = "";
     if (shouldMinimize) minimizePlayer();
   };
   grab?.addEventListener("touchend", finishDrag);
   grab?.addEventListener("touchcancel", finishDrag);
   grab?.addEventListener("click", (event) => {
     event.stopPropagation();
-    if (player.classList.contains("mini-player")) restorePlayer(true);
-    else if (miniPlayerMobile()) minimizePlayer();
+    minimizePlayer();
+  });
+
+  back?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    restoreMiniPlayer();
+  });
+  size?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (miniState) setMiniSize(frame, !frame.classList.contains("mini-large"));
+  });
+  close?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    destroyMiniPlayer();
   });
 }
 
@@ -1493,7 +1555,7 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             saveCurrentProgress();
           }
-          if (event.data === YT.PlayerState.ENDED && (!queue || queue.length <= 1) && state.settings.autoplayNext) {
+          if (!miniState && event.data === YT.PlayerState.ENDED && (!queue || queue.length <= 1) && state.settings.autoplayNext) {
             const currentId = event.target.getVideoData()?.video_id || videoId;
             const next = nextRelatedVideo(currentId);
             if (next) location.hash = videoWatchHref(next);
@@ -1504,7 +1566,7 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           }
           if (event.data !== YT.PlayerState.PLAYING) return;
           const playingId = event.target.getVideoData()?.video_id;
-          if (playingId && playingId !== state.current && queue?.includes(playingId)) {
+          if (!miniState && playingId && playingId !== state.current && queue?.includes(playingId)) {
             syncWatchVideo(playingId, playlistId);
           }
         },

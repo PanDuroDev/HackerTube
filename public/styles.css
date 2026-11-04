@@ -637,6 +637,8 @@ a.card-sub:hover { color: var(--text); }
 
 .player iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+.mini-frame { position: relative; }
+.mini-bar { display: none; }
 .player-grab { display: none; }
 
 .watch-title {
@@ -1644,7 +1646,7 @@ a.card-sub:hover { color: var(--text); }
     touch-action: none;
   }
   .player-grab .ic { width: 18px; height: 18px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
-  .player.mini-player {
+  .mini-frame.mini-player {
     position: fixed;
     z-index: 60;
     inset-block-start: auto;
@@ -1654,18 +1656,47 @@ a.card-sub:hover { color: var(--text); }
     width: min(320px, calc(100vw - 24px));
     margin: 0;
     border-radius: 10px;
+    overflow: hidden;
+    background: #000;
     box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
     animation: miniIn .18s ease-out both;
+    transition: width .16s ease;
   }
-  .player.mini-player .player-grab {
-    top: 4px;
-    width: 64px;
-    height: 24px;
-    opacity: .6;
+  .mini-frame.mini-player.mini-large { width: min(480px, calc(100vw - 24px)); }
+  .mini-frame.mini-player .mini-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 36px;
+    padding: 0 4px;
+    background: #181818;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
   }
-  .player.mini-player .player-grab .ic { transform: rotate(180deg); }
-  .player.mini-player .player-grab:hover,
-  .player.mini-player .player-grab:focus-visible { opacity: 1; }
+  .mini-bar-btn {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    opacity: .85;
+    cursor: pointer;
+  }
+  .mini-bar-btn:hover,
+  .mini-bar-btn:focus-visible { background: rgba(255, 255, 255, .1); opacity: 1; }
+  .mini-bar-btn .ic { width: 20px; height: 20px; }
+  .mini-bar-btn[data-mini-size] { margin-inline-start: auto; }
+  .mini-back .ic { transform: rotate(90deg); }
+  [dir="rtl"] .mini-back .ic { transform: rotate(-90deg); }
+  .mini-frame.mini-player .player {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+  .mini-frame.mini-player .player-grab { display: none; }
   .player.dragging { transition: none; }
 
   .brand-name { display: none; }
@@ -1860,5 +1891,5 @@ a.card-sub:hover { color: var(--text); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .player.mini-player { animation: none; }
+  .mini-frame.mini-player { animation: none; transition: none; }
 }
