@@ -28,6 +28,9 @@ def test_built_dataset_schema():
         assert "search" not in v
         assert 0 <= v["year"] <= 2030
 
+    rust_course = next((v for v in videos if v["id"] == "BpPEoZW5IiY"), None)
+    assert rust_course is not None and "rust" in rust_course["topics"]
+
 
 
 def test_site_payload_budget():
@@ -35,7 +38,7 @@ def test_site_payload_budget():
     assets = ROOT / "data" / "hacker-news"
     preview = hn_dir / "videos-preview.json"
 
-    assert VIDEOS.stat().st_size < 4_500_000
+    assert VIDEOS.stat().st_size < 6_200_000
     assert (hn_dir / "videos.json").stat().st_size < 9_000_000
     assert preview.stat().st_size < 200_000
     assert not (hn_dir / "embeddings.npy").exists()

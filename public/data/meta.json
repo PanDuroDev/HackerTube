@@ -1,116 +1,186 @@
 {
- "generated_at": "2026-11-03T12:19:51+00:00",
- "total": 12096,
- "total_hours": 6189,
+ "generated_at": "2026-11-04T01:39:38+00:00",
+ "total": 18140,
+ "total_hours": 12094,
  "languages": {
-  "en": 6279,
-  "ar": 5817
+  "en": 12182,
+  "ar": 5958
  },
  "channels": [
   {
-   "id": "UCW5YeuERMmlnqo4oq8vwUpg",
-   "name": "Net Ninja",
-   "count": 484
-  },
-  {
-   "id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
-   "name": "Coder Shiyar (كودر شيار)",
-   "count": 484
-  },
-  {
-   "id": "UCIKDaj_tCR7ntiwM71DfaBg",
-   "name": "راكوان للبرمجة - CodeRK",
-   "count": 479
-  },
-  {
-   "id": "UCWX_0VvMxl0_XosvYOZ7O0g",
-   "name": "محمد الدسوقى (Mohamed El Desouki)",
-   "count": 431
-  },
-  {
-   "id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
-   "name": "Codevolution",
-   "count": 404
-  },
-  {
-   "id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
-   "name": "Bro Code",
-   "count": 402
-  },
-  {
-   "id": "UCxxljM6JkSvJVSD_T90ZnMw",
-   "name": "Hesham Asem",
-   "count": 387
+   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "name": "freeCodeCamp.org",
+   "count": 1561
   },
   {
    "id": "UC7OGxluGpaD5NHMNoKj33pw",
    "name": "Muhammed Essa",
-   "count": 382
+   "count": 499
   },
   {
-   "id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
-   "name": "Elzero Web School",
-   "count": 377
+   "id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "name": "Computerphile",
+   "count": 498
   },
   {
-   "id": "UCY38RvRIxYODO4penyxUwTg",
-   "name": "Dave Gray",
-   "count": 375
+   "id": "UCW5YeuERMmlnqo4oq8vwUpg",
+   "name": "Net Ninja",
+   "count": 494
   },
   {
-   "id": "UC59K-uG2A5ogwIrHw4bmlEg",
-   "name": "Telusko",
-   "count": 363
+   "id": "UCaGo8x7uqxMK5A08AI8s6IQ",
+   "name": "QAcart",
+   "count": 491
   },
   {
-   "id": "UC_mYaQAE6-71rjSN6CeCA-g",
-   "name": "NeetCode",
-   "count": 358
+   "id": "UCWX_0VvMxl0_XosvYOZ7O0g",
+   "name": "محمد الدسوقى (Mohamed El Desouki)",
+   "count": 468
   },
   {
    "id": "UC29ju8bIPH5as8OGnQzwJyA",
    "name": "Traversy Media",
-   "count": 336
+   "count": 459
   },
   {
-   "id": "UCbQh1yxBPVhyjB-G_blFFEQ",
-   "name": "Abdelrahman Gamal",
-   "count": 326
+   "id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
+   "name": "Codevolution",
+   "count": 458
   },
   {
-   "id": "UCSJbGtTlrDami-tDGPUV9-w",
-   "name": "Academind",
-   "count": 323
+   "id": "UCbRP3c757lWg9M-U7TyEkXA",
+   "name": "Theo - t3․gg",
+   "count": 458
   },
   {
-   "id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
-   "name": "TheNewBaghdad (بغداد الجديدة)",
-   "count": 310
+   "id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+   "name": "Bro Code",
+   "count": 455
   },
   {
-   "id": "UCtb5ZYdEPjgVU58AOqs5xHg",
-   "name": "محمود السكري | كود عربي",
-   "count": 263
-  },
-  {
-   "id": "UCJZv4d5rbIKd4QHMPkcABCw",
-   "name": "Kevin Powell",
-   "count": 253
-  },
-  {
-   "id": "UCFbNIlppjAuEX4znoulh0Cw",
-   "name": "Web Dev Simplified",
-   "count": 242
+   "id": "UCIKDaj_tCR7ntiwM71DfaBg",
+   "name": "راكوان للبرمجة - CodeRK",
+   "count": 452
   },
   {
    "id": "UC-8QAzbLcRglXeN_MY9blyw",
    "name": "Ben Awad",
-   "count": 237
+   "count": 451
+  },
+  {
+   "id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "name": "Academind",
+   "count": 448
+  },
+  {
+   "id": "UC_mYaQAE6-71rjSN6CeCA-g",
+   "name": "NeetCode",
+   "count": 441
+  },
+  {
+   "id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
+   "name": "Coder Shiyar (كودر شيار)",
+   "count": 437
+  },
+  {
+   "id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "name": "Elzero Web School",
+   "count": 426
+  },
+  {
+   "id": "UCY38RvRIxYODO4penyxUwTg",
+   "name": "Dave Gray",
+   "count": 416
+  },
+  {
+   "id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "name": "Web Dev Simplified",
+   "count": 406
+  },
+  {
+   "id": "UCJZv4d5rbIKd4QHMPkcABCw",
+   "name": "Kevin Powell",
+   "count": 404
+  },
+  {
+   "id": "UCsBjURrPoezykLs9EqgamOA",
+   "name": "Fireship",
+   "count": 398
+  },
+  {
+   "id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "name": "TheNewBaghdad (بغداد الجديدة)",
+   "count": 391
+  },
+  {
+   "id": "UC59K-uG2A5ogwIrHw4bmlEg",
+   "name": "Telusko",
+   "count": 379
+  },
+  {
+   "id": "UCxxljM6JkSvJVSD_T90ZnMw",
+   "name": "Hesham Asem",
+   "count": 364
+  },
+  {
+   "id": "UCbQh1yxBPVhyjB-G_blFFEQ",
+   "name": "Abdelrahman Gamal",
+   "count": 360
+  },
+  {
+   "id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "name": "NetworkChuck",
+   "count": 349
+  },
+  {
+   "id": "UCRPMAqdtSgd0Ipeef7iFsKw",
+   "name": "Gaurav Sen",
+   "count": 339
+  },
+  {
+   "id": "UCtb5ZYdEPjgVU58AOqs5xHg",
+   "name": "محمود السكري | كود عربي",
+   "count": 331
+  },
+  {
+   "id": "UC5COvx1Z8fnfvVkafqL_UZg",
+   "name": "اتعلم ببساطة",
+   "count": 280
+  },
+  {
+   "id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "name": "MIT OpenCourseWare",
+   "count": 266
   },
   {
    "id": "UCCezIgC97PvUuR4_gbFUs5g",
    "name": "Corey Schafer",
-   "count": 226
+   "count": 263
+  },
+  {
+   "id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "name": "Let's Get Rusty",
+   "count": 256
+  },
+  {
+   "id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
+   "name": "Yehia Tech يحيى تك",
+   "count": 245
+  },
+  {
+   "id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "name": "Arpit Bhayani",
+   "count": 235
+  },
+  {
+   "id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "name": "Arabic Competitive Programming",
+   "count": 233
+  },
+  {
+   "id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "name": "The Coding Train",
+   "count": 227
   },
   {
    "id": "UCa--uYErOqjm8qT576P1hMQ",
@@ -118,306 +188,256 @@
    "count": 225
   },
   {
-   "id": "UC8butISFwT-Wl7EV0hUK0BQ",
-   "name": "freeCodeCamp.org",
-   "count": 205
-  },
-  {
-   "id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
-   "name": "NetworkChuck",
-   "count": 195
-  },
-  {
-   "id": "UCsBjURrPoezykLs9EqgamOA",
-   "name": "Fireship",
-   "count": 190
-  },
-  {
-   "id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
-   "name": "OctuCode",
-   "count": 180
-  },
-  {
-   "id": "UCbRP3c757lWg9M-U7TyEkXA",
-   "name": "Theo - t3․gg",
-   "count": 180
-  },
-  {
-   "id": "UC5COvx1Z8fnfvVkafqL_UZg",
-   "name": "اتعلم ببساطة",
-   "count": 178
-  },
-  {
-   "id": "UCFnqbM05-W4VpmzZj36-Kog",
-   "name": "Mohamed Elkashef",
-   "count": 178
-  },
-  {
-   "id": "UCvjgXvBlbQiydffZU7m1_aw",
-   "name": "The Coding Train",
-   "count": 176
-  },
-  {
-   "id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
-   "name": "Programming with Mosh",
-   "count": 173
-  },
-  {
    "id": "UCmXmlB4-HJytD7wek0Uo97A",
    "name": "JavaScript Mastery",
-   "count": 166
+   "count": 220
   },
   {
    "id": "UC4JX40jDee_tINbkjycV4Sg",
    "name": "Tech With Tim",
-   "count": 155
-  },
-  {
-   "id": "UCdngmbVKX1Tgre699-XLlUA",
-   "name": "TechWorld with Nana",
-   "count": 149
-  },
-  {
-   "id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
-   "name": "Yehia Tech يحيى تك",
-   "count": 148
-  },
-  {
-   "id": "UCRPMAqdtSgd0Ipeef7iFsKw",
-   "name": "Gaurav Sen",
-   "count": 148
-  },
-  {
-   "id": "UCXI-0kiYsOaQeGrehUvI22A",
-   "name": "BarmajaOnline - برمجة أونلاين",
-   "count": 146
+   "count": 206
   },
   {
    "id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "name": "غريب الشيخ || Ghareeb Elshaikh",
-   "count": 137
+   "count": 204
   },
   {
-   "id": "UCaGo8x7uqxMK5A08AI8s6IQ",
-   "name": "QAcart",
-   "count": 127
-  },
-  {
-   "id": "UC9-y-6csu5WGm29I7JiwpnA",
-   "name": "Computerphile",
-   "count": 126
-  },
-  {
-   "id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "name": "Python Arabic Community",
-   "count": 118
-  },
-  {
-   "id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
-   "name": "Arpit Bhayani",
-   "count": 115
-  },
-  {
-   "id": "UC8OxKsmAyrGAfBiluhpLkbA",
-   "name": "Arabic Competitive Programming",
-   "count": 115
-  },
-  {
-   "id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "name": "Ali Shahin",
-   "count": 107
-  },
-  {
-   "id": "UCveX_0uBOHVHbpV838OGXVA",
-   "name": "Codezilla",
-   "count": 97
-  },
-  {
-   "id": "UCcabW7890RKJzL968QWEykA",
-   "name": "CS50",
-   "count": 96
+   "id": "UCFnqbM05-W4VpmzZj36-Kog",
+   "name": "Mohamed Elkashef",
+   "count": 186
   },
   {
    "id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "name": "أكاديمية حسوب",
-   "count": 96
+   "count": 186
   },
   {
-   "id": "UCGzhwKMUHFl6lLyam3Py6fA",
-   "name": "البرمجة مع غنيم Coding With Ghonaim",
-   "count": 94
+   "id": "UCdngmbVKX1Tgre699-XLlUA",
+   "name": "TechWorld with Nana",
+   "count": 183
   },
   {
-   "id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
-   "name": "Almdrasa - تعلم البرمجة بالعربية - المدرسة",
-   "count": 77
+   "id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+   "name": "Programming with Mosh",
+   "count": 174
   },
   {
-   "id": "UC1fxEAVE-_N9mDL7APCkeOQ",
-   "name": "freeCodeCamp Arabic",
-   "count": 69
+   "id": "UCveX_0uBOHVHbpV838OGXVA",
+   "name": "Codezilla",
+   "count": 162
   },
   {
-   "id": "UCEBb1b_L6zDS3xTUrIALZOw",
-   "name": "MIT OpenCourseWare",
-   "count": 67
-  },
-  {
-   "id": "UCuEOSK8blSM6j5jxVp3ttnQ",
-   "name": "Programming Advices",
-   "count": 63
+   "id": "UCcabW7890RKJzL968QWEykA",
+   "name": "CS50",
+   "count": 154
   },
   {
    "id": "UCZgt6AzoyjslHTC9dz0UoTw",
    "name": "ByteByteGo",
-   "count": 61
+   "count": 149
   },
   {
-   "id": "UCrgG9J-S4NaHfNkvtMthRDA",
-   "name": "Algorithmiat - خوارزميات",
-   "count": 56
+   "id": "UCXI-0kiYsOaQeGrehUvI22A",
+   "name": "BarmajaOnline - برمجة أونلاين",
+   "count": 149
+  },
+  {
+   "id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
+   "name": "Almdrasa - تعلم البرمجة بالعربية - المدرسة",
+   "count": 139
   },
   {
    "id": "UCZCFT11CWBi3MHNlGf019nw",
    "name": "Abdul Bari",
-   "count": 47
+   "count": 116
   },
   {
-   "id": "UCr6GUYRpTOiuE22lU1t9p-g",
-   "name": "Mohammed Fathy | محمد فتحي",
-   "count": 36
-  },
-  {
-   "id": "UCOApBrMjpXbBAii6d0187ww",
-   "name": "Ziad Emad",
-   "count": 33
-  },
-  {
-   "id": "UCgwvA-wbE0u3AVhlNO29vjA",
-   "name": "CodingVi",
-   "count": 32
+   "id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "name": "Jon Gjengset",
+   "count": 110
   },
   {
    "id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "name": "putcodes",
-   "count": 32
+   "count": 102
+  },
+  {
+   "id": "UCGzhwKMUHFl6lLyam3Py6fA",
+   "name": "البرمجة مع غنيم Coding With Ghonaim",
+   "count": 100
+  },
+  {
+   "id": "UCuEOSK8blSM6j5jxVp3ttnQ",
+   "name": "Programming Advices",
+   "count": 98
+  },
+  {
+   "id": "UC1fxEAVE-_N9mDL7APCkeOQ",
+   "name": "freeCodeCamp Arabic",
+   "count": 85
   },
   {
    "id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "name": "ThePrimeagen",
-   "count": 27
+   "count": 78
+  },
+  {
+   "id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
+   "name": "OctuCode",
+   "count": 71
+  },
+  {
+   "id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "name": "No Boilerplate",
+   "count": 65
+  },
+  {
+   "id": "UCrgG9J-S4NaHfNkvtMthRDA",
+   "name": "Algorithmiat - خوارزميات",
+   "count": 62
+  },
+  {
+   "id": "UCOApBrMjpXbBAii6d0187ww",
+   "name": "Ziad Emad",
+   "count": 57
+  },
+  {
+   "id": "UCgwvA-wbE0u3AVhlNO29vjA",
+   "name": "CodingVi",
+   "count": 53
+  },
+  {
+   "id": "UCr6GUYRpTOiuE22lU1t9p-g",
+   "name": "Mohammed Fathy | محمد فتحي",
+   "count": 50
+  },
+  {
+   "id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
+   "name": "Python Arabic Community",
+   "count": 36
+  },
+  {
+   "id": "UC4Y8dVfo_-aydzENDmE7wTw",
+   "name": "Ali Shahin",
+   "count": 31
   },
   {
    "id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
    "name": "بايثون بالعربي",
-   "count": 25
+   "count": 27
   },
   {
    "id": "UCNJn6zuDrFaeNFj9PNNjmiA",
    "name": "Devrabic",
-   "count": 9
+   "count": 24
   }
  ],
  "topics": [
   {
    "id": "python",
    "label": "بايثون",
-   "count": 1887
+   "count": 2643
   },
   {
    "id": "javascript",
    "label": "جافاسكربت",
-   "count": 1297
+   "count": 2436
   },
   {
    "id": "web",
    "label": "تطوير الويب",
-   "count": 3056
+   "count": 5205
   },
   {
    "id": "php",
    "label": "PHP",
-   "count": 499
+   "count": 489
   },
   {
    "id": "java",
    "label": "جافا",
-   "count": 725
+   "count": 1335
   },
   {
    "id": "cpp",
    "label": "C++",
-   "count": 598
+   "count": 879
+  },
+  {
+   "id": "rust",
+   "label": "Rust",
+   "count": 447
   },
   {
    "id": "csharp",
    "label": "C#",
-   "count": 142
+   "count": 249
   },
   {
    "id": "mobile",
    "label": "تطبيقات الموبايل",
-   "count": 630
+   "count": 1088
   },
   {
    "id": "database",
    "label": "قواعد البيانات",
-   "count": 801
+   "count": 1015
   },
   {
    "id": "linux",
    "label": "لينكس",
-   "count": 154
+   "count": 336
   },
   {
    "id": "devops",
    "label": "ديفوبس والسحابة",
-   "count": 347
+   "count": 560
   },
   {
    "id": "git",
    "label": "Git",
-   "count": 194
+   "count": 501
   },
   {
    "id": "security",
    "label": "الأمن السيبراني",
-   "count": 219
+   "count": 437
   },
   {
    "id": "ai",
    "label": "الذكاء الاصطناعي",
-   "count": 1908
+   "count": 2385
   },
   {
    "id": "data",
    "label": "تحليل البيانات",
-   "count": 74
+   "count": 144
   },
   {
    "id": "algorithms",
    "label": "الخوارزميات",
-   "count": 683
+   "count": 1092
   },
   {
    "id": "cs",
    "label": "علوم الحاسب",
-   "count": 95
+   "count": 1098
   },
   {
    "id": "testing",
    "label": "الاختبار",
-   "count": 186
+   "count": 628
   },
   {
    "id": "networking",
    "label": "الشبكات",
-   "count": 158
+   "count": 423
   },
   {
    "id": "tools",
    "label": "أدوات المطوّر",
-   "count": 285
+   "count": 599
   }
  ],
  "playlists": [
@@ -430,11 +450,19 @@
    "cover": "qz5elnjrnDk"
   },
   {
+   "id": "PLknwEmKsW8OterpCJxNeevpv74Z0WfxKY",
+   "title": "شرح مكتبة faker python",
+   "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
+   "channel": "Abdelrahman Gamal",
+   "count": 3,
+   "cover": "elOnTeU6LyM"
+  },
+  {
    "id": "PLknwEmKsW8OvsdJ64v5YljHNtt100kN6w",
    "title": "كورس cs50 بالعربي كامل |  Cs50 In Arabic",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 8,
+   "count": 37,
    "cover": "baLMODtYFog"
   },
   {
@@ -442,7 +470,7 @@
    "title": "كورس cs50 بالعربي كامل | Cs50 Tutorial In Arabic",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 8,
+   "count": 37,
    "cover": "baLMODtYFog"
   },
   {
@@ -490,7 +518,7 @@
    "title": "كورس بايثون كامل للمبتدئين | Python for Beginners",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 51,
+   "count": 53,
    "cover": "Lm6irXWjWIo"
   },
   {
@@ -499,7 +527,7 @@
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
    "count": 25,
-   "cover": "R50HZWpwsos"
+   "cover": "4yWf4jwMA7Y"
   },
   {
    "id": "PLknwEmKsW8OuTqUDaFRBiAViDZ5uI3VcE",
@@ -514,8 +542,8 @@
    "title": "كورس دجانجو كامل للمبتدئين | Django Tutorial for Beginners",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 38,
-   "cover": "UPFKAG9rYOE"
+   "count": 37,
+   "cover": "_MAdUhH49so"
   },
   {
    "id": "PLknwEmKsW8OveN7SrZN5QjwyXLBzUDkJB",
@@ -530,7 +558,7 @@
    "title": "كورس كامل في فيديو واحد",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 10,
+   "count": 9,
    "cover": "cvNTgKw8VlY"
   },
   {
@@ -554,16 +582,16 @@
    "title": "مكتبات بايثون | مشاريع بايثون",
    "channel_id": "UCbQh1yxBPVhyjB-G_blFFEQ",
    "channel": "Abdelrahman Gamal",
-   "count": 2,
-   "cover": "LVlsZdrzJMM"
+   "count": 6,
+   "cover": "BrcoV0sZYMc"
   },
   {
    "id": "PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O",
    "title": "Algorithms",
    "channel_id": "UCZCFT11CWBi3MHNlGf019nw",
    "channel": "Abdul Bari",
-   "count": 26,
-   "cover": "-JTq1BFBwmo"
+   "count": 84,
+   "cover": "0IAPZzGSbME"
   },
   {
    "id": "PLDN4rrl48XKqNsrDogCpHsul3UHMC0Wdq",
@@ -590,6 +618,22 @@
    "cover": "-JYLuv7mmxM"
   },
   {
+   "id": "PLDN4rrl48XKp1ubbVUHVrOMkO4rTsjXrg",
+   "title": "Programming Concepts",
+   "channel_id": "UCZCFT11CWBi3MHNlGf019nw",
+   "channel": "Abdul Bari",
+   "count": 5,
+   "cover": "OqLt2GfX6jg"
+  },
+  {
+   "id": "PL55RiY5tL51prl41XFcxzgf-c0ReJgpXh",
+   "title": "Academind - Behind the Scenes",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 4,
+   "cover": "RqZqmTUOaUo"
+  },
+  {
    "id": "PL55RiY5tL51rZooHydslYclCYio7eoC66",
    "title": "Amazon Athena - Project",
    "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
@@ -610,7 +654,7 @@
    "title": "Angular 6 & RxJS 6",
    "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
    "channel": "Academind",
-   "count": 2,
+   "count": 3,
    "cover": "Xr5l7lT--YU"
   },
   {
@@ -654,6 +698,14 @@
    "cover": "0oXYLzuucwE"
   },
   {
+   "id": "PL55RiY5tL51r1NlkJLzVhui1S480gnuNG",
+   "title": "D3.js Introduction",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 3,
+   "cover": "TOJ9yjvlapY"
+  },
+  {
    "id": "PL55RiY5tL51oBO9sNp69MXHwGekkhMwB1",
    "title": "Excel - Nice to know",
    "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
@@ -670,12 +722,28 @@
    "cover": "qcECaRgU4uI"
   },
   {
+   "id": "PL55RiY5tL51rNAfZuWt-PPSDZ8jqjxGNe",
+   "title": "Firebase with Abe",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 4,
+   "cover": "mi1GtQ5xn2M"
+  },
+  {
    "id": "PL55RiY5tL51poFMpbva1IqfO-pylwSNsN",
    "title": "Git & GitHub - Managing Your Code",
    "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
    "channel": "Academind",
    "count": 4,
    "cover": "_OZVJpLHUaI"
+  },
+  {
+   "id": "PL55RiY5tL51pk1RvaQOxI6sJ-yZzExzJn",
+   "title": "Nuxt.js & Storyblok - Building a Complete Blog",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 4,
+   "cover": "Dc_5BpIB4X4"
   },
   {
    "id": "PL55RiY5tL51rmBCqfgJThY7ImP4xGz2OP",
@@ -692,6 +760,22 @@
    "channel": "Academind",
    "count": 7,
    "cover": "cXP_i5-nTXg"
+  },
+  {
+   "id": "PL55RiY5tL51ryV3MhCbH8bLl7O_RZGUUE",
+   "title": "Regular Expressions Demystified",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 8,
+   "cover": "0LKdKixl5Ug"
+  },
+  {
+   "id": "PL55RiY5tL51pIQNcOLDjnaQJYuj_GjVSz",
+   "title": "Stencil - Getting Started",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 4,
+   "cover": "MqMYaT1GlWY"
   },
   {
    "id": "PL55RiY5tL51qLY6Yriev2bO9AF0gdvpbb",
@@ -716,6 +800,14 @@
    "channel": "Academind",
    "count": 4,
    "cover": "vhBwvC-h5Bg"
+  },
+  {
+   "id": "PL55RiY5tL51pHpagYcrN9ubNLVXF8rGVi",
+   "title": "Understanding RxJS",
+   "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
+   "channel": "Academind",
+   "count": 4,
+   "cover": "X9fdpGthrXA"
   },
   {
    "id": "PL55RiY5tL51oH-HxUXBHendOUj0BFfnQF",
@@ -754,7 +846,7 @@
    "title": "What is...?",
    "channel_id": "UCSJbGtTlrDami-tDGPUV9-w",
    "channel": "Academind",
-   "count": 12,
+   "count": 14,
    "cover": "b9gnX62ZMTU"
   },
   {
@@ -898,103 +990,47 @@
    "title": "دورة أساسيات البرمجة",
    "channel_id": "UCrgG9J-S4NaHfNkvtMthRDA",
    "channel": "Algorithmiat - خوارزميات",
-   "count": 3,
-   "cover": "UEzBnx95qgg"
-  },
-  {
-   "id": "PLv3VqjyehAoSSRbm62bAJpnzroBs6buNu",
-   "title": "AI Tools غيرت طريقة شغلي",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 6,
-   "cover": "NDzqhjsJU68"
-  },
-  {
-   "id": "PLv3VqjyehAoQfMw4RrfoP0fy8BBB--ABv",
-   "title": "Webology علم الويب",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 2,
-   "cover": "1fSAAzrxK6E"
-  },
-  {
-   "id": "PLv3VqjyehAoSCFtbe6rGe5fD1AlbwgQ3b",
-   "title": "المختصر المفيد",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 5,
-   "cover": "W6_-0FqUgIY"
-  },
-  {
-   "id": "PLv3VqjyehAoQ3zwedQdLKy4HMuB5C1uh4",
-   "title": "بث مباشر",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 2,
-   "cover": "nx5FN2KWacw"
+   "count": 8,
+   "cover": "RVhSNyHeKLc"
   },
   {
    "id": "PLv3VqjyehAoR9GptbwLD2_OIYsx5br43b",
    "title": "تعلم أساسيات البرمجة بلغة ++C",
    "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
    "channel": "Ali Shahin",
-   "count": 16,
-   "cover": "onGVDbyojL0"
+   "count": 4,
+   "cover": "IUqQJpNUakA"
   },
   {
-   "id": "PLv3VqjyehAoRRDDl30eCCHyMdZ8esdBaD",
-   "title": "خدمات و كورسات",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 2,
-   "cover": "tknNP4_bUiU"
-  },
-  {
-   "id": "PLv3VqjyehAoRcrpuavzqleAA2jJYk6KgU",
-   "title": "مفاهيم اساسية في البرمجة",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 2,
-   "cover": "Ndc67sUKMsg"
-  },
-  {
-   "id": "PLv3VqjyehAoRUEU3Gr1Fwzhdmz4wH0tNJ",
-   "title": "مقدمة في علوم الحاسب",
-   "channel_id": "UC4Y8dVfo_-aydzENDmE7wTw",
-   "channel": "Ali Shahin",
-   "count": 3,
-   "cover": "xK3hhCaQSU4"
-  },
-  {
-   "id": "PL5nRnTaZFYLp1oOISnRh5iGcIUm4nrPIU",
-   "title": "برمجة زوون",
+   "id": "PLAe4etE4RE2Q",
+   "title": "آراء الطلاب في دبلومة تعلم البرمجة وبناء مواقع الويب من الصفر على منصة المدرسة",
    "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
    "channel": "Almdrasa",
-   "count": 8,
-   "cover": "2qMBpMOjB3k"
+   "count": 11,
+   "cover": "fPzYvhG8ep0"
+  },
+  {
+   "id": "PL5nRnTaZFYLqKtnzFBsufvzaQV7-oBmoS",
+   "title": "فاعليات المدرسة",
+   "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
+   "channel": "Almdrasa",
+   "count": 5,
+   "cover": "v4LF8TG3yL0"
   },
   {
    "id": "PL5nRnTaZFYLrW5b1Uo-Q9urLxkbaM4lgU",
    "title": "فيديوهات قصيرة",
    "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
    "channel": "Almdrasa",
-   "count": 2,
-   "cover": "mJbQ3M9hA6Y"
-  },
-  {
-   "id": "PL5nRnTaZFYLpGp8D9RB0eyTfervJMwm8I",
-   "title": "كلام برمجة",
-   "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
-   "channel": "Almdrasa",
-   "count": 5,
-   "cover": "QMAWRaSlnGs"
+   "count": 7,
+   "cover": "X7RjWScmbkk"
   },
   {
    "id": "PL5nRnTaZFYLpAYQntjz3y3gRf8X1-jDO-",
    "title": "مسار أسس البرمجة",
    "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
    "channel": "Almdrasa",
-   "count": 4,
+   "count": 5,
    "cover": "nS4YfU_rnjk"
   },
   {
@@ -1004,6 +1040,14 @@
    "channel": "Almdrasa",
    "count": 3,
    "cover": "9oRjjjnN3EM"
+  },
+  {
+   "id": "PL5nRnTaZFYLrKHSrRQZ3C2S2O164L3tB8",
+   "title": "مسار تعلم ReactJS",
+   "channel_id": "UCSy7Y-SWLNCAX2AcpNuRHRg",
+   "channel": "Almdrasa",
+   "count": 2,
+   "cover": "RfkxIO3zBW4"
   },
   {
    "id": "PL5nRnTaZFYLqHRz5SP0uXdGqWBYJEhqAp",
@@ -1022,19 +1066,35 @@
    "cover": "hC6RYoBCD0U"
   },
   {
+   "id": "PLPt2dINI2MIaNcU070HIAO8JWYBcafuyG",
+   "title": "ACM/ICPC - Newcomers",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 7,
+   "cover": "mURktueKdmU"
+  },
+  {
+   "id": "PLPt2dINI2MIaejzPHtd5E623KS3uUxohT",
+   "title": "ACM/ICPC - Training road maps",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 2,
+   "cover": "1ArHifjTuFc"
+  },
+  {
    "id": "PLPt2dINI2MIayAafeRHZPVhIoL7yZTyB9",
    "title": "Algorithms - Crash Course - خوارزميات بالعربى",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 4,
-   "cover": "ZIJLCVn4KzQ"
+   "count": 13,
+   "cover": "mURktueKdmU"
   },
   {
    "id": "PLPt2dINI2MIZPFq6HyUB1Uhxdh1UDnZMS",
    "title": "C++ (Intensive) - برمجة الحاسوب",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 39,
+   "count": 35,
    "cover": "gU370w1A-_k"
   },
   {
@@ -1046,28 +1106,28 @@
    "cover": "rlZ5ZY0_ITg"
   },
   {
-   "id": "PLPt2dINI2MIYdFB4H9bTmen9H6sbSzz2_",
-   "title": "Computer Vision & Machine Learning",
+   "id": "PLPt2dINI2MIZYL0BoHZ4PhZaDLPA5vWLb",
+   "title": "CPP for beginners - Homework Solutions",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 3,
-   "cover": "mAEwmyspm0A"
+   "count": 4,
+   "cover": "gH7Xl7jtTx4"
   },
   {
    "id": "PLPt2dINI2MIbwnEoeHZnUHeUHjTd8x4F3",
    "title": "CPP for beginners - سي بلس للمبتدئين",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 2,
-   "cover": "EGMLIhuNNGo"
+   "count": 41,
+   "cover": "YS1v0-wifg8"
   },
   {
    "id": "PLPt2dINI2MIb6Le_yaMH17C6NMlhYZlqU",
    "title": "CSkilled - Database",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 4,
-   "cover": "wKQG3jvwEKw"
+   "count": 7,
+   "cover": "TU9SVnpsh9c"
   },
   {
    "id": "PLPt2dINI2MIZX2EtY81WI-lDkvhKziLKM",
@@ -1075,15 +1135,23 @@
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
    "count": 12,
-   "cover": "N-vU8VZ5ukA"
+   "cover": "e6zJaMxzciA"
+  },
+  {
+   "id": "PLPt2dINI2MIattDutu7IOAMlUuLeN8k2p",
+   "title": "Dynamic Programming",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 6,
+   "cover": "32uJ_TzWuL0"
   },
   {
    "id": "PLPt2dINI2MIb4OXlJ_EEwIDV9WVUpRQ5K",
    "title": "Graph Theory",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 4,
-   "cover": "ZIJLCVn4KzQ"
+   "count": 11,
+   "cover": "jzfcfQVBtKA"
   },
   {
    "id": "PLPt2dINI2MIbJYBTHmRuZuGLIP5PnkzMH",
@@ -1098,32 +1166,80 @@
    "title": "Mastering Recursion",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 2,
+   "count": 5,
    "cover": "nJW7o8YzVWY"
+  },
+  {
+   "id": "PLPt2dINI2MIY7l5zyFd1W28rei3b-AXaJ",
+   "title": "Math for Competitive Programming",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 20,
+   "cover": "Cz0kGRQqFrk"
   },
   {
    "id": "PLPt2dINI2MIZ3ycZnRZGMqU2yXdoS21TI",
    "title": "ML Live Snippets",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 3,
-   "cover": "JmJuaBLQsgo"
+   "count": 4,
+   "cover": "h2VFOMB6ico"
   },
   {
    "id": "PLPt2dINI2MIaEnp3dSwZEGL7_o03Js9oG",
    "title": "Online Talks",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 7,
+   "count": 9,
    "cover": "KEc4TFKGzJU"
+  },
+  {
+   "id": "PLPt2dINI2MIa5tPrd1wO1pY8w5XuxRbhR",
+   "title": "Problems Solutions",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 8,
+   "cover": "n7uY7HC4XIM"
+  },
+  {
+   "id": "PLPt2dINI2MIZcJ3kADyFAOKOwzuvT-g7P",
+   "title": "Search Techniques",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 4,
+   "cover": "2G7RzlxTNPo"
+  },
+  {
+   "id": "PLPt2dINI2MIYrtHBahPW16S-Wz9wx24Nc",
+   "title": "String Processing Algorithms",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 8,
+   "cover": "IGaJWl0jPY4"
+  },
+  {
+   "id": "PLPt2dINI2MIYS2syNQnggeds2gynpn52j",
+   "title": "بايثون لإتقان 4 مهارات حاسمة",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 14,
+   "cover": "NSDTwEMKaVk"
+  },
+  {
+   "id": "PLPt2dINI2MIaDS_XRHMR3fHy0OITNV0Wg",
+   "title": "خواطر في الدين والدنيا والتخصص",
+   "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
+   "channel": "Arabic Competitive Programming",
+   "count": 2,
+   "cover": "VSccy6r5uuI"
   },
   {
    "id": "PLPt2dINI2MIakv7o9fNNV1yIt9Hr6jXCA",
    "title": "داتا ستركتشر سي بلس: مهارات حاسمة",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 2,
-   "cover": "Qd20pNJHZ7A"
+   "count": 8,
+   "cover": "Ofju6U6d4gw"
   },
   {
    "id": "PLPt2dINI2MIbU2Wig4CxeqdTIMVhbtBNx",
@@ -1138,23 +1254,23 @@
    "title": "سلسلة حاسبات لإرشاد الطلبة",
    "channel_id": "UC8OxKsmAyrGAfBiluhpLkbA",
    "channel": "Arabic Competitive Programming",
-   "count": 4,
-   "cover": "mAEwmyspm0A"
+   "count": 3,
+   "cover": "39vqarATPyM"
   },
   {
    "id": "PLsdq-3Z1EPT3rv8TWRsjQaPib6b_kwgEO",
    "title": "Advanced Data Structures and Algorithms",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 2,
-   "cover": "rAi1h7dltCk"
+   "count": 4,
+   "cover": "Jvimt56KPnk"
   },
   {
    "id": "PLsdq-3Z1EPT1wfRQo2xrrst2SGremT_qd",
    "title": "Algorithms in Distributed Systems",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 12,
+   "count": 14,
    "cover": "7FgU1D4EnpQ"
   },
   {
@@ -1162,32 +1278,40 @@
    "title": "Amusing Computer Science",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 33,
-   "cover": "J7VJtuRCkuI"
+   "count": 48,
+   "cover": "_ZgM21T48WA"
   },
   {
    "id": "PLsdq-3Z1EPT36NJXTutvKcreetuHCr9a-",
    "title": "Arpit's System Design Masterclass - Pre-requisites",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 4,
-   "cover": "la2q1vFA5q0"
+   "count": 20,
+   "cover": "1r9bPisYaOQ"
   },
   {
    "id": "PLsdq-3Z1EPT1rNeq2GXpnivaWINnOaCd0",
    "title": "BitTorrent Internals",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 3,
-   "cover": "shVvFVFiZcs"
+   "count": 7,
+   "cover": "v7cR0ZolaUA"
   },
   {
    "id": "PLsdq-3Z1EPT15VMuZHxuiyXUZSh0VLfT4",
    "title": "Career Growth",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 2,
-   "cover": "ejMrCESahz8"
+   "count": 9,
+   "cover": "SZmPgTozvcI"
+  },
+  {
+   "id": "PLsdq-3Z1EPT3VjDhjMb5yBsgn0wn2-fjp",
+   "title": "Concurrency in Depth",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 6,
+   "cover": "2PjlaUnrAMQ"
   },
   {
    "id": "PLsdq-3Z1EPT12HU6v00VlcZ18ckWRGxXU",
@@ -1195,30 +1319,30 @@
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
    "count": 9,
-   "cover": "rWb7VYz1q1U"
+   "cover": "k5isLG6vqss"
   },
   {
    "id": "PLsdq-3Z1EPT2C-Da7Jscr7NptGcIZgQ2l",
    "title": "Database Engineering",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 44,
-   "cover": "m8PtOY3aWL0"
+   "count": 65,
+   "cover": "-htbah3eCYg"
   },
   {
    "id": "PLsdq-3Z1EPT0ug8eizS71G6LZb6-4FAFt",
    "title": "Designing Microservices",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 2,
-   "cover": "la2q1vFA5q0"
+   "count": 16,
+   "cover": "JPj6mhVLQN0"
   },
   {
    "id": "PLsdq-3Z1EPT3s3nghXpr0NDpgN3ZIoK4O",
    "title": "Dissecting Juno DB",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 2,
+   "count": 4,
    "cover": "2Bwzh-881PU"
   },
   {
@@ -1226,7 +1350,7 @@
    "title": "DragonflyDB Internals",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 2,
+   "count": 4,
    "cover": "XbV1LoVsbME"
   },
   {
@@ -1234,15 +1358,39 @@
    "title": "Engineering Blogs Dissections",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 19,
-   "cover": "i6WAAWclARU"
+   "count": 53,
+   "cover": "iRhDCIzhm4A"
+  },
+  {
+   "id": "PLsdq-3Z1EPT0bzvFp96nG6xBs-Eih8yb8",
+   "title": "From the First Principles",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 3,
+   "cover": "WjT253DBlXk"
+  },
+  {
+   "id": "PLsdq-3Z1EPT3MvruOP09U1bWmcjxLIMwR",
+   "title": "Garbage Collection",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 5,
+   "cover": "jcMxuLZCcqU"
+  },
+  {
+   "id": "PLsdq-3Z1EPT2UnueESBLReaVSLIo_BuAc",
+   "title": "Hash Table Internals",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 11,
+   "cover": "jjW8w8ED3Ns"
   },
   {
    "id": "PLsdq-3Z1EPT23QGFJipBTe_KYPZK4ymNJ",
    "title": "No-fluff Engineering Podcast",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 7,
+   "count": 5,
    "cover": "36N1Bz7qW0A"
   },
   {
@@ -1250,7 +1398,7 @@
    "title": "Outage Dissections",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 12,
+   "count": 15,
    "cover": "LeT_s-UFw-U"
   },
   {
@@ -1258,7 +1406,7 @@
    "title": "PostgreSQL and MySQL Internals",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 4,
+   "count": 7,
    "cover": "o7qLKfILuD8"
   },
   {
@@ -1266,23 +1414,39 @@
    "title": "Redis Internals - Build Redis from Scratch",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 25,
+   "count": 26,
    "cover": "h30k7YixrMo"
+  },
+  {
+   "id": "PLsdq-3Z1EPT2XEJ0AmF02LBK1RFNd-jK8",
+   "title": "Research Paper Dissections",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 7,
+   "cover": "LXhgFAZroG8"
+  },
+  {
+   "id": "PLsdq-3Z1EPT3Rt52chdkvfJ9z5OaKWFd0",
+   "title": "Rockset Internals",
+   "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
+   "channel": "Arpit Bhayani",
+   "count": 3,
+   "cover": "I4eEEAgoCig"
   },
   {
    "id": "PLsdq-3Z1EPT27BuTnJ_trF7BsaTpYLqst",
    "title": "System Design",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 54,
-   "cover": "Bx7ykrizjCY"
+   "count": 109,
+   "cover": "iRhDCIzhm4A"
   },
   {
    "id": "PLsdq-3Z1EPT0hh32dYZmtPHHfQTGdo3EO",
    "title": "The Ultimate Recursion Series",
    "channel_id": "UC_b1GUJv_2QiMP4BxC9-Dxg",
    "channel": "Arpit Bhayani",
-   "count": 4,
+   "count": 5,
    "cover": "gEiowafkkhM"
   },
   {
@@ -1298,8 +1462,8 @@
    "title": "البرمجة المستوى الأول - تعلم الخوارزميات",
    "channel_id": "UCXI-0kiYsOaQeGrehUvI22A",
    "channel": "BarmajaOnline",
-   "count": 15,
-   "cover": "_FeRPlP_WIw"
+   "count": 17,
+   "cover": "O3xOMKuqS9E"
   },
   {
    "id": "PLCi9_wQUeSMU9lnFeub4Vb27S5TnwesCy",
@@ -1338,8 +1502,16 @@
    "title": "AI CEO",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 3,
+   "count": 4,
    "cover": "vOK0Cdbk-Ps"
+  },
+  {
+   "id": "PLN3n1USn4xllWms9a2CSML_pMl6HM8eZF",
+   "title": "AstralLog",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 6,
+   "cover": "HaxJSvZ6wzA"
   },
   {
    "id": "PLN3n1USn4xln0daE7VrCXeUllKnfdgQug",
@@ -1358,12 +1530,28 @@
    "cover": "E270S3eNqSg"
   },
   {
+   "id": "PLN3n1USn4xln0j_NN9k4j5hS1thsGibKi",
+   "title": "Beginner GraphQL Series",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 4,
+   "cover": "DyvsMKsEsyE"
+  },
+  {
    "id": "PLN3n1USn4xlljz3_rKYPDIRDODkBIE-Lv",
    "title": "CircleCI",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 2,
+   "count": 3,
    "cover": "kanCgiBCbhU"
+  },
+  {
+   "id": "PLN3n1USn4xlkZgqq9SdgUXPmgpoxUM9QK",
+   "title": "DogeLog",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 9,
+   "cover": "1PBNAoKd-70"
   },
   {
    "id": "PLN3n1USn4xlnfc3eoOC2Zg6Wog2an40Lw",
@@ -1382,11 +1570,19 @@
    "cover": "NrURtp0fecg"
   },
   {
+   "id": "PLN3n1USn4xlkWolE06ELeTW9XqGJ7oiOn",
+   "title": "GraphQL JWT Refresh Token Authentication Series",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 3,
+   "cover": "zbp8LZXBUYc"
+  },
+  {
    "id": "PLN3n1USn4xllb05dQVmRbVtGP2aM4seVq",
    "title": "Mini Google Docs Clone",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 3,
+   "count": 6,
    "cover": "CmuUQymjbRo"
   },
   {
@@ -1426,7 +1622,7 @@
    "title": "React Native Web Series",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 11,
+   "count": 15,
    "cover": "J0b11tvEkFQ"
   },
   {
@@ -1434,23 +1630,23 @@
    "title": "Rebuilding Code Ponder",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 7,
-   "cover": "vflleO_p6eM"
+   "count": 25,
+   "cover": "D-XXOlN1MeE"
   },
   {
    "id": "PLN3n1USn4xll_JcjG23THJ4qi8NiGTfEC",
    "title": "Rebuilding Code Ponder Clips",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 4,
-   "cover": "Kg7fioDq8CE"
+   "count": 9,
+   "cover": "n6jSV0fSTd4"
   },
   {
    "id": "PLN3n1USn4xllF5t1GZhEwFQNDnStgupdB",
    "title": "Stripe GraphQL",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 6,
+   "count": 7,
    "cover": "Yr6HOyWUCgE"
   },
   {
@@ -1466,8 +1662,8 @@
    "title": "TypeGraphQL",
    "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
    "channel": "Ben Awad",
-   "count": 2,
-   "cover": "zR8jKR9hnFA"
+   "count": 14,
+   "cover": "8yZImm2A1KE"
   },
   {
    "id": "PLN3n1USn4xlkDk8vPVtgyGG3_1eXYPrW-",
@@ -1478,12 +1674,36 @@
    "cover": "kfmh2mMf3fs"
   },
   {
+   "id": "PLN3n1USn4xllDDLwgJ4avEqgj4dWynofp",
+   "title": "VoidLog",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 13,
+   "cover": "LY4rxYe-jKI"
+  },
+  {
+   "id": "PLN3n1USn4xllZEdX7a7GQul2GWrag_XAy",
+   "title": "You Suck at Coding",
+   "channel_id": "UC-8QAzbLcRglXeN_MY9blyw",
+   "channel": "Ben Awad",
+   "count": 2,
+   "cover": "mZWsyUKwTbg"
+  },
+  {
    "id": "PLZPZq0r_RZOO_wKfxdnAb9BgnffGtIHjR",
    "title": "AI & Machine Learning Prereqs 🧠",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 3,
+   "count": 4,
    "cover": "8KCuHHeC_M0"
+  },
+  {
+   "id": "PLZPZq0r_RZOOzY_vR4zJM32SqsSInGMwe",
+   "title": "C tutorial for beginners ⚙️",
+   "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+   "channel": "Bro Code",
+   "count": 3,
+   "cover": "2ciUcosJFBc"
   },
   {
    "id": "PLZPZq0r_RZOMHoXIcxze_lP97j2Ase2on",
@@ -1492,6 +1712,14 @@
    "channel": "Bro Code",
    "count": 45,
    "cover": "2lcIKzFHjSM"
+  },
+  {
+   "id": "PLZPZq0r_RZOP1g89A4vQ8C897n518a206",
+   "title": "Computer Science 💻",
+   "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+   "channel": "Bro Code",
+   "count": 6,
+   "cover": "J6qXny_UAK4"
   },
   {
    "id": "PLZPZq0r_RZOOxqHgOzPyCzIl4AJjXbCYt",
@@ -1506,7 +1734,7 @@
    "title": "Intro to Coding Courses 👨‍💻",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 2,
+   "count": 3,
    "cover": "ix9cRaBkVe0"
   },
   {
@@ -1514,7 +1742,7 @@
    "title": "Java tutorial for beginners ☕",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 55,
+   "count": 71,
    "cover": "23HFxAPyJ9U"
   },
   {
@@ -1522,8 +1750,16 @@
    "title": "JavaScript tutorial for beginners 🌐",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 73,
+   "count": 79,
    "cover": "Ihy0QziLDf0"
+  },
+  {
+   "id": "PLZPZq0r_RZONpa_Xg1MmyjmctJjL4l3Ay",
+   "title": "Matplotlib tutorial for beginners 📊",
+   "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+   "channel": "Bro Code",
+   "count": 10,
+   "cover": "2KY5AaFvWtE"
   },
   {
    "id": "PLZPZq0r_RZONbmOn3EsHac5u5_-Rue3ne",
@@ -1562,7 +1798,7 @@
    "title": "PHP tutorial for beginners 🐘",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 27,
+   "count": 28,
    "cover": "SI69DXbYHXU"
   },
   {
@@ -1578,7 +1814,7 @@
    "title": "Python tutorial for beginners 🐍",
    "channel_id": "UC4SVo0Ue36XCfOyb5Lh1viQ",
    "channel": "Bro Code",
-   "count": 76,
+   "count": 82,
    "cover": "Sg4GMVMdOPo"
   },
   {
@@ -1602,7 +1838,7 @@
    "title": "AI",
    "channel_id": "UCZgt6AzoyjslHTC9dz0UoTw",
    "channel": "ByteByteGo",
-   "count": 4,
+   "count": 10,
    "cover": "9W_U1y7RYuE"
   },
   {
@@ -1610,7 +1846,7 @@
    "title": "Database",
    "channel_id": "UCZgt6AzoyjslHTC9dz0UoTw",
    "channel": "ByteByteGo",
-   "count": 5,
+   "count": 7,
    "cover": "kkeFE6iRfMM"
   },
   {
@@ -1618,7 +1854,7 @@
    "title": "System Design Fundamentals",
    "channel_id": "UCZgt6AzoyjslHTC9dz0UoTw",
    "channel": "ByteByteGo",
-   "count": 44,
+   "count": 104,
    "cover": "lX4CrbXMsNQ"
   },
   {
@@ -1626,23 +1862,23 @@
    "title": "System Design Interview",
    "channel_id": "UCZgt6AzoyjslHTC9dz0UoTw",
    "channel": "ByteByteGo",
-   "count": 5,
-   "cover": "UF9Iqmg94tk"
+   "count": 20,
+   "cover": "M4lR_Va97cQ"
   },
   {
    "id": "PLMTdZ61eBnyrPiX-b1MNG-MSPAJ0OgpHA",
    "title": "bootstrap 5 tutorial arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 30,
-   "cover": "3httXb8WHvc"
+   "count": 29,
+   "cover": "WulScfpVNCM"
   },
   {
    "id": "PLMTdZ61eBnypZGBMDMGYI48WfZEyAgQK_",
    "title": "Learn PHP in Arabic 2024 🌟 افضل كورس تعلم PHP من الصفر حتى الاحتراف",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 49,
+   "count": 46,
    "cover": "l66t7kBmbTM"
   },
   {
@@ -1658,7 +1894,7 @@
    "title": "أفضل كورس اندرويد ستوديو 2024 🤩 Best course Android Studio in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 15,
+   "count": 13,
    "cover": "ykluYs8iOEc"
   },
   {
@@ -1666,39 +1902,39 @@
    "title": "أفضل كورس تعلم بوتستراب 🤩 Learn Bootstrap 5 in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 31,
-   "cover": "3httXb8WHvc"
+   "count": 30,
+   "cover": "WulScfpVNCM"
   },
   {
    "id": "PLMTdZ61eBnyoElHxsyWjh7I_pcb1WonNZ",
    "title": "تعلم البرمجة بسهولة مجانًا بأفضل دورات تعليمية على يوتيوب 2026",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 25,
-   "cover": "RIjL0j2HAkw"
+   "count": 10,
+   "cover": "ZW0xQk2czhE"
   },
   {
    "id": "PLMTdZ61eBnyonn0HG26UdW-CuHdHKdSb_",
    "title": "دورة تعلم CSS كاملة 🌟 أفضل كورس 2025 | Learn CSS in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 55,
-   "cover": "C7od2-FSNHY"
+   "count": 50,
+   "cover": "RGdu3aN-6Go"
   },
   {
    "id": "PLMTdZ61eBnyoxjc9Prw0uhwgp6YZ2-_sg",
    "title": "دورة تعلم CSS كاملة 🌟 افضل كورس 2024 | Learn CSS in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 54,
-   "cover": "C7od2-FSNHY"
+   "count": 50,
+   "cover": "RGdu3aN-6Go"
   },
   {
    "id": "PLMTdZ61eBnyrnapIyOphXAkIcR5DDOGkz",
    "title": "دورة تعلم html كاملة 🌟 تعلم html من الصفر حتى الاحتراف",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 17,
+   "count": 15,
    "cover": "l8TiNcxJiQc"
   },
   {
@@ -1706,7 +1942,7 @@
    "title": "دورة تعلم HTML و CSS من الصفر حتى الاحتراف كاملة 2024",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 68,
+   "count": 61,
    "cover": "l8TiNcxJiQc"
   },
   {
@@ -1714,15 +1950,15 @@
    "title": "دورة تعلم Java كاملة - أفضل كورس 2024 🌟 Learn Java in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 40,
-   "cover": "Xf2FJilA3Wk"
+   "count": 38,
+   "cover": "lsfLGWOx8v8"
   },
   {
    "id": "PLMTdZ61eBnyp1nMM8mGRzpwuu6FNxFy0D",
    "title": "دورة تعلم JavaScript كاملة - أفضل كورس 2025 🌟 Learn JavaScript in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 49,
+   "count": 45,
    "cover": "HgCV7bV-vkY"
   },
   {
@@ -1730,7 +1966,7 @@
    "title": "دورة تعلم Node js كاملة - أفضل كورس 2025 | Learn node js in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 42,
+   "count": 41,
    "cover": "6QGHmc4gGBA"
   },
   {
@@ -1738,23 +1974,23 @@
    "title": "دورة تعلم PHP و MySQL كاملة - PHP MySQL course in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 54,
-   "cover": "EBacMdA7id0"
+   "count": 52,
+   "cover": "iHznQtV0BEs"
   },
   {
    "id": "PLMTdZ61eBnypHk2R8xBGwk3Xwy8Ra5qjA",
    "title": "دورة تعلم React كاملة 🌟 أفضل كورس رياكت 2026 | Learn React JS in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 18,
-   "cover": "eQzJtPfsmW8"
+   "count": 17,
+   "cover": "rUGGK2ZFmh8"
   },
   {
    "id": "PLMTdZ61eBnyoQoEmLOcgTBdrAOVT-GFju",
    "title": "دورة تعلم SQL و MySQL من الصفر إلى الاحتراف - افضل دورة تعلم نظام إدارة قواعد البيانات كاملة",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 89,
+   "count": 82,
    "cover": "1MJibb8SZX4"
   },
   {
@@ -1762,7 +1998,7 @@
    "title": "دورة تعلم الذكاء الاصطناعي من الصفر 🤖 AI Tutorial in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 4,
+   "count": 6,
    "cover": "jEjG1F-oYtk"
   },
   {
@@ -1770,7 +2006,7 @@
    "title": "دورة تعلم بايثون كاملة 🌟 أفضل كورس 2026 | Learn Python in Arabic",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 46,
+   "count": 37,
    "cover": "jvyh3RARtaM"
   },
   {
@@ -1778,7 +2014,7 @@
    "title": "دورة تعلم هكر 🔥 كورس Cyber Security و Ethical Hacking للمبتدئين",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 6,
+   "count": 5,
    "cover": "8X2qWvp_4Fc"
   },
   {
@@ -1786,15 +2022,15 @@
    "title": "دورة شاملة لتعلم JSON و Fetch API و REST API",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 21,
-   "cover": "hK3cjHAoTIs"
+   "count": 20,
+   "cover": "OU5_R5yp8Ec"
   },
   {
    "id": "PLMTdZ61eBnyrEBsg5frvGOIT5ty4P9jw5",
    "title": "مشاريع جاهزة بلغة html css javascript للمبتدئين",
    "channel_id": "UCBNZ0VoN2u_4NT8kbmGgUzQ",
    "channel": "Coder Shiyar",
-   "count": 29,
+   "count": 28,
    "cover": "ZW0xQk2czhE"
   },
   {
@@ -1802,7 +2038,7 @@
    "title": "python kivy 2022 | صنع تطبيقات الاندرويد والايفون بلغة بايثون كيفي",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 37,
+   "count": 35,
    "cover": "gwwYN3gHVSw"
   },
   {
@@ -1810,7 +2046,7 @@
    "title": "python pyqt5 2022 | واجهات رسومية بلغة بايثون بايكيوتي5",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 33,
+   "count": 21,
    "cover": "keDOjn56Vcg"
   },
   {
@@ -1858,7 +2094,7 @@
    "title": "بايثون تطبيقات سطح مكتب python gui tkinter",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 49,
+   "count": 35,
    "cover": "CzOcdmh6f9Y"
   },
   {
@@ -1866,7 +2102,7 @@
    "title": "بايثون تطوير مواقع وتطبيقات الويب python pywebio",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 20,
+   "count": 18,
    "cover": "4vsHKnlJqWU"
   },
   {
@@ -1938,8 +2174,8 @@
    "title": "تصميم موقع تعريفي للمبرمج والمصمم html css فقط",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 6,
-   "cover": "F1S4g7kJ7mk"
+   "count": 7,
+   "cover": "aCL4a37v6Ns"
   },
   {
    "id": "PLSiLeKadTQ7m0CPOC8C54vHWRZV5fSbEt",
@@ -1954,8 +2190,8 @@
    "title": "تصميم موقع وتطبيق تواصل اجتماعي شبيه بالفيسبوك  facebook web site by html css",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 8,
-   "cover": "wOptVkr987M"
+   "count": 10,
+   "cover": "ihcDsprlzSM"
   },
   {
    "id": "PLSiLeKadTQ7kXT0TFgQmqjTJ15EpabuKD",
@@ -2010,7 +2246,7 @@
    "title": "تعلم بايثون من الهاتف | learn python from phone",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 23,
+   "count": 8,
    "cover": "wDSQmQ70U1w"
   },
   {
@@ -2018,7 +2254,7 @@
    "title": "تعلم تصميم وتطوير المواقع 2022 دبلوم كامل مع 100 مشروع كامل",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 115,
+   "count": 118,
    "cover": "WWn8tOHjZbw"
   },
   {
@@ -2082,7 +2318,7 @@
    "title": "دورة انشاء تطبيقات اندرويد دون خبرة برمجة",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 2,
+   "count": 3,
    "cover": "D12hBh8k7Qc"
   },
   {
@@ -2090,8 +2326,8 @@
    "title": "سلسلة لغات البرمجة في فيديو واحد | learn language programs",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 11,
-   "cover": "smKHKgedkP4"
+   "count": 13,
+   "cover": "YrY2t3ehGmA"
   },
   {
    "id": "PLSiLeKadTQ7ng_wScQqPtxQ-2vtnxx4X5",
@@ -2114,8 +2350,8 @@
    "title": "كيف تتعلم الذكاء الاصطناعي بايثون - المسار الكامل دورة مجانية",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 12,
-   "cover": "NVyNktsKe8E"
+   "count": 18,
+   "cover": "iAC1vj0VCI8"
   },
   {
    "id": "PLSiLeKadTQ7lgmO3cwcvX1TWIP0_PLrFW",
@@ -2146,16 +2382,8 @@
    "title": "مشاريع بلغة بايثون احترافية ومميزة - python projects",
    "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
    "channel": "CodeRK",
-   "count": 69,
+   "count": 70,
    "cover": "DFHFSpo5dvI"
-  },
-  {
-   "id": "PLSiLeKadTQ7lb-GpBwI_m-D_moUFxkBb5",
-   "title": "مكتبة تكنتر الواجهات الرسومية تمارين برمجية",
-   "channel_id": "UCIKDaj_tCR7ntiwM71DfaBg",
-   "channel": "CodeRK",
-   "count": 14,
-   "cover": "AeoVy41s5CQ"
   },
   {
    "id": "PLC3y8-rFHvwhZHH2BksCOYAxLmYrQL__H",
@@ -2164,6 +2392,14 @@
    "channel": "Codevolution",
    "count": 31,
    "cover": "iS5tZ9WdO0k"
+  },
+  {
+   "id": "PLC3y8-rFHvwgVmqbtQkPDxkvDf6w5_eGA",
+   "title": "Expo Router Tutorial",
+   "channel_id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
+   "channel": "Codevolution",
+   "count": 15,
+   "cover": "XgWENEf3oFw"
   },
   {
    "id": "PLC3y8-rFHvwhIEc4I4YsRz5C7GOBnxSJY",
@@ -2210,7 +2446,7 @@
    "title": "React Native Tutorial for Beginners",
    "channel_id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
    "channel": "Codevolution",
-   "count": 82,
+   "count": 97,
    "cover": "hzzCveeczSQ"
   },
   {
@@ -2220,6 +2456,14 @@
    "channel": "Codevolution",
    "count": 2,
    "cover": "d10qxIXgLbg"
+  },
+  {
+   "id": "PLC3y8-rFHvwjifDNQYYWI6i06D7PjF0Ua",
+   "title": "SvelteKit Tutorial",
+   "channel_id": "UC80PWRj_ZU8Zu0HSMNVwKWw",
+   "channel": "Codevolution",
+   "count": 33,
+   "cover": "iBctrIOg-Jw"
   },
   {
    "id": "PLuXY3ddo_8nypV1oUBE90DZFBKzH_yzSf",
@@ -2254,6 +2498,22 @@
    "cover": "GCYYkOSKj80"
   },
   {
+   "id": "PLuXY3ddo_8nxJarNd9dMOq_d7tcgKeaes",
+   "title": "أسال و اجاوبك [Q&A]",
+   "channel_id": "UCveX_0uBOHVHbpV838OGXVA",
+   "channel": "Codezilla",
+   "count": 3,
+   "cover": "kDCoZmDLgFs"
+  },
+  {
+   "id": "PLuXY3ddo_8nzD307NssxltQA6tvnlFhTo",
+   "title": "الاسئلة الشائعة للمبتدئين في تعلم البرمجة",
+   "channel_id": "UCveX_0uBOHVHbpV838OGXVA",
+   "channel": "Codezilla",
+   "count": 6,
+   "cover": "hZcobBpUO6w"
+  },
+  {
    "id": "PLuXY3ddo_8nzrO74UeZQVZOb5-wIS6krJ",
    "title": "دورة تعلم بايثون من الصفر كاملة للمبتدئين - Master Python from Beginner to Advanced in Arabic",
    "channel_id": "UCveX_0uBOHVHbpV838OGXVA",
@@ -2274,8 +2534,8 @@
    "title": "قهوة Codezilla",
    "channel_id": "UCveX_0uBOHVHbpV838OGXVA",
    "channel": "Codezilla",
-   "count": 25,
-   "cover": "13cRuOX2Bo0"
+   "count": 80,
+   "cover": "iHX3as6ef9E"
   },
   {
    "id": "PLuXY3ddo_8nwyBVa1I3xHXYgpQHJ1Z0wn",
@@ -2290,7 +2550,7 @@
    "title": "JavaScript for Grade 10 using Qureo",
    "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
    "channel": "Coding With Ghonaim",
-   "count": 34,
+   "count": 35,
    "cover": "tzwooIN6FIE"
   },
   {
@@ -2298,7 +2558,7 @@
    "title": "JavaScript for Grade 10 using Qureo",
    "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
    "channel": "Coding With Ghonaim",
-   "count": 34,
+   "count": 35,
    "cover": "tzwooIN6FIE"
   },
   {
@@ -2306,7 +2566,7 @@
    "title": "البرمجة و الذكاء الاصطناعي - أولي ثانوي",
    "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
    "channel": "Coding With Ghonaim",
-   "count": 64,
+   "count": 74,
    "cover": "ng-HQ2X1iVg"
   },
   {
@@ -2330,7 +2590,7 @@
    "title": "البرمجة والذكاء الاصطناعي للصف الأول الثانوي | Coding & AI for Grade 10",
    "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
    "channel": "Coding With Ghonaim",
-   "count": 64,
+   "count": 75,
    "cover": "ng-HQ2X1iVg"
   },
   {
@@ -2338,48 +2598,40 @@
    "title": "التقييمات الاسبوعية برمجة أولي ثانوي",
    "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
    "channel": "Coding With Ghonaim",
-   "count": 10,
-   "cover": "XWOf_m6yDjI"
-  },
-  {
-   "id": "PLNLUV9OySmtE",
-   "title": "شرح وحل منهج البرمجة بالكامل | الصف الثاني البكالوريا 2027 | مستر محمد غنيم",
-   "channel_id": "UCGzhwKMUHFl6lLyam3Py6fA",
-   "channel": "Coding With Ghonaim",
-   "count": 2,
-   "cover": "_logONU22F0"
+   "count": 16,
+   "cover": "L_4ej7UwSS4"
   },
   {
    "id": "PL55imqdRbf0yt_U22x2kqhnYcXBQG59oo",
    "title": "سؤال عـ السريع ✨",
    "channel_id": "UCgwvA-wbE0u3AVhlNO29vjA",
    "channel": "CodingVi",
-   "count": 2,
-   "cover": "kgTY79Bawco"
+   "count": 10,
+   "cover": "7mUqV17k1s8"
   },
   {
    "id": "PL55imqdRbf0zvtpT6udIPVbgO0ldzd09c",
    "title": "شرح كتاب الـ Clean Code بالعربي ✨",
    "channel_id": "UCgwvA-wbE0u3AVhlNO29vjA",
    "channel": "CodingVi",
-   "count": 7,
-   "cover": "R-jjVEPcrTM"
+   "count": 6,
+   "cover": "srDAANyOPGU"
   },
   {
    "id": "PL55imqdRbf0zpZZkgTCj3vIIJBEOYBjcL",
    "title": "قائمة | دليل المبرمج المحترف ✅",
    "channel_id": "UCgwvA-wbE0u3AVhlNO29vjA",
    "channel": "CodingVi",
-   "count": 4,
-   "cover": "DysSBNzcfAY"
+   "count": 13,
+   "cover": "xMOtc9yTPXU"
   },
   {
    "id": "PL55imqdRbf0xRiLa_ez7ITyKNPT08PLSy",
    "title": "قصة تِك | التاريح التقني",
    "channel_id": "UCgwvA-wbE0u3AVhlNO29vjA",
    "channel": "CodingVi",
-   "count": 2,
-   "cover": "6UoejcOJrLA"
+   "count": 5,
+   "cover": "UfW0iW-D3Ns"
   },
   {
    "id": "PL55imqdRbf0xYXwEnkChZordtd2kQhb-9",
@@ -2394,16 +2646,72 @@
    "title": "Artificial Intelligence with Rob Miles",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 3,
+   "count": 4,
    "cover": "eElfR_BnL5k"
+  },
+  {
+   "id": "PLzH6n4zXuckrSWWIDJ_3To7ro5-naSk8v",
+   "title": "Bletchley Park (Colossus) Playlist",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "-hrNWRtDr7Y"
+  },
+  {
+   "id": "PLzH6n4zXuckqZ90zLyy36qjO5YIn1RulG",
+   "title": "Brian Kernighan on Computerphile",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 4,
+   "cover": "NTfOnGZUZDk"
+  },
+  {
+   "id": "PLzH6n4zXuckr7UDOdvPy2bDVsDlMBKTav",
+   "title": "Brian Kernighan Q&A 2018",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "zmYhR8cUX90"
+  },
+  {
+   "id": "PLzH6n4zXuckoJaMwuI1fhr5n8cJL18hYd",
+   "title": "Compilers with Professor Brailsford",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 5,
+   "cover": "PjeE8Bc96HY"
+  },
+  {
+   "id": "PLzH6n4zXuckoRdljSlM2k35BufTYXNNeF",
+   "title": "Computer Vision: Filters (Blur, Edge Detection etc)",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "_DPRt3AcUEY"
+  },
+  {
+   "id": "PLzH6n4zXuckqHIA4GI4Yf12AmxOJRTlw8",
+   "title": "Computerphile at EMF Camp 2018",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 8,
+   "cover": "iUBd35sBMqc"
   },
   {
    "id": "PLzH6n4zXuckrVWLK5aBc8s1EbRQmQPdpG",
    "title": "Computerphile at Oxford Robotics Institute",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 2,
-   "cover": "fN3gdUMB_Yc"
+   "count": 9,
+   "cover": "844U9T_SOrA"
+  },
+  {
+   "id": "PLzH6n4zXuckqS2MxjOXmoDFeHJTtlZrMf",
+   "title": "Computerphile Soundcheck Videos",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 7,
+   "cover": "p8-rZOCn5rQ"
   },
   {
    "id": "PLzH6n4zXuckpfMu_4Ff8E7Z1behQks5ba",
@@ -2414,11 +2722,19 @@
    "cover": "8GIbOJtUw8w"
   },
   {
+   "id": "PLzH6n4zXuckqZfTSroNGIqrKXg8Y2_9fH",
+   "title": "David Domminney Fowler on Computerphile",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 6,
+   "cover": "x_pwyoLsvkw"
+  },
+  {
    "id": "PLzH6n4zXuckrzZ5W1-SJ1GIsJO7H85wjX",
    "title": "Dr Steve Bagley on Computerphile",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 2,
+   "count": 5,
    "cover": "cI8IquVEyVY"
   },
   {
@@ -2426,8 +2742,8 @@
    "title": "Dr Tim Muller",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 2,
-   "cover": "zn2ukSnDqSg"
+   "count": 5,
+   "cover": "FMZ-HARN0gI"
   },
   {
    "id": "PLzH6n4zXuckquIN7x2uXXz8hLBCro9Q_j",
@@ -2438,20 +2754,44 @@
    "cover": "92sycL8ij-U"
   },
   {
+   "id": "PLzH6n4zXuckpTalShLk775zrHha_2OmtZ",
+   "title": "Laurence Tratt",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 4,
+   "cover": "7GBlCinu9yg"
+  },
+  {
    "id": "PLzH6n4zXuckqtwDWYeHDlRx9PnnotRB-o",
    "title": "Lewis Stuart",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 4,
-   "cover": "FBv1xk5_G1c"
+   "count": 9,
+   "cover": "AjQNDCYL5Rg"
+  },
+  {
+   "id": "PLzH6n4zXuckpwdGMHgRH5N9xNHzVGCxwf",
+   "title": "Matt Godbolt on Computerphile",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 20,
+   "cover": "8VsiYWW9r48"
   },
   {
    "id": "PLzH6n4zXuckqbjBDsA_Hc-q5hI2lGml1F",
    "title": "Mike Pound on Computerphile",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 12,
+   "count": 26,
    "cover": "-fpVv_T4xwA"
+  },
+  {
+   "id": "PLzH6n4zXuckpHPMGkHuMoBDQuav3lq5U0",
+   "title": "Nick Hawes on Computerphile",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 5,
+   "cover": "844U9T_SOrA"
   },
   {
    "id": "PLzH6n4zXuckoUWpzSEpQNW6I8rXIzyi8w",
@@ -2466,24 +2806,80 @@
    "title": "Professor Altenkirch on Automata and RegEx",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 2,
+   "count": 4,
    "cover": "32bC33nJR3A"
+  },
+  {
+   "id": "PLzH6n4zXucko55y-YFE4ng1CLiui_3DUr",
+   "title": "Quantum Computing",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 4,
+   "cover": "m5A_oupZOCE"
+  },
+  {
+   "id": "PLzH6n4zXuckqkT4r-1Wd-Bg0KdTUYtfY8",
+   "title": "Ready Player One Tech",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 5,
+   "cover": "uhOWldMIPoo"
+  },
+  {
+   "id": "PLzH6n4zXuckrc7uBWvIroTMwtcrk634Nu",
+   "title": "Remote Working Technologies",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "1mtSNVdC7tM"
   },
   {
    "id": "PLzH6n4zXuckpvez0PrA5J2Wv--g_vyVs8",
    "title": "Richard G Clegg",
    "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
    "channel": "Computerphile",
-   "count": 5,
-   "cover": "ihvbhwGblQg"
+   "count": 13,
+   "cover": "ZP6Bh3iWklQ"
+  },
+  {
+   "id": "PLzH6n4zXuckpNBPBn9BzKN4Ms_dkDFF6S",
+   "title": "Sega Megadrive Video Game Programming",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 2,
+   "cover": "Uh-lHex9Hyo"
+  },
+  {
+   "id": "PLQKO-epOIwaY",
+   "title": "Steven Murdoch on Computerphile",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "2Q6OvYjOJi0"
+  },
+  {
+   "id": "PLzH6n4zXuckoXiDGh3c16nMCPABZKHc9I",
+   "title": "The Story of Mel",
+   "channel_id": "UC9-y-6csu5WGm29I7JiwpnA",
+   "channel": "Computerphile",
+   "count": 3,
+   "cover": "XS3UBuZ7D34"
   },
   {
    "id": "PL-osiE80TeTvviVL0pJGX5mZCo7CAvIuf",
    "title": "Career Advice",
    "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
    "channel": "Corey Schafer",
-   "count": 2,
-   "cover": "N4WSqXtd_rk"
+   "count": 5,
+   "cover": "TtIJEQ6D9DE"
+  },
+  {
+   "id": "PL-osiE80TeTt9WQbFm0uoXG8CrMy_xj5Z",
+   "title": "Channel Updates",
+   "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
+   "channel": "Corey Schafer",
+   "count": 5,
+   "cover": "OPUP4ghN9oo"
   },
   {
    "id": "PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p",
@@ -2530,8 +2926,16 @@
    "title": "Linux/Mac Tutorials",
    "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
    "channel": "Corey Schafer",
-   "count": 15,
+   "count": 18,
    "cover": "j6vKLJxAKfw"
+  },
+  {
+   "id": "PL-osiE80TeTskxOHcG0g2rpTttSgl9ypD",
+   "title": "Mac Tips and Tricks",
+   "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
+   "channel": "Corey Schafer",
+   "count": 5,
+   "cover": "OlpVKUpraao"
   },
   {
    "id": "PL-osiE80TeTvipOqomVEeZ1HRrcEvtZB_",
@@ -2542,12 +2946,28 @@
    "cover": "UO98lJQ3QGI"
   },
   {
+   "id": "PL-osiE80TeTt_haVwUPz6DsumqQ0_Ehsg",
+   "title": "My Dog",
+   "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
+   "channel": "Corey Schafer",
+   "count": 2,
+   "cover": "UI1x1nevQD0"
+  },
+  {
    "id": "PL-osiE80TeTsWmV9i9c58mdDCSskIFdDS",
    "title": "Pandas Tutorials",
    "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
    "channel": "Corey Schafer",
    "count": 11,
    "cover": "ZyhVh-qRZPA"
+  },
+  {
+   "id": "PL-osiE80TeTsnP0Nl1UDY8VZAlHu1m_MQ",
+   "title": "Programming Terms",
+   "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
+   "channel": "Corey Schafer",
+   "count": 8,
+   "cover": "swU3c34d2NQ"
   },
   {
    "id": "PL-osiE80TeTt66h8cVpmbayBKlMTuS55y",
@@ -2578,7 +2998,7 @@
    "title": "Python Tutorials",
    "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
    "channel": "Corey Schafer",
-   "count": 158,
+   "count": 157,
    "cover": "YYXdXT2l-Gg"
   },
   {
@@ -2594,40 +3014,40 @@
    "title": "Sublime Text",
    "channel_id": "UCCezIgC97PvUuR4_gbFUs5g",
    "channel": "Corey Schafer",
-   "count": 2,
-   "cover": "xFciV6Ew5r4"
+   "count": 7,
+   "cover": "zVLJfrIwEP8"
   },
   {
-   "id": "PLhQjrBD2T381My2RQGkQoiw6bdL2OpwtU",
-   "title": "CS50 Educator Workshop 2023",
+   "id": "PLhQjrBD2T381cvtjW82tGZBjIdanUUnk9",
+   "title": "CS50 Fair 2023 at Harvard",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
    "channel": "CS50",
-   "count": 2,
-   "cover": "wqWiGwb6riQ"
+   "count": 17,
+   "cover": "JJPbXou4-0o"
+  },
+  {
+   "id": "PLhQjrBD2T382wimF6R_0VMklXbMg-1y-p",
+   "title": "CS50 Fair 2023 at Yale",
+   "channel_id": "UCcabW7890RKJzL968QWEykA",
+   "channel": "CS50",
+   "count": 10,
+   "cover": "pD7Q5otBGF8"
   },
   {
    "id": "PLb35IF1fLPd4",
    "title": "CS50 Office Hours Reels",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
    "channel": "CS50",
-   "count": 3,
-   "cover": "_xB-waZsdRk"
+   "count": 6,
+   "cover": "kU0URg81F9g"
   },
   {
    "id": "PLhQjrBD2T381JOnAAMKb-eZuotMZn-vvT",
    "title": "CS50 Sections - Fall 2024",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
    "channel": "CS50",
-   "count": 5,
-   "cover": "_1HNnsygp_A"
-  },
-  {
-   "id": "PLhQjrBD2T381d32c80DEQZOR-IWcINyP8",
-   "title": "CS50's Computer Science for Business",
-   "channel_id": "UCcabW7890RKJzL968QWEykA",
-   "channel": "CS50",
-   "count": 2,
-   "cover": "-kKf1U6KuGk"
+   "count": 9,
+   "cover": "KraVJDqv7uo"
   },
   {
    "id": "PLhQjrBD2T382Nz7z1AEXmioc27axa19Kv",
@@ -2646,6 +3066,14 @@
    "cover": "gR8QvFmNuLE"
   },
   {
+   "id": "PLhQjrBD2T383Cqo5I1oRrbC1EKRAKGKUE",
+   "title": "CS50's Introduction to Cybersecurity",
+   "channel_id": "UCcabW7890RKJzL968QWEykA",
+   "channel": "CS50",
+   "count": 6,
+   "cover": "kmJlnUfMd7I"
+  },
+  {
    "id": "PLhQjrBD2T382v1MBjNOhPu9SiJ1fsD4C0",
    "title": "CS50's Introduction to Databases with SQL",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
@@ -2654,51 +3082,43 @@
    "cover": "wdzA1Z8tKek"
   },
   {
+   "id": "PLhQjrBD2T382yfNp_-xzX244d-O9W6YmD",
+   "title": "CS50's Introduction to Programming with R",
+   "channel_id": "UCcabW7890RKJzL968QWEykA",
+   "channel": "CS50",
+   "count": 8,
+   "cover": "DR7hGCOdaRM"
+  },
+  {
+   "id": "PLhQjrBD2T381eWtNm274cXo8zxUFX-lyn",
+   "title": "CS50P Shorts",
+   "channel_id": "UCcabW7890RKJzL968QWEykA",
+   "channel": "CS50",
+   "count": 20,
+   "cover": "51BNn5Ojupw"
+  },
+  {
    "id": "PLhQjrBD2T381WAHyx1pq-sBfykqMBI7V4",
    "title": "CS50x 2024 Lectures",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
    "channel": "CS50",
-   "count": 5,
-   "cover": "0euvEdPwQnQ"
+   "count": 11,
+   "cover": "cwtpLIWylAw"
   },
   {
-   "id": "PLhQjrBD2T383q7Vn8QnTsVgSvyLpsqL_R",
-   "title": "CS50x 2025 Lectures",
-   "channel_id": "UCcabW7890RKJzL968QWEykA",
-   "channel": "CS50",
-   "count": 5,
-   "cover": "aV8LlSmd1E8"
-  },
-  {
-   "id": "PLXSX209johrU",
-   "title": "CS50x em Português",
+   "id": "PLhQjrBD2T383UwKR6dOFwGF6QTJunIqi5",
+   "title": "Visitas Thinks Big 2023 - Harvard University",
    "channel_id": "UCcabW7890RKJzL968QWEykA",
    "channel": "CS50",
    "count": 4,
-   "cover": "iIG8j9kWlIY"
-  },
-  {
-   "id": "PLXOJEg4xbr50",
-   "title": "CS50x en Español",
-   "channel_id": "UCcabW7890RKJzL968QWEykA",
-   "channel": "CS50",
-   "count": 4,
-   "cover": "N3zVFYQu3bU"
-  },
-  {
-   "id": "PLhQjrBD2T380hlTqAU8HfvVepCcjCqTg6",
-   "title": "CS50x Lectures",
-   "channel_id": "UCcabW7890RKJzL968QWEykA",
-   "channel": "CS50",
-   "count": 5,
-   "cover": "PmAI76OGE_E"
+   "cover": "wmKzll8ZsFw"
   },
   {
    "id": "PL0Zuz27SZ-6N3bG4YZhkrCL3ZmDcLTuGd",
    "title": "Advanced Javascript Concepts",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 16,
+   "count": 17,
    "cover": "1S8SBDhA7HA"
   },
   {
@@ -2706,24 +3126,24 @@
    "title": "Building a Chat App",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 2,
-   "cover": "ypqs_u9GbpQ"
+   "count": 5,
+   "cover": "J8xReLuBNPY"
   },
   {
    "id": "PL0Zuz27SZ-6NQaVsb-nlOt7UkBoCQdseL",
    "title": "Code Chats",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 7,
-   "cover": "KPd7tHFlWpk"
+   "count": 11,
+   "cover": "9E63JuDTi0Q"
   },
   {
    "id": "PL0Zuz27SZ-6M42D5wubpZQXcGTbAwD73z",
    "title": "Code Shorts",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 11,
-   "cover": "OM0goBLkkQ8"
+   "count": 24,
+   "cover": "5MgHXnU3Nm0"
   },
   {
    "id": "PL0Zuz27SZ-6Mx9fd9elt80G1bPcySmWit",
@@ -2746,7 +3166,7 @@
    "title": "Full Course Programming Tutorials from Dave Gray",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 12,
+   "count": 14,
    "cover": "mJgBOIoGihA"
   },
   {
@@ -2778,7 +3198,7 @@
    "title": "Javascript Tutorials for Beginners",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 28,
+   "count": 29,
    "cover": "SajRjc9KKUE"
   },
   {
@@ -2786,8 +3206,8 @@
    "title": "MERN Stack Tutorials",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 8,
-   "cover": "cUV3uYXEOxI"
+   "count": 14,
+   "cover": "H-9l-gTq-C4"
   },
   {
    "id": "PL0Zuz27SZ-6OJQfjH8g_CAjgMbLoIleKN",
@@ -2796,6 +3216,14 @@
    "channel": "Dave Gray",
    "count": 3,
    "cover": "-PdjUx9JZ2E"
+  },
+  {
+   "id": "PL0Zuz27SZ-6MexSAh5x1R3rU6Mg2zYBVr",
+   "title": "NestJS Tutorials for Beginners",
+   "channel_id": "UCY38RvRIxYODO4penyxUwTg",
+   "channel": "Dave Gray",
+   "count": 7,
+   "cover": "juNVinepwKA"
   },
   {
    "id": "PL0Zuz27SZ-6PCLz7VMP2QQdeKa83rshe5",
@@ -2810,7 +3238,7 @@
    "title": "Next.js Tutorials for Beginners",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 44,
+   "count": 48,
    "cover": "6h649f2fB9Q"
   },
   {
@@ -2818,7 +3246,7 @@
    "title": "Node.js Tutorials for Beginners",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 18,
+   "count": 20,
    "cover": "JZXQ455OT3A"
   },
   {
@@ -2826,7 +3254,7 @@
    "title": "PHP and MySQL",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 10,
+   "count": 11,
    "cover": "btauAEqaifw"
   },
   {
@@ -2882,7 +3310,7 @@
    "title": "React Tutorials",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 70,
+   "count": 72,
    "cover": "TeeAp5zkYnI"
   },
   {
@@ -2906,7 +3334,7 @@
    "title": "Typescript Tutorials for Beginners",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 19,
+   "count": 22,
    "cover": "MOO5vrtTUTE"
   },
   {
@@ -2914,7 +3342,7 @@
    "title": "Vanilla JavaScript Projects",
    "channel_id": "UCY38RvRIxYODO4penyxUwTg",
    "channel": "Dave Gray",
-   "count": 7,
+   "count": 8,
    "cover": "s_Ie_yh_4Co"
   },
   {
@@ -2924,6 +3352,22 @@
    "channel": "Dave Gray",
    "count": 2,
    "cover": "xQcpQfEumQw"
+  },
+  {
+   "id": "PLsb1n1Dnz-KYQ86tAjquXZejB0GedObqD",
+   "title": "احصل على وظيفة",
+   "channel_id": "UCNJn6zuDrFaeNFj9PNNjmiA",
+   "channel": "Devrabic",
+   "count": 2,
+   "cover": "OvYDCkFGNUg"
+  },
+  {
+   "id": "PLsb1n1Dnz-KYNO9HGCh5aHCG4EbLr_4Tt",
+   "title": "ما هو ديفرابيك؟ مقدمة الدورة تعليم البرمجة",
+   "channel_id": "UCNJn6zuDrFaeNFj9PNNjmiA",
+   "channel": "Devrabic",
+   "count": 2,
+   "cover": "1hT1vDLUI20"
   },
   {
    "id": "PLPekubhUiZ90",
@@ -3014,6 +3458,14 @@
    "cover": "awWXkdAyChs"
   },
   {
+   "id": "PLXk7oCSiyT9w",
+   "title": "Podcasts",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 2,
+   "cover": "4BKvwjKBj-g"
+  },
+  {
    "id": "PLDoPjvoNmBAyX4CCOP--TR36SfD5g7gru",
    "title": "Problems Solving With C++ Level One",
    "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
@@ -3046,12 +3498,44 @@
    "cover": "SGuBLXjd_ZM"
   },
   {
+   "id": "PLXdPyWVC58qE",
+   "title": "أسئلة وإجابتها",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 8,
+   "cover": "7mz06SXDoqA"
+  },
+  {
+   "id": "PLDoPjvoNmBAzOP7InfOACcQCQ3F1jv7uz",
+   "title": "أهم الأحداث في القناة",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 4,
+   "cover": "0TEFuR_IrvI"
+  },
+  {
    "id": "PLIcevQXeU8Oo",
    "title": "الذكاء الإصطناعي",
    "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
    "channel": "Elzero Web School",
+   "count": 7,
+   "cover": "rULLqZhsn5w"
+  },
+  {
+   "id": "PLZOlE618zukY",
+   "title": "تجارب حياتية",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
    "count": 2,
-   "cover": "bhvzTue7KgM"
+   "cover": "gPifZTwL0AU"
+  },
+  {
+   "id": "PLDoPjvoNmBAwqRU1f-AOuFTmZPvHozRne",
+   "title": "ترشيحات",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 7,
+   "cover": "OWxC_ehyVys"
   },
   {
    "id": "PLDoPjvoNmBAw8NNtJF4Bvhhbnt6MghtSq",
@@ -3062,11 +3546,43 @@
    "cover": "lq2iXziFg1k"
   },
   {
+   "id": "PLDoPjvoNmBAx8xKvAXpb6f0Urj98Xo7zg",
+   "title": "ما قبل تعلم البرمجة",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 9,
+   "cover": "-5RfI6JvWvs"
+  },
+  {
+   "id": "PLDoPjvoNmBAwtnw-VV2bUkD3vgpffrRfU",
+   "title": "نصائح سريعة",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 3,
+   "cover": "D91qgP5wxAg"
+  },
+  {
+   "id": "PLcnPeOnCPM1M",
+   "title": "نصائح هامة",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 4,
+   "cover": "2a48Uu0kH8E"
+  },
+  {
+   "id": "PLPCawMsxbcfw",
+   "title": "نقاش ودردشة",
+   "channel_id": "UCSNkfKl4cU-55Nm-ovsvOHQ",
+   "channel": "Elzero Web School",
+   "count": 4,
+   "cover": "SLLO81BUfF4"
+  },
+  {
    "id": "PL0vfts4VzfNiI1BsIK5u7LpPaIDKMJIDN",
    "title": "100 Seconds of Code",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 22,
+   "count": 72,
    "cover": "gvkqT_Uoahw"
   },
   {
@@ -3074,23 +3590,31 @@
    "title": "Anthropic",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 10,
-   "cover": "1PBRhm5ZnjU"
+   "count": 15,
+   "cover": "CXSvKcLovAk"
+  },
+  {
+   "id": "PL0vfts4VzfNjS8-DG68UDBZyeVkND3AXt",
+   "title": "Apple",
+   "channel_id": "UCsBjURrPoezykLs9EqgamOA",
+   "channel": "Fireship",
+   "count": 6,
+   "cover": "5D4Zqp9GLSc"
   },
   {
    "id": "PL0vfts4VzfNgNVZIPX7VIS4w2dhuwCXbN",
    "title": "Artificial Intelligence",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 42,
-   "cover": "URKml8lgw8Y"
+   "count": 84,
+   "cover": "5D4Zqp9GLSc"
   },
   {
    "id": "PL0vfts4VzfNiq0-fXbVVdnngU1Ur2SzyZ",
    "title": "Backend Development",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 3,
+   "count": 6,
    "cover": "DOIWQddRD5M"
   },
   {
@@ -3098,55 +3622,63 @@
    "title": "Chips and Computer Science",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 4,
-   "cover": "MtxP2pyCvYA"
+   "count": 16,
+   "cover": "7B0ydm64cV8"
   },
   {
    "id": "PL0vfts4VzfNjzjr4leSQ1_WUm_6vlpfxd",
    "title": "Coding and Programming Languages",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 38,
-   "cover": "JfPWbttemYE"
+   "count": 81,
+   "cover": "CXSvKcLovAk"
   },
   {
    "id": "PL0vfts4VzfNjQOM9VClyL5R0LeuTxlAR3",
    "title": "CS101",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 6,
-   "cover": "MFhxShGxHWc"
+   "count": 7,
+   "cover": "U3aXWizDbQ4"
   },
   {
    "id": "PL0vfts4VzfNhoH_18upD855r675Rmh7-b",
    "title": "DeepSeek",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 2,
-   "cover": "Nl7aCUsWykg"
+   "count": 3,
+   "cover": "hpwoGjpYygI"
   },
   {
    "id": "PL0vfts4VzfNg__PkSVKhrYvdc35kHybBy",
    "title": "Developer Productivity",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 3,
-   "cover": "iO1mwxPNP5A"
+   "count": 7,
+   "cover": "9iU_IE6vnJ8"
   },
   {
    "id": "PL0vfts4VzfNieTtC_yYSK7M1S5Hz_ffPz",
    "title": "Fireship",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 43,
-   "cover": "URKml8lgw8Y"
+   "count": 100,
+   "cover": "5D4Zqp9GLSc"
+  },
+  {
+   "id": "PL0vfts4VzfNiP4xgrtnSUbK99iXLINc9m",
+   "title": "First Look",
+   "channel_id": "UCsBjURrPoezykLs9EqgamOA",
+   "channel": "Fireship",
+   "count": 2,
+   "cover": "mAsM9c2sGjA"
   },
   {
    "id": "PL0vfts4VzfNiQYtnn1TZ6U0Ec_vjCN9VY",
    "title": "Flutter",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 2,
+   "count": 3,
    "cover": "X8ipUgXH6jw"
   },
   {
@@ -3154,7 +3686,7 @@
    "title": "For the Haters",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 4,
+   "count": 3,
    "cover": "ZzI9JE0i6Lc"
   },
   {
@@ -3162,7 +3694,7 @@
    "title": "Frontend Mini Projects",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 2,
+   "count": 5,
    "cover": "pfaSUYaSgRo"
   },
   {
@@ -3170,15 +3702,23 @@
    "title": "Google",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 6,
+   "count": 17,
    "cover": "9OQ5vaYbGV0"
+  },
+  {
+   "id": "PL0vfts4VzfNijDEGDQ-eXhg7k0iww-J_w",
+   "title": "Meta",
+   "channel_id": "UCsBjURrPoezykLs9EqgamOA",
+   "channel": "Fireship",
+   "count": 4,
+   "cover": "GOejI6c0CMQ"
   },
   {
    "id": "PL0vfts4VzfNh1l154s-Y3PutwFc1-fVPG",
    "title": "Microsoft",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 2,
+   "count": 4,
    "cover": "d53Zk28esmU"
   },
   {
@@ -3186,15 +3726,15 @@
    "title": "OpenAi",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 9,
-   "cover": "URKml8lgw8Y"
+   "count": 24,
+   "cover": "5D4Zqp9GLSc"
   },
   {
    "id": "PL0vfts4VzfNgUUEtEjxDVfh4iocVR3qIb",
    "title": "React",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 8,
+   "count": 9,
    "cover": "gvkqT_Uoahw"
   },
   {
@@ -3202,48 +3742,56 @@
    "title": "Security, Hacks and Leaks",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 9,
-   "cover": "piah4fV_o2Q"
+   "count": 22,
+   "cover": "gwTQLZSIlsU"
   },
   {
    "id": "PL0vfts4VzfNjD58OHEdaFUh8uvDRmkqB1",
    "title": "Tech Bros Gone Wild",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 3,
-   "cover": "AwZ8PtoqCeU"
+   "count": 8,
+   "cover": "-_6dHIPVoTM"
   },
   {
    "id": "PLYXhowtmyvso",
    "title": "The Code Report",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 114,
-   "cover": "1PBRhm5ZnjU"
+   "count": 216,
+   "cover": "a2i9h2ip-nY"
   },
   {
    "id": "PL0vfts4VzfNg9sTDAPew0MT0isOeCCkjR",
    "title": "Top N Lists",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 11,
-   "cover": "wHTcrmhskto"
+   "count": 30,
+   "cover": "NuyzuNBFWxQ"
+  },
+  {
+   "id": "PL0vfts4VzfNjurgyRawm_e0RevgP7g1Ao",
+   "title": "Web3",
+   "channel_id": "UCsBjURrPoezykLs9EqgamOA",
+   "channel": "Fireship",
+   "count": 2,
+   "cover": "meTpMP0J5E8"
   },
   {
    "id": "PL0vfts4VzfNi6_7SCEWwQXo1C17Lf9WFV",
    "title": "X Corp",
    "channel_id": "UCsBjURrPoezykLs9EqgamOA",
    "channel": "Fireship",
-   "count": 2,
-   "cover": "b0XI-cbel1U"
+   "count": 4,
+   "cover": "2USUfv7klr8"
   },
   {
    "id": "PLrtE1n2RfV7t4Ko1EZRGI7w_EQw16wqlL",
    "title": "Transformers Models and LLM- نماذج المحولات و اللغات الكبيرة",
    "channel_id": "UC1fxEAVE-_N9mDL7APCkeOQ",
    "channel": "freeCodeCamp Arabic",
-   "count": 10,
-   "cover": "S2gnBMFsr2o"
+   "count": 14,
+   "cover": "RqH2NPKa2xY"
   },
   {
    "id": "PLU1CuXs74y_Q",
@@ -3274,23 +3822,415 @@
    "title": "نماذج الإنتشار التوليدية : Diffusion Models",
    "channel_id": "UC1fxEAVE-_N9mDL7APCkeOQ",
    "channel": "freeCodeCamp Arabic",
+   "count": 7,
+   "cover": "s--J-CubxU8"
+  },
+  {
+   "id": "PLWKjhJtqVAbmSg8HtUEs0SJ-mzBIN3nEm",
+   "title": "A day at...",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "woufKp6HPXI"
+  },
+  {
+   "id": "PLWKjhJtqVAbm0gPNunWf4pr4xV8I3Geh-",
+   "title": "Agile Software Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "dfR6UBEBVvo"
+  },
+  {
+   "id": "PLWKjhJtqVAblNvGKk6aQVPAJHxrRXxHTs",
+   "title": "Angular Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "2OHbjep_WjQ"
+  },
+  {
+   "id": "PLWKjhJtqVAbnUeereoJWjWOhlcWUynq_Z",
+   "title": "Ask Preethi",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "VqiEhZYmvKk"
+  },
+  {
+   "id": "PLWKjhJtqVAbn21gs5UnLhCQ82f923WCgM",
+   "title": "Back End Developer Learning Path",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 15,
+   "cover": "tN6oJu2DqCM"
+  },
+  {
+   "id": "PLWKjhJtqVAbmoiNlqLJg1gxEjEuKHHcn_",
+   "title": "Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 92,
+   "cover": "t2CEgPsws3U"
+  },
+  {
+   "id": "PLWKjhJtqVAbmUE5IqyfGYEYjrZBYzaT4m",
+   "title": "C / C++",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "KJgsSFOSQv0"
+  },
+  {
+   "id": "PLWKjhJtqVAbkK24EaPurzMq0-kw5U9pJh",
+   "title": "Clean Code - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "b9c5GmmS7ks"
+  },
+  {
+   "id": "PLWKjhJtqVAblv09G3sFgRMSeR0jnKQmJ9",
+   "title": "Coding Interview",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "51gc7-eskU8"
+  },
+  {
+   "id": "PLWKjhJtqVAbmfoj2Th9fvxhHIeqFO7wOy",
+   "title": "Computer Science and Software Engineering Theory with Briana",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 39,
+   "cover": "q7tlgZg4Q1o"
+  },
+  {
+   "id": "PLWKjhJtqVAbn5emQ3RRG8gEBqkhf_5vxD",
+   "title": "Computer Science Concepts",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 17,
+   "cover": "RBSGKlAvoiM"
+  },
+  {
+   "id": "PLWKjhJtqVAbluXJKKbCIb4xd7fcRkpzoz",
+   "title": "CS50's Introduction to Game Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "smRX1XItAjU"
+  },
+  {
+   "id": "PLWKjhJtqVAbl1AfjiGyYxwpdAPi5v-1OU",
+   "title": "CSS3 in 30 Days",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 31,
+   "cover": "pmKyG3NBY_k"
+  },
+  {
+   "id": "PLWKjhJtqVAblQe2CCWqV4Zy3LY01Z8aF1",
+   "title": "Data Science",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 19,
+   "cover": "ua-CiDNNj30"
+  },
+  {
+   "id": "PLWKjhJtqVAbkso-IbgiiP48n-O-JQA9PJ",
+   "title": "Data Structures and Algorithms - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 13,
+   "cover": "Gj5qBheGOEo"
+  },
+  {
+   "id": "PLWKjhJtqVAbnZtkAI3BqcYxKnfWn_C704",
+   "title": "Design Patterns - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 4,
+   "cover": "bgU7FeiWKzc"
+  },
+  {
+   "id": "PLWKjhJtqVAbkzvvpY12KkfiIGso9A_Ixs",
+   "title": "DevOps Courses",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 18,
+   "cover": "SOTamWNgDKc"
+  },
+  {
+   "id": "PLWKjhJtqVAblFnET3DbnAik--u4CBz62G",
+   "title": "Django Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "JIFqqdRxmVo"
+  },
+  {
+   "id": "PLWKjhJtqVAbljtmmeS0c-CEl2LdE-eR_F",
+   "title": "ES6 - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "1mgLWu69ijU"
+  },
+  {
+   "id": "PLWKjhJtqVAbnklGh3FNRLECx_2D_vK3mu",
+   "title": "Ethical Hacking",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "3Kq1MIfTWCE"
+  },
+  {
+   "id": "PLWKjhJtqVAbmMuZ3saqRIBimAKIMYkt0E",
+   "title": "Front End Developer Learning Path",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 22,
+   "cover": "9He4UBLyk8Y"
+  },
+  {
+   "id": "PLWKjhJtqVAblKO_wHAvlpZwAYvYPbHKOp",
+   "title": "Front End Web Development",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "RGOj5yH7evk"
+  },
+  {
+   "id": "PLWKjhJtqVAbnupwRFOq9zGOWjdvPRtCmO",
+   "title": "Full Courses in One Video",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 47,
+   "cover": "rfscVS0vtbw"
+  },
+  {
+   "id": "PLWKjhJtqVAbnadueQ-C5keMQQiQau_i0D",
+   "title": "Full Stack Web App in Vue.js & Express.js",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "Fa4cRMaTDUI"
+  },
+  {
+   "id": "PLWKjhJtqVAbmqFs83T4W-FZQ9kK983tZC",
+   "title": "Game Programming Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 27,
+   "cover": "9Fd9hw329fY"
+  },
+  {
+   "id": "PLWKjhJtqVAbkFiqHnNaxpOPhh9tSWMXIF",
+   "title": "Git & GitHub",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "vR-y_2zWrIE"
+  },
+  {
+   "id": "PLWKjhJtqVAbnSe1qUNMG7AbPmjIG54u88",
+   "title": "HTML and CSS Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "kUMe1FH4CHE"
+  },
+  {
+   "id": "PLWKjhJtqVAbmGw5fN5BQlwuug-8bDmabi",
+   "title": "Introduction to Computer Science - Harvard's CS50",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "F0WoVEr0-44"
+  },
+  {
+   "id": "PLWKjhJtqVAbnRT_hue-3zyiuIYj0OlpyG",
+   "title": "Java Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "GoXwIVyNvX0"
+  },
+  {
+   "id": "PLWKjhJtqVAbllLK6r2dnGjUVWB_cFNcuO",
+   "title": "JavaScript and the HTML DOM - Tutorial Playlist",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 11,
+   "cover": "eaLKqoB9Fu0"
+  },
+  {
+   "id": "PLWKjhJtqVAbk2qRZtWSzCIN38JC_NdhW5",
+   "title": "JavaScript Basics Course",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 36,
+   "cover": "le-URjBhevE"
+  },
+  {
+   "id": "PLWKjhJtqVAbleDe3_ZA8h3AO2rXar-q2V",
+   "title": "JavaScript Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "PkZNo7MFNFg"
+  },
+  {
+   "id": "PLWKjhJtqVAbkyK9woUZUtunToLtNGoQHB",
+   "title": "jQuery - Beau teaches JavaScript",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 10,
+   "cover": "KhtEmR2A1Fw"
+  },
+  {
+   "id": "PLWKjhJtqVAblStefaz_YOVpDWqcRScc2s",
+   "title": "Machine Learning",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 17,
+   "cover": "i_LwzRVP7bg"
+  },
+  {
+   "id": "PLWKjhJtqVAbl5SlE6aBHzUVZ1e6q1Wz0v",
+   "title": "Mathematics",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
    "count": 5,
-   "cover": "YBY1WKR0k6Y"
+   "cover": "i7vOAcUo5iA"
+  },
+  {
+   "id": "PLWKjhJtqVAbndUuYBE5sVViMIvyzp_dB1",
+   "title": "Maths for Programmers",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 20,
+   "cover": "LSBC3n9x52Q"
+  },
+  {
+   "id": "PLWKjhJtqVAblzbwhT83fRh5nNSHqywxrw",
+   "title": "Networks",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "OV9rruR09HM"
+  },
+  {
+   "id": "PLWKjhJtqVAbmGQoa3vFjeRbRADAOC9drk",
+   "title": "Node.js Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 8,
+   "cover": "RLtyhwFtXQA"
+  },
+  {
+   "id": "PLWKjhJtqVAbkoMsX4hgwxbJZW4aB0cbaB",
+   "title": "PHP Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "ImtZ5yENzgE"
+  },
+  {
+   "id": "PLWKjhJtqVAblfum5WiQblKPwIbqYXkDoC",
+   "title": "Popular Programming Courses",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 11,
+   "cover": "8mAITcNt710"
+  },
+  {
+   "id": "PLWKjhJtqVAbnqBxcdjVGgT3uVR10bzTEB",
+   "title": "Python Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 12,
+   "cover": "eWRfhZUzrAc"
+  },
+  {
+   "id": "PLWKjhJtqVAbkArDMazoARtNz1aMwNWmvC",
+   "title": "React Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 27,
+   "cover": "DLX62G4lc44"
+  },
+  {
+   "id": "PLWKjhJtqVAbkXQS12WiLsH1oaNZBSoWuV",
+   "title": "Serverless",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 7,
+   "cover": "jWdEM6XLKqI"
+  },
+  {
+   "id": "PLWKjhJtqVAbl9yptoxdSJDDoTVdcysyPo",
+   "title": "Talks",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 98,
+   "cover": "pmvxHOpms0g"
+  },
+  {
+   "id": "PLWKjhJtqVAbk7zM11M36sGvU29hB8EDC4",
+   "title": "The Daily Programmer",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 9,
+   "cover": "bcPahhyYEIk"
+  },
+  {
+   "id": "PLWKjhJtqVAbkyQnSv-DNXOKsglcHhYAV2",
+   "title": "The Doer Vlog",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 20,
+   "cover": "TWFNnbAylHI"
   },
   {
    "id": "PLWKjhJtqVAbm04DK8TSUCRheRjW2P9TR7",
    "title": "the freeCodeCamp.org podcast",
    "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
    "channel": "freeCodeCamp.org",
-   "count": 48,
+   "count": 102,
    "cover": "GmtOxMl39Tc"
+  },
+  {
+   "id": "PLWKjhJtqVAbmDGFE_pZ-PDJ1GWe3KtT-M",
+   "title": "Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 152,
+   "cover": "p65AHm9MX80"
+  },
+  {
+   "id": "PLWKjhJtqVAbmh6kzCSUon-SoTaMvXnHMB",
+   "title": "Unity Tutorials",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 6,
+   "cover": "gcF66q-UPCs"
+  },
+  {
+   "id": "PLWKjhJtqVAbnon7MZndnKeGEfQbXjwOqd",
+   "title": "WordPress",
+   "channel_id": "UC8butISFwT-Wl7EV0hUK0BQ",
+   "channel": "freeCodeCamp.org",
+   "count": 3,
+   "cover": "KibbYf9avko"
   },
   {
    "id": "PLMCXHnjXnTnt-aA0yHoa6QcVdQ0Mu3g9j",
    "title": "A.I. Engineering Playlist",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 7,
+   "count": 8,
    "cover": "OYvlznJ4IZQ"
   },
   {
@@ -3299,7 +4239,7 @@
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
    "count": 16,
-   "cover": "sUhyF6POiR8"
+   "cover": "WjnoNh6-qeA"
   },
   {
    "id": "PLQxroe-gWXUE",
@@ -3314,15 +4254,15 @@
    "title": "Competitive Programming A-Z",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 4,
-   "cover": "hqaRYgsLpUI"
+   "count": 24,
+   "cover": "FbW_5ipDCbg"
   },
   {
    "id": "PLMCXHnjXnTnszR6YSo1tQK2BMr15cC9Zh",
    "title": "CS Fundamentals",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 6,
+   "count": 7,
    "cover": "fZc3ijGM0aM"
   },
   {
@@ -3330,47 +4270,39 @@
    "title": "Dynamic Programming",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 2,
-   "cover": "7GCSA4u5ynw"
+   "count": 13,
+   "cover": "BCO8JKA2_N8"
   },
   {
    "id": "PLMCXHnjXnTnuX59JRYLwyr6IFkuqTr0oa",
    "title": "Interview Prep",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 2,
-   "cover": "IG9OtI54zPk"
-  },
-  {
-   "id": "PLMCXHnjXnTnvQVh7WsgZ8SurU1O2v_UM7",
-   "title": "Low Level Design",
-   "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
-   "channel": "Gaurav Sen",
-   "count": 2,
-   "cover": "FKA2KgkkcqY"
+   "count": 11,
+   "cover": "o_AJ3VWQMzA"
   },
   {
    "id": "PLMCXHnjXnTnv5Pd3O1bKGHNU4mkvribaB",
    "title": "Software Engineering Marvels",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 4,
-   "cover": "u8lKJWWVE0M"
+   "count": 11,
+   "cover": "hNDjd9I_VGA"
   },
   {
    "id": "PLMCXHnjXnTnvo6alSjVkgxV-VH6EPyvoX",
    "title": "System Design Playlist",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 5,
-   "cover": "qYhRvH9tJKw"
+   "count": 26,
+   "cover": "SqcXvc3ZmRU"
   },
   {
    "id": "PLMCXHnjXnTnteVBQIKevQkq6c6I7weiZb",
    "title": "System Design Shorts",
    "channel_id": "UCRPMAqdtSgd0Ipeef7iFsKw",
    "channel": "Gaurav Sen",
-   "count": 10,
+   "count": 41,
    "cover": "MjCKNQ0Jh4s"
   },
   {
@@ -3378,7 +4310,7 @@
    "title": "Anthropic Academy بالعربي",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 3,
+   "count": 4,
    "cover": "oz44Wp22iCU"
   },
   {
@@ -3386,15 +4318,15 @@
    "title": "Crash Courses",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 7,
-   "cover": "PsXDzwBW2Ls"
+   "count": 11,
+   "cover": "TnMNDQHB33Q"
   },
   {
    "id": "PLvGNfY-tFUN91XLzmWjYbLFqui386WWw0",
    "title": "افهم الويب",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 2,
+   "count": 4,
    "cover": "AO7jZRcY-FA"
   },
   {
@@ -3402,32 +4334,32 @@
    "title": "بودكاست غريب",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 2,
-   "cover": "vdV-XCNBgKc"
+   "count": 7,
+   "cover": "f0aUUWpSnM4"
   },
   {
    "id": "PLvGNfY-tFUN_AbCDkP4EUESV4x5CYm2zR",
    "title": "خمسة برمجة",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 8,
-   "cover": "ECb8Gf1h578"
+   "count": 35,
+   "cover": "Y358Sqdu4pg"
   },
   {
    "id": "PLvGNfY-tFUN_1D3D0WAMlWULl3qnEKHEA",
    "title": "كورس CS50 بالعربي",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 7,
-   "cover": "6rvNwMOU1N4"
+   "count": 10,
+   "cover": "yhnRH_Vik0Y"
   },
   {
    "id": "PLvGNfY-tFUN8D7uAQzkBfMkJ7XAFWSsIv",
    "title": "كورس أساسيات الكمبيوتر",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
-   "count": 15,
-   "cover": "aQp1lt5NHsE"
+   "count": 9,
+   "cover": "iu4n3Sm40ZM"
   },
   {
    "id": "PLvGNfY-tFUN-JHyP9JzNP0oME_Ldc_3W4",
@@ -3442,15 +4374,23 @@
    "title": "مسارات تعلم البرمجة RoadMaps",
    "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
    "channel": "Ghareeb Elshaikh",
+   "count": 8,
+   "cover": "0Yrqa_qIAps"
+  },
+  {
+   "id": "PLvGNfY-tFUN8m7OmaInVSIq3dW7iWVCIo",
+   "title": "مصطلحات البرمجة",
+   "channel_id": "UCnGblT_CyMwswTIH9QmJ3YQ",
+   "channel": "Ghareeb Elshaikh",
    "count": 3,
-   "cover": "hX5rxp0QlPU"
+   "cover": "eeiA6JAP__c"
   },
   {
    "id": "PL6-3IRz2XF5W7STovGev_1Fo-stb_xdhh",
    "title": "20 البث المباشر",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 7,
+   "count": 23,
    "cover": "uqxF4UXIPgQ"
   },
   {
@@ -3458,8 +4398,8 @@
    "title": "22 NLP-02   أساسيات المعالجة اللغوية الطبيعية",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 4,
-   "cover": "68lmF6FEJ4k"
+   "count": 5,
+   "cover": "VN_ZgR6EC2c"
   },
   {
    "id": "PL6-3IRz2XF5WYpWu6Y8T3firJLflZ3Ufi",
@@ -3474,15 +4414,15 @@
    "title": "24 NLP-04   المعالجة البسيطة للنصوص",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 29,
-   "cover": "73QZH7Be85Y"
+   "count": 30,
+   "cover": "l-xi5WjNNZQ"
   },
   {
    "id": "PL6-3IRz2XF5W7QQ3mKJ1kldXpN3Vquzbc",
    "title": "25 NLP-05   المعالجة المتقدمة للنصوص",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 73,
+   "count": 74,
    "cover": "okR02sbU9Uc"
   },
   {
@@ -3490,7 +4430,7 @@
    "title": "26 NLP-06   تجميع البيانات",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 21,
+   "count": 22,
    "cover": "U1X77bALsmw"
   },
   {
@@ -3498,7 +4438,7 @@
    "title": "27 NLP-07   الشبكات العصبية المتكررة",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 9,
+   "count": 10,
    "cover": "7e9KbEfCTAc"
   },
   {
@@ -3506,7 +4446,7 @@
    "title": "28 NLP-08   تكنيكات حديثة في المعالجة اللغوية الطبيعية",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 24,
+   "count": 26,
    "cover": "k5KN8D0IxVA"
   },
   {
@@ -3514,7 +4454,7 @@
    "title": "30 مبادرة ألف مهندس ذكاء اصطناعي",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 41,
+   "count": 52,
    "cover": "SK-OWAKp3D0"
   },
   {
@@ -3530,31 +4470,31 @@
    "title": "32- دورة تشات بوت Chatbot",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 29,
-   "cover": "zxiHOrSdY-Q"
+   "count": 39,
+   "cover": "e3C7ePcfQHw"
   },
   {
    "id": "PL6-3IRz2XF5Ua2KG_Fl3lbZ-kKi3-Np0_",
    "title": "33- الدورة الكاملة لتعلم الآلة",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 68,
+   "count": 10,
    "cover": "dWKffQja3Fs"
   },
   {
-   "id": "PL6-3IRz2XF5X-lzMZdmkvGAx1a3kIm7_I",
-   "title": "الدورة الكاملة للتعلم العميق Deep Learning , Computer Vision, NLP",
+   "id": "PL6-3IRz2XF5UF10BAJImUkVa7BgzNbM3l",
+   "title": "عالم مختلف",
    "channel_id": "UCxxljM6JkSvJVSD_T90ZnMw",
    "channel": "Hesham Asem",
-   "count": 14,
-   "cover": "p93xuOXP1jI"
+   "count": 5,
+   "cover": "R511MrtfYBU"
   },
   {
    "id": "PL6QREj8te1P56tahJwEbyDZNVAnCclTc4",
    "title": "Advanced Next.js Developer Course: Build Scalable, SEO-Optimized Web Apps",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 14,
+   "count": 18,
    "cover": "-vsh_GxC-vg"
   },
   {
@@ -3562,7 +4502,7 @@
    "title": "Agentic Development: How Senior Engineers Build With AI",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 6,
+   "count": 9,
    "cover": "-AkIj8TG3Uc"
   },
   {
@@ -3570,7 +4510,7 @@
    "title": "Best Developer Portfolio Websites",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 4,
+   "count": 8,
    "cover": "FkowOdMjvYo"
   },
   {
@@ -3578,7 +4518,7 @@
    "title": "Build Modern UI/UX Websites",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 8,
+   "count": 9,
    "cover": "kRQbRAJ4-Fs"
   },
   {
@@ -3594,8 +4534,8 @@
    "title": "Frontend Developer Bootcamp: Master HTML, CSS, JavaScript, and Modern Frameworks",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 8,
-   "cover": "kt0FrkQgw8w"
+   "count": 10,
+   "cover": "ukiGFmZ32YA"
   },
   {
    "id": "PL6QREj8te1P7VSwhrMf3D3Xt4V6_SRkhu",
@@ -3610,7 +4550,7 @@
    "title": "Fullstack Developer Bootcamp: Master Frontend and Backend Development",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 9,
+   "count": 13,
    "cover": "kmy_YNhl0mw"
   },
   {
@@ -3618,7 +4558,7 @@
    "title": "Master Next.js by Building Real Apps",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 12,
+   "count": 18,
    "cover": "wm5gMKuwSYk"
   },
   {
@@ -3626,7 +4566,7 @@
    "title": "Master React JS by Building Real Projects",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 30,
+   "count": 35,
    "cover": "iYOz165wGkQ"
   },
   {
@@ -3658,15 +4598,127 @@
    "title": "Web3, Solidity and Smart Contracts Apps, Crash Course, and Tutorials",
    "channel_id": "UCmXmlB4-HJytD7wek0Uo97A",
    "channel": "JavaScript Mastery",
-   "count": 2,
+   "count": 3,
    "cover": "Y89q6T1r1Yg"
+  },
+  {
+   "id": "PLqbS7AVVErFg_DTNScO6_XHGUN9Fs1-bA",
+   "title": "Async ZooKeeper implementation",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 3,
+   "cover": "mMuk8Rn9HBg"
+  },
+  {
+   "id": "PLqbS7AVVErFiWDOAVrPt7aYmnuuOLYvOa",
+   "title": "Crust of Rust",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 15,
+   "cover": "rAl-9HwD858"
+  },
+  {
+   "id": "PLqbS7AVVErFirH9armw8yXlE6dacF-A6z",
+   "title": "Decrusted",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 5,
+   "cover": "BI_bHCGRgMY"
+  },
+  {
+   "id": "PLqbS7AVVErFifv2Ek-bCRhrVyi_dQeqcY",
+   "title": "EC2 orchestration crate",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 3,
+   "cover": "Zdudg5TV9i4"
+  },
+  {
+   "id": "PLqbS7AVVErFgO7RUIC6lhd0UekFMbjJzb",
+   "title": "Hazard Pointers",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 4,
+   "cover": "fvcbyCYdR10"
+  },
+  {
+   "id": "PLqbS7AVVErFhAhQ5s9SWcvxHh4GwsIk_d",
+   "title": "impl Rust",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 12,
+   "cover": "doFowk4xj7Q"
+  },
+  {
+   "id": "PLqbS7AVVErFivDY3iKAQk3_VAm8SXwt1X",
+   "title": "Implementing TCP",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 3,
+   "cover": "bzja9fQWzdA"
+  },
+  {
+   "id": "PLqbS7AVVErFj824-6QgnK_Za1187rNfnl",
+   "title": "Java's ConcurrentHashMap in Rust",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 3,
+   "cover": "yQFWmGaFBjk"
+  },
+  {
+   "id": "PLqbS7AVVErFi6zg8-XBDexumqClCHv-66",
+   "title": "Jon's Miscellany",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 12,
+   "cover": "eAR8kVj_tig"
+  },
+  {
+   "id": "PLqbS7AVVErFj-euU-OW79x9na1Qj3_JYL",
+   "title": "Open-Source streams",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 9,
+   "cover": "8UzLuMiGs9s"
+  },
+  {
+   "id": "PLqbS7AVVErFi-YFrJ9IRwFFbzHzuYy-CN",
+   "title": "Presentations",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 4,
+   "cover": "kESBAiTYMoQ"
+  },
+  {
+   "id": "PLqbS7AVVErFj65IRjBy3VUpVJQesWCPt4",
+   "title": "Q&A",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 11,
+   "cover": "AUEbaWaEeF4"
+  },
+  {
+   "id": "PLqbS7AVVErFgY2faCIYjJZv_RluGkTlKt",
+   "title": "Rust live-coding",
+   "channel_id": "UC_iD0xppBwwsrM9DegC5cQQ",
+   "channel": "Jon Gjengset",
+   "count": 14,
+   "cover": "Qy1tQesXc7k"
+  },
+  {
+   "id": "PL4-IK0AVhVjMobWfe4VmvbAwLmpG1RQMT",
+   "title": "Accessibility",
+   "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
+   "channel": "Kevin Powell",
+   "count": 2,
+   "cover": "fI9VM5zzpu8"
   },
   {
    "id": "PL4-IK0AVhVjPPSWWKZP2j6xMdgYz_AhI9",
    "title": "Can I build it?",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 2,
+   "count": 4,
    "cover": "DCRcFf39SYo"
   },
   {
@@ -3682,8 +4734,8 @@
    "title": "Container Queries",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 2,
-   "cover": "WP5CC5yawfs"
+   "count": 6,
+   "cover": "2rlWBZ17Wes"
   },
   {
    "id": "PL4-IK0AVhVjP5iRPyoF1pKwX-7sEOwty4",
@@ -3698,15 +4750,23 @@
    "title": "CSS Battles",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 6,
+   "count": 5,
    "cover": "eYPyIq5Y3Rk"
+  },
+  {
+   "id": "PL4-IK0AVhVjNxFxho3QpjtcW94DdWZ1sJ",
+   "title": "CSS Challenges",
+   "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
+   "channel": "Kevin Powell",
+   "count": 3,
+   "cover": "ztBgxsgEG9A"
   },
   {
    "id": "PL4-IK0AVhVjPRj8P56TtFX2hg33BlbT3x",
    "title": "CSS Fundamentals",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 4,
+   "count": 8,
    "cover": "6aHKdahOfCc"
   },
   {
@@ -3714,8 +4774,8 @@
    "title": "CSS Grid videos",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 5,
-   "cover": "cf-J4ffMBfo"
+   "count": 9,
+   "cover": "r1IitKbJRFE"
   },
   {
    "id": "PL4-IK0AVhVjMylAEgsiMvj3rt4Eb_lI1k",
@@ -3730,15 +4790,23 @@
    "title": "CSS Units",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
+   "count": 3,
+   "cover": "ru3U8MHbFFI"
+  },
+  {
+   "id": "PL4-IK0AVhVjPKyc9UTHzx9xUnZYTGGi2b",
+   "title": "From design to code",
+   "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
+   "channel": "Kevin Powell",
    "count": 2,
-   "cover": "Utc_uhvTluk"
+   "cover": "LkZPd0oRlMQ"
   },
   {
    "id": "PL4-IK0AVhVjPregcc6pgAIerVqSWaJEM4",
    "title": "Frontend Mentor projects",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 4,
+   "count": 5,
    "cover": "Z0duh-0xJ2Y"
   },
   {
@@ -3746,15 +4814,15 @@
    "title": "Grid tips and tricks",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 3,
-   "cover": "ciuZJE74wBA"
+   "count": 5,
+   "cover": "r1IitKbJRFE"
   },
   {
    "id": "PL4-IK0AVhVjMI45H5E9oE47wj-7AZLNnK",
    "title": "Having fun with CSS",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 2,
+   "count": 3,
    "cover": "khjVPkO35F0"
   },
   {
@@ -3778,7 +4846,7 @@
    "title": "HTML & CSS Tips and Tricks",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 3,
+   "count": 4,
    "cover": "DGOeyJjq80g"
   },
   {
@@ -3786,7 +4854,7 @@
    "title": "HTML & CSS tips for beginners",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 5,
+   "count": 6,
    "cover": "K_EVuLegRZ0"
   },
   {
@@ -3794,23 +4862,15 @@
    "title": "Interviews",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 4,
-   "cover": "SsAhuHf7RRg"
-  },
-  {
-   "id": "PL4-IK0AVhVjOioYsExwbJLnbtRdVwEhyX",
-   "title": "Live",
-   "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
-   "channel": "Kevin Powell",
-   "count": 4,
-   "cover": "r7m3Ka2LmPM"
+   "count": 5,
+   "cover": "QYkjgd6_s4o"
   },
   {
    "id": "PL4-IK0AVhVjNcrcuESXxPaDEm-7wHS_RS",
    "title": "Modern CSS",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 9,
+   "count": 14,
    "cover": "I9zHX-jSKpA"
   },
   {
@@ -3818,7 +4878,7 @@
    "title": "New CSS Features",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 4,
+   "count": 5,
    "cover": "YnWPeA6l5UE"
   },
   {
@@ -3826,7 +4886,7 @@
    "title": "Quick CSS tips & tricks",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 10,
+   "count": 15,
    "cover": "wBKT2KN_Y9s"
   },
   {
@@ -3834,7 +4894,7 @@
    "title": "Responsive CSS tutorials",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 2,
+   "count": 3,
    "cover": "x4u1yp3Msao"
   },
   {
@@ -3842,7 +4902,7 @@
    "title": "Scroll-based animations",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 3,
+   "count": 4,
    "cover": "UmzFk68Bwdk"
   },
   {
@@ -3858,7 +4918,7 @@
    "title": "The future of CSS",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 3,
+   "count": 2,
    "cover": "YnWPeA6l5UE"
   },
   {
@@ -3866,7 +4926,7 @@
    "title": "Useful CSS tips & tricks",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 5,
+   "count": 9,
    "cover": "wBKT2KN_Y9s"
   },
   {
@@ -3874,16 +4934,56 @@
    "title": "View transitions",
    "channel_id": "UCJZv4d5rbIKd4QHMPkcABCw",
    "channel": "Kevin Powell",
-   "count": 2,
+   "count": 4,
    "cover": "jZiZs8cZAKU"
+  },
+  {
+   "id": "PLai5B987bZ9A5MO1oY8uihDWFC5DsdJZq",
+   "title": "Idiomatic Rust",
+   "channel_id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "channel": "Let's Get Rusty",
+   "count": 5,
+   "cover": "6b-8gpLCrrg"
+  },
+  {
+   "id": "PLai5B987bZ9BnS7dBlTF9HRop55vYUL7r",
+   "title": "Memory Management",
+   "channel_id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "channel": "Let's Get Rusty",
+   "count": 4,
+   "cover": "NnLdGKoz1ls"
+  },
+  {
+   "id": "PLai5B987bZ9C0xK1tZ2wsudOo2zjrD9xX",
+   "title": "Rust Bites",
+   "channel_id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "channel": "Let's Get Rusty",
+   "count": 63,
+   "cover": "gvHPRaZHgD4"
+  },
+  {
+   "id": "PLai5B987bZ9AL4irM4PoR0CGj8mC47Pj1",
+   "title": "Rust News",
+   "channel_id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "channel": "Let's Get Rusty",
+   "count": 72,
+   "cover": "aSEMGz4E0Jo"
+  },
+  {
+   "id": "PLai5B987bZ9CoVR-QEIN9foz4QCJ0H2Y8",
+   "title": "The Rust Lang Book",
+   "channel_id": "UCSp-OaMpsO8K0KkOqyBl7_w",
+   "channel": "Let's Get Rusty",
+   "count": 41,
+   "cover": "OX9HJsJUDxA"
   },
   {
    "id": "PL_TrJ-Sjw8iQF0YLCfCHCjFfQHgDh9JJO",
    "title": ".NET Blazor8 Arabic كورس دوت نت بلازور عربي تعلم",
    "channel_id": "UCtb5ZYdEPjgVU58AOqs5xHg",
    "channel": "Mahmoud El-Sokary",
-   "count": 5,
-   "cover": "ZuTfsPxRCl4"
+   "count": 43,
+   "cover": "VJW4ifSzvBU"
   },
   {
    "id": "PL_TrJ-Sjw8iQODQ72PMpTFK2q84Z2POgp",
@@ -3906,16 +5006,16 @@
    "title": "AI - ذكاء اصطناعي",
    "channel_id": "UCtb5ZYdEPjgVU58AOqs5xHg",
    "channel": "Mahmoud El-Sokary",
-   "count": 7,
-   "cover": "lCReBKB8v1A"
+   "count": 19,
+   "cover": "X-jD5G-65fE"
   },
   {
    "id": "PLaRBopRRDSvM",
    "title": "AI-Shorts",
    "channel_id": "UCtb5ZYdEPjgVU58AOqs5xHg",
    "channel": "Mahmoud El-Sokary",
-   "count": 2,
-   "cover": "1lZroX8Q0pA"
+   "count": 14,
+   "cover": "H2kMIy8tri4"
   },
   {
    "id": "PL_TrJ-Sjw8iRKvWZZY3q-6x1YRS0MP0CB",
@@ -3978,7 +5078,7 @@
    "title": "تعلم أساسيات لغة SQL Query",
    "channel_id": "UCtb5ZYdEPjgVU58AOqs5xHg",
    "channel": "Mahmoud El-Sokary",
-   "count": 11,
+   "count": 16,
    "cover": "UYqWhTgDEac"
   },
   {
@@ -3986,8 +5086,40 @@
    "title": "Chalk Radio® Podcast",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 3,
+   "count": 2,
    "cover": "GqvBDc8wiu0"
+  },
+  {
+   "id": "PLUl4u3cNGP60S6tBzXVmcUnSv4El6QkSt",
+   "title": "Demo Movies for MIT 6.781J Submicrometer and Nanometer Technology, Spring 2006",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 7,
+   "cover": "0raDm2ubuCo"
+  },
+  {
+   "id": "PLUl4u3cNGP60xNyFLjBzgO8wpiAxFnnyq",
+   "title": "Lecture Clips",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 2,
+   "cover": "KCK-LlQoKoI"
+  },
+  {
+   "id": "PLUl4u3cNGP60Pp6pulxQtwnCtlorxCN40",
+   "title": "MIT 12.742 Marine Chemistry, Fall 2006 (Selected Lectures)",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 2,
+   "cover": "9D3tli0OfTQ"
+  },
+  {
+   "id": "PLUl4u3cNGP62KS2YhlASvGBxxL8HgB11p",
+   "title": "MIT 14.41 Public Finance and Public Policy, Fall 2024",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 2,
+   "cover": "HrNxI5KqqiQ"
   },
   {
    "id": "PLUl4u3cNGP63EUNfnwrkgO2xxwYxNwRdI",
@@ -4002,23 +5134,47 @@
    "title": "MIT 15.773 Hands-On Deep Learning Spring 2024",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 10,
+   "count": 11,
    "cover": "kyQ0CRkYhy4"
+  },
+  {
+   "id": "PLPVhM0CAcLjI",
+   "title": "MIT 15.879 Building Serious System Dynamics Models from Scratch, Spring 2025",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 12,
+   "cover": "K1ThW9V0Ctc"
+  },
+  {
+   "id": "PLUl4u3cNGP62Ie7F_tTAhhXoX5_Cl8meG",
+   "title": "MIT 18.100B Real Analysis, Spring 2025",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 15,
+   "cover": "BWvjy0a1Ffg"
   },
   {
    "id": "PLUl4u3cNGP62K9_7Pg26ytrAOXwXFpN43",
    "title": "MIT 18.156 Projection Theory, Spring 2025",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 11,
-   "cover": "0UYCJ0cjG9k"
+   "count": 24,
+   "cover": "1A1kWkxK3QY"
+  },
+  {
+   "id": "PLUl4u3cNGP61p2fXeXjNCrfNHFwyW-bl0",
+   "title": "MIT 18.200 Principles of Discrete Applied Mathematics, Spring 2024",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 20,
+   "cover": "Z1zgrgstVAw"
   },
   {
    "id": "PLUl4u3cNGP601Q2jo-J_3raNCMMs6Jves",
    "title": "MIT 18.642 Topics in Mathematics with Applications in Finance, Fall 2024",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 5,
+   "count": 6,
    "cover": "b8u2CQLQBVU"
   },
   {
@@ -4026,8 +5182,8 @@
    "title": "MIT 21M.383 Computational Music Theory and Analysis, Spring 2023",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 3,
-   "cover": "ivvxfWR1azI"
+   "count": 47,
+   "cover": "0lS7yWCavKw"
   },
   {
    "id": "PLEd-FHe0va8k",
@@ -4042,8 +5198,24 @@
    "title": "MIT 6.7960 Deep Learning, Fall 2024",
    "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
    "channel": "MIT OpenCourseWare",
-   "count": 5,
+   "count": 24,
    "cover": "6FkRvTtUc-o"
+  },
+  {
+   "id": "PLUl4u3cNGP62-9RweyYBIpkqfo5dfcuS8",
+   "title": "MIT 9.35 Perception, Spring 2024",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 23,
+   "cover": "IPJC8loEmd4"
+  },
+  {
+   "id": "PLUl4u3cNGP62o50fmQKmfbn8HKPvdx9hK",
+   "title": "MIT CMS.595 Learning, Media, and Technology, Spring 2024",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 10,
+   "cover": "P4RVO9aIIVA"
   },
   {
    "id": "PLUl4u3cNGP61_JVg12Ukxft03EJ7xxdbR",
@@ -4052,6 +5224,22 @@
    "channel": "MIT OpenCourseWare",
    "count": 3,
    "cover": "rDYv7L2uhE0"
+  },
+  {
+   "id": "PLbunUf3SkvCc",
+   "title": "MIT RES.16-9960 The Engineering Student’s Guide to Effective Technical Communication, Spring 2026",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 12,
+   "cover": "6KxXc8cz9tY"
+  },
+  {
+   "id": "PLUl4u3cNGP60O8-oSngUwSGC1J2EhNKsa",
+   "title": "MIT RES.SUD-01 Substance Use Disorders Ventures Program, Spring 2025",
+   "channel_id": "UCEBb1b_L6zDS3xTUrIALZOw",
+   "channel": "MIT OpenCourseWare",
+   "count": 3,
+   "cover": "f93SJz6yGLY"
   },
   {
    "id": "PLUl4u3cNGP61GIZ2gdRo6nr0Jzc14Z0yt",
@@ -4106,7 +5294,7 @@
    "title": "Database Management Systems Course - 2nd Database Course",
    "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
    "channel": "Mohamed El Desouki",
-   "count": 29,
+   "count": 42,
    "cover": "06cR85c55Oc"
   },
   {
@@ -4130,8 +5318,8 @@
    "title": "Fundamentals of Information Systems",
    "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
    "channel": "Mohamed El Desouki",
-   "count": 6,
-   "cover": "d-qnqsJ2Y8I"
+   "count": 7,
+   "cover": "K6PqA8xtMV0"
   },
   {
    "id": "PL1DUmTEdeA6K7rdxKiWJq6JIxTvHalY8f",
@@ -4154,7 +5342,7 @@
    "title": "Lab - Fundamentals of Database - 2023",
    "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
    "channel": "Mohamed El Desouki",
-   "count": 4,
+   "count": 11,
    "cover": "r_JmP_bZErQ"
   },
   {
@@ -4246,12 +5434,28 @@
    "cover": "Toq7oPRJ3rE"
   },
   {
+   "id": "PL1DUmTEdeA6I-bsfaErW12ro4_6hC7fSp",
+   "title": "system analysis and design",
+   "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
+   "channel": "Mohamed El Desouki",
+   "count": 6,
+   "cover": "9jrN5BPx4MI"
+  },
+  {
    "id": "PL1DUmTEdeA6I7P1GlT9Op_79u_W-ysw7j",
    "title": "Telegram Bot service without coding",
    "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
    "channel": "Mohamed El Desouki",
    "count": 3,
    "cover": "Pq0hBO5CZzA"
+  },
+  {
+   "id": "PL1DUmTEdeA6KRrqiHF3kK9NOdkSwGY_Kb",
+   "title": "Use ERD Plus",
+   "channel_id": "UCWX_0VvMxl0_XosvYOZ7O0g",
+   "channel": "Mohamed El Desouki",
+   "count": 3,
+   "cover": "cTR7XAOh0XE"
   },
   {
    "id": "PL1DUmTEdeA6LKTMW3wrlT3GiFMCL_r_Sn",
@@ -4314,7 +5518,7 @@
    "title": "Learn HTML, CSS, JavaScript",
    "channel_id": "UCFnqbM05-W4VpmzZj36-Kog",
    "channel": "Mohamed Elkashef",
-   "count": 10,
+   "count": 11,
    "cover": "nk3KzMWZh8I"
   },
   {
@@ -4338,15 +5542,15 @@
    "title": "ازاي تطور من نفسك كمبرمج",
    "channel_id": "UCFnqbM05-W4VpmzZj36-Kog",
    "channel": "Mohamed Elkashef",
-   "count": 3,
-   "cover": "yGLJIb_4P8I"
+   "count": 4,
+   "cover": "58fCpMAEMNk"
   },
   {
    "id": "PLZr_p00tLtqE",
    "title": "تعلم كورس أساسيات ال HTML من الصفر للمبتدئين",
    "channel_id": "UCFnqbM05-W4VpmzZj36-Kog",
    "channel": "Mohamed Elkashef",
-   "count": 14,
+   "count": 15,
    "cover": "8BmSTh8BI78"
   },
   {
@@ -4362,7 +5566,7 @@
    "title": "مقدمة كورس أساسيات الويب",
    "channel_id": "UCFnqbM05-W4VpmzZj36-Kog",
    "channel": "Mohamed Elkashef",
-   "count": 7,
+   "count": 8,
    "cover": "k4rPfTHAwzY"
   },
   {
@@ -4394,7 +5598,7 @@
    "title": "Mobile Security | بالعربي",
    "channel_id": "UCr6GUYRpTOiuE22lU1t9p-g",
    "channel": "Mohammed Fathy",
-   "count": 4,
+   "count": 6,
    "cover": "E2MNWTwaESQ"
   },
   {
@@ -4402,7 +5606,7 @@
    "title": "200-301 CCNA - Cisco دورة شهادة سيسكو",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 27,
+   "count": 31,
    "cover": "_2WAxThkm7w"
   },
   {
@@ -4410,7 +5614,7 @@
    "title": "Artificial Intelligence - الذكاء الاصطناعي",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 2,
+   "count": 4,
    "cover": "MSsO_FVZDeI"
   },
   {
@@ -4418,23 +5622,23 @@
    "title": "artificial intelligence اساسيات الذكاء الاصطناعي",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 3,
-   "cover": "3NSvTCc5eww"
+   "count": 8,
+   "cover": "wLp4un9Ys-8"
   },
   {
    "id": "PLMYF6NkLrdN9ECXrxakeH7PPOKdkN5ho3",
    "title": "Cyber Security  الأمن السيبراني",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 9,
-   "cover": "o4rHvSl3TMo"
+   "count": 15,
+   "cover": "CJ3hbj_L4Bo"
   },
   {
    "id": "PLMYF6NkLrdN_ONYgJuSsoSawn5BcxiKVV",
    "title": "Cybersecurity المسارات والشهادات والوظائف",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 11,
+   "count": 12,
    "cover": "tHg4y5bSWxA"
   },
   {
@@ -4442,7 +5646,7 @@
    "title": "Dart تعلم لغة",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 5,
+   "count": 25,
    "cover": "gaKP94VWHlE"
   },
   {
@@ -4450,8 +5654,16 @@
    "title": "Data Analysis with Python",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 5,
+   "count": 7,
    "cover": "fxoYPbGVOX4"
+  },
+  {
+   "id": "PLMYF6NkLrdN8Sc_HEGWLHVr2JoaOINz9K",
+   "title": "Data Engineering",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 5,
+   "cover": "uakQJ42fGbE"
   },
   {
    "id": "PLMYF6NkLrdN_wU0nS3Y9CL-KUklVQrryh",
@@ -4462,19 +5674,27 @@
    "cover": "mYBI2nDHqzw"
   },
   {
+   "id": "PLMYF6NkLrdN9RuEt9h0treY0v5kBQSOJZ",
+   "title": "Data Visualization Python",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 3,
+   "cover": "VjEoqyL0mIE"
+  },
+  {
    "id": "PLMYF6NkLrdN9WV6MjAsDdL4pU5Fg01mZt",
    "title": "Django Framework دورة بايثون ويب جانكو",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 12,
-   "cover": "ksGTti6K8x8"
+   "count": 17,
+   "cover": "n448ckyRH7s"
   },
   {
    "id": "PLMYF6NkLrdN92fpoOpEMC19VafTXzC8xQ",
    "title": "FastAPI Python web دورة بايثون ويب",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 2,
+   "count": 5,
    "cover": "B8byNgUHIew"
   },
   {
@@ -4484,6 +5704,14 @@
    "channel": "Muhammed Essa",
    "count": 66,
    "cover": "aaoRgF61_jA"
+  },
+  {
+   "id": "PLMYF6NkLrdN8Df-DK1rhEI4ywquI2zP6v",
+   "title": "How to Become a Developer كيف تصبح مطورا",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 3,
+   "cover": "ZfmS1ovy6Kw"
   },
   {
    "id": "PLMYF6NkLrdN9TI9TG4dvufzEkLeBidTZ8",
@@ -4514,7 +5742,7 @@
    "title": "Machine learning ( supervised and unsupervised )",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 8,
+   "count": 15,
    "cover": "5mtfMZ1wA50"
   },
   {
@@ -4522,7 +5750,7 @@
    "title": "NestJS - Progressive Node.js framework",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 5,
+   "count": 12,
    "cover": "3LJdJsOxyxk"
   },
   {
@@ -4534,19 +5762,35 @@
    "cover": "hDWzad611Qs"
   },
   {
+   "id": "PLMYF6NkLrdN8WmwGfk-V4TGU5anJMMlfO",
+   "title": "Paper (Report, Research, literature review and Project)",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 3,
+   "cover": "LAGn8a6WmXI"
+  },
+  {
+   "id": "PLMYF6NkLrdN_qctmH9mNOXEj2WO6eUSMj",
+   "title": "Programming Fundamentals اساسيات البرمجة",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 5,
+   "cover": "uULnhiA72Dk"
+  },
+  {
    "id": "PLMYF6NkLrdN-D9_hauqG2rTBMiAhez0N9",
    "title": "Project Management | إدارة المشاريع",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 3,
-   "cover": "TbskD_Zu3-w"
+   "count": 7,
+   "cover": "LAGn8a6WmXI"
   },
   {
    "id": "PLMYF6NkLrdN-YJlk3KIJb8vMN34SheRJV",
    "title": "Python for Data Science & Analytics",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 36,
+   "count": 47,
    "cover": "Qgfr-2bvfkE"
   },
   {
@@ -4562,7 +5806,7 @@
    "title": "Python Programming",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 23,
+   "count": 24,
    "cover": "86bj9WF5aIw"
   },
   {
@@ -4570,16 +5814,24 @@
    "title": "RabbitMQ & Python دورة",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 4,
-   "cover": "tGw_CHfmluU"
+   "count": 8,
+   "cover": "arjpZ4Xu4NA"
+  },
+  {
+   "id": "PLMYF6NkLrdN-ISNyZ5sEBv-c4ikGeoeV0",
+   "title": "Redhat Red Hat Certified System Administrator (RHCSA) 8,9",
+   "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
+   "channel": "Muhammed Essa",
+   "count": 7,
+   "cover": "PyYpHrlrl94"
   },
   {
    "id": "PLMYF6NkLrdN-4WzxOp8-5kA_quoCX_E9y",
    "title": "Risk management - إدارة المخاطر",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 4,
-   "cover": "sjxxIUot2PM"
+   "count": 15,
+   "cover": "37f7rozgLO0"
   },
   {
    "id": "PLMYF6NkLrdN--rFJP7dP7ZHLrFlEsJf8H",
@@ -4594,7 +5846,7 @@
    "title": "Swift & SwiftUI دورة",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 36,
+   "count": 38,
    "cover": "2YR54Q_rKTI"
   },
   {
@@ -4602,7 +5854,7 @@
    "title": "اساسيات اللينكس Linux fundamentals",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 6,
+   "count": 8,
    "cover": "343I0xqdfwY"
   },
   {
@@ -4610,7 +5862,7 @@
    "title": "دورة بايثون صناعة متجر الكتروني Django API",
    "channel_id": "UC7OGxluGpaD5NHMNoKj33pw",
    "channel": "Muhammed Essa",
-   "count": 12,
+   "count": 15,
    "cover": "SATs4aAgE8A"
   },
   {
@@ -4634,15 +5886,15 @@
    "title": "Coding Interview Solutions",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 310,
-   "cover": "Ber2pi2C0j0"
+   "count": 316,
+   "cover": "SVvr3ZjtjI8"
   },
   {
    "id": "PLot-Xpze53lcvx_tjrr_m2lgD2NsRHlNO",
    "title": "Dynamic Programming",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 48,
+   "count": 49,
    "cover": "g0npyaQtAQM"
   },
   {
@@ -4658,8 +5910,8 @@
    "title": "Graph Problems",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 29,
-   "cover": "EgI5nU9etnU"
+   "count": 30,
+   "cover": "utDu3Q7Flrw"
   },
   {
    "id": "PLot-Xpze53letfIu9dMzIIO7na_sqvl0w",
@@ -4674,7 +5926,7 @@
    "title": "Interview Prep",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 6,
+   "count": 19,
    "cover": "4SUJt3dP2Jc"
   },
   {
@@ -4706,7 +5958,7 @@
    "title": "NeetCode 150 - Review",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 13,
+   "count": 23,
    "cover": "ms1cRGi69Mk"
   },
   {
@@ -4716,6 +5968,14 @@
    "channel": "NeetCode",
    "count": 196,
    "cover": "3OamzN90kPg"
+  },
+  {
+   "id": "PLot-Xpze53ld6C5ziLbkJBx-Hmf3irgvw",
+   "title": "NeetCode Podcast",
+   "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
+   "channel": "NeetCode",
+   "count": 3,
+   "cover": "s4EOVsBO7Ck"
   },
   {
    "id": "PLot-Xpze53leOBgcVsJBEGrHPd_7x_koV",
@@ -4738,8 +5998,8 @@
    "title": "System Design",
    "channel_id": "UC_mYaQAE6-71rjSN6CeCA-g",
    "channel": "NeetCode",
-   "count": 2,
-   "cover": "4G5t1HwHQD4"
+   "count": 6,
+   "cover": "i53Gi_K3o7I"
   },
   {
    "id": "PLot-Xpze53ldg4pN6PfzoJY7KsKcxF1jg",
@@ -4754,7 +6014,7 @@
    "title": "Agentic Coding with the GitHub Copilot App",
    "channel_id": "UCW5YeuERMmlnqo4oq8vwUpg",
    "channel": "Net Ninja",
-   "count": 6,
+   "count": 7,
    "cover": "hzqF-vJdjg0"
   },
   {
@@ -4828,6 +6088,14 @@
    "channel": "Net Ninja",
    "count": 11,
    "cover": "SUysp3sJHbA"
+  },
+  {
+   "id": "PL4cUxeGkcC9hhNl8shRf6TIL-dNkpSRV0",
+   "title": "Coding Challenges",
+   "channel_id": "UCW5YeuERMmlnqo4oq8vwUpg",
+   "channel": "Net Ninja",
+   "count": 2,
+   "cover": "VFqNLrhNjP4"
   },
   {
    "id": "PL4cUxeGkcC9joeiiVaLExvfSgmdtBbSPM",
@@ -5018,7 +6286,7 @@
    "title": "Net Ninja Pro",
    "channel_id": "UCW5YeuERMmlnqo4oq8vwUpg",
    "channel": "Net Ninja",
-   "count": 10,
+   "count": 15,
    "cover": "McPR39mkp7w"
   },
   {
@@ -5058,8 +6326,8 @@
    "title": "Redis for Beginners",
    "channel_id": "UCW5YeuERMmlnqo4oq8vwUpg",
    "channel": "Net Ninja",
-   "count": 12,
-   "cover": "8sHCdz_tOjk"
+   "count": 11,
+   "cover": "yta9xLUGKgM"
   },
   {
    "id": "PL4cUxeGkcC9h1NXLUuiAQ7c4UtdEInqma",
@@ -5118,28 +6386,52 @@
    "cover": "0mxeoYsXTMg"
   },
   {
+   "id": "PLIhvC56v63IJ0FXa1cPm5-eY6INpu80tf",
+   "title": "Alex Shorts by NetworkChuck",
+   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "channel": "NetworkChuck",
+   "count": 2,
+   "cover": "w9EYdWs5Hq4"
+  },
+  {
    "id": "PLIhvC56v63ILFXdeoBwVOWreRBEoZ2C3o",
    "title": "Become a HACKER",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 2,
+   "count": 3,
    "cover": "hrVa_dhD-iA"
+  },
+  {
+   "id": "PLIhvC56v63ILTaN3DUesE4FZUMvPj19fT",
+   "title": "CCNP",
+   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "channel": "NetworkChuck",
+   "count": 2,
+   "cover": "OWKPxAgh9DU"
+  },
+  {
+   "id": "PLIhvC56v63IK2pojrnn_Km-b8WuPMRnpu",
+   "title": "Certifications",
+   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "channel": "NetworkChuck",
+   "count": 2,
+   "cover": "70eVeqKBgTo"
   },
   {
    "id": "PLIhvC56v63IJlnU4k60d0oFIrsbXEivQo",
    "title": "Docker Tutorials - NetworkChuck",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 7,
-   "cover": "dH3DdLy574M"
+   "count": 5,
+   "cover": "eGz9DS-aIeY"
   },
   {
    "id": "PLIhvC56v63IJVXv0GJcl9vO5Z6znCVb1P",
    "title": "FREE CCNA 200-301 // Complete Course // NetworkChuck 2025",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 16,
-   "cover": "p9ScLm9S3B4"
+   "count": 24,
+   "cover": "S7MNX_UD7vY"
   },
   {
    "id": "PLIhvC56v63IIyU0aBUed4qwP0nSCORAdB",
@@ -5150,19 +6442,11 @@
    "cover": "yLf2jRY39Rc"
   },
   {
-   "id": "PLIhvC56v63IJl9LEiqw9Mk-KaugqMDVtA",
-   "title": "Freshly Brewed Monday",
-   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
-   "channel": "NetworkChuck",
-   "count": 9,
-   "cover": "eZpLjKv9xvA"
-  },
-  {
    "id": "PLIhvC56v63IJ9SYBtdDsNnORfTNFCXR8_",
    "title": "Hacker Skills // OSINT (Information Gathering)",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 3,
+   "count": 6,
    "cover": "SvO_FDa8AIs"
   },
   {
@@ -5170,15 +6454,15 @@
    "title": "Home Assistant - COMPLETELY Local Home Automation",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 2,
-   "cover": "XvbVePuP7NY"
+   "count": 4,
+   "cover": "k02P5nghmfs"
   },
   {
    "id": "PLIhvC56v63IIJZRa3lzK6IeBQOH_VFjUQ",
    "title": "Learn Ethical Hacking (CEH Journey)",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 7,
+   "count": 8,
    "cover": "yFC8pb2TPdc"
   },
   {
@@ -5186,7 +6470,7 @@
    "title": "Linux - NetworkChuck",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 12,
+   "count": 10,
    "cover": "eGz9DS-aIeY"
   },
   {
@@ -5198,11 +6482,19 @@
    "cover": "VbEx7B_PTOE"
   },
   {
+   "id": "PLIhvC56v63IKA51EbmTbbkNHuBuTSIKBe",
+   "title": "n8n RIGHT NOW!!",
+   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "channel": "NetworkChuck",
+   "count": 3,
+   "cover": "s96JeuuwLzc"
+  },
+  {
    "id": "PLIhvC56v63IJu6Oe-TY8Sk8BzvpIXFdU6",
    "title": "Network Programmability",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 2,
+   "count": 3,
    "cover": "5hycyr-8EKs"
   },
   {
@@ -5210,23 +6502,23 @@
    "title": "NetworkChuck",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 133,
+   "count": 240,
    "cover": "cFdoXn6yvE4"
   },
   {
-   "id": "PLIhvC56v63IKhe8PAIW68xeGtUOorhLIn",
-   "title": "NetworkChuck 10 Days of Christmas // 2020",
+   "id": "PLIhvC56v63IKfC6ps8NNy9ofNEoM4V5fG",
+   "title": "NetworkChuck Server Room Build",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
    "count": 3,
-   "cover": "EY-Scg1z6zA"
+   "cover": "083-46NVMd8"
   },
   {
    "id": "PLIhvC56v63ILPDA2DQBv0IKzqsWTZxCkp",
    "title": "Python RIGHT NOW!! (FREE Python course for everyone)",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 8,
+   "count": 10,
    "cover": "mRMmlo_Uqcs"
   },
   {
@@ -5234,8 +6526,16 @@
    "title": "Raspberry Pi - Learn Linux, Hacking, and Coding",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 4,
-   "cover": "bllS9tkCkaM"
+   "count": 14,
+   "cover": "8QyFidVcoLM"
+  },
+  {
+   "id": "PLQd7HHlmlGL0",
+   "title": "The NetworkChuck Podcast",
+   "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+   "channel": "NetworkChuck",
+   "count": 2,
+   "cover": "5wZUwZWxMLQ"
   },
   {
    "id": "PLIhvC56v63IKioClkSNDjW7iz-6TFvLwS",
@@ -5250,23 +6550,79 @@
    "title": "You Suck at Subnetting",
    "channel_id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
    "channel": "NetworkChuck",
-   "count": 3,
+   "count": 9,
    "cover": "5WfiTHiU4x8"
   },
   {
-   "id": "PLoP3S2S1qTfBCtTYJ2dyy3mpn7aWAAjdN",
-   "title": "تعلم أساسيات البرمجة للمبتدئين",
-   "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
-   "channel": "OctuCode",
+   "id": "PLZaoyhMXgBzqkaLKR8HHWZaASMvW4gRtZ",
+   "title": "Convince your boss to use Rust",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 4,
+   "cover": "4dvf6kM70qM"
+  },
+  {
+   "id": "PLZaoyhMXgBzrbeVNhVz9_z8TvqyaOP963",
+   "title": "Hack Your Brain",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 12,
+   "cover": "5gZdTZa8bOw"
+  },
+  {
+   "id": "PLZaoyhMXgBzp9blLuIrwr5eRgBdnPy3BM",
+   "title": "Obsidian Series",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 6,
+   "cover": "BTuGvfQGOrY"
+  },
+  {
+   "id": "PLZaoyhMXgBzoAdI_kP6i8ZPtSd6UDluI_",
+   "title": "Old videos",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 2,
+   "cover": "jplPWc_Dn-0"
+  },
+  {
+   "id": "PLZaoyhMXgBzoABU8tIbBSWMMim9QTx_EL",
+   "title": "Programming Videos",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
    "count": 3,
-   "cover": "3uBCZOGbUIA"
+   "cover": "9K20e7jlQPA"
+  },
+  {
+   "id": "PLZaoyhMXgBzoM9bfb5pyUOT3zjnaDdSEP",
+   "title": "Rust Talks",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 28,
+   "cover": "Q3AhzHq8ogs"
+  },
+  {
+   "id": "PLZaoyhMXgBzpr9Czgxj953GcUDkGlwa-Y",
+   "title": "Showcase",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 9,
+   "cover": "oY0XwMOSzq4"
+  },
+  {
+   "id": "PLZaoyhMXgBzpI6qUlqQb6_VzhDw-6U3At",
+   "title": "Technical Videos",
+   "channel_id": "UCUMwY9iS8oMyWDYIe6_RmoA",
+   "channel": "No Boilerplate",
+   "count": 16,
+   "cover": "5gZdTZa8bOw"
   },
   {
    "id": "PLoP3S2S1qTfDNkpu82CQWo-Eczf9ZV3pG",
    "title": "سؤال وجواب - معلومات على السريع",
    "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
    "channel": "OctuCode",
-   "count": 2,
+   "count": 3,
    "cover": "r3czEQlN80A"
   },
   {
@@ -5274,31 +6630,47 @@
    "title": "كورس HTML من الصفر",
    "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
    "channel": "OctuCode",
-   "count": 62,
-   "cover": "cSpndmwWmss"
+   "count": 9,
+   "cover": "9c2_EW4zBno"
+  },
+  {
+   "id": "PLoP3S2S1qTfBESbCbFObIGbQyVha-T1hk",
+   "title": "كورس Unity: تعلم يونيتي من الصفر للإحتراف",
+   "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
+   "channel": "OctuCode",
+   "count": 6,
+   "cover": "7tapssv3Hh8"
   },
   {
    "id": "PLoP3S2S1qTfCUdNazAZY1LFALcUr0Vbs9",
    "title": "كورس بايثون - تعلم بايثون من الصفر للإحتراف",
    "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
    "channel": "OctuCode",
-   "count": 93,
-   "cover": "Do34NKMq80c"
+   "count": 22,
+   "cover": "qS47lHZFQlU"
   },
   {
    "id": "PLoP3S2S1qTfDK-YyWQG4vt7g1o_qtuSBM",
    "title": "كورس جافا سكريبت: تعلم JavaScript من الصفر للإحتراف",
    "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
    "channel": "OctuCode",
-   "count": 3,
+   "count": 2,
    "cover": "t8KM13X2io8"
+  },
+  {
+   "id": "PLoP3S2S1qTfCe3hI4f-spGxg2kHOig33Z",
+   "title": "كورس دارت: تعلم Dart من الصفر للإحتراف",
+   "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
+   "channel": "OctuCode",
+   "count": 11,
+   "cover": "RASHneNglZo"
   },
   {
    "id": "PLoP3S2S1qTfBXi2PdkLT4qoZATl2dakvJ",
    "title": "كورس سي بلس بلس: تعلم C++ من الصفر للإحتراف",
    "channel_id": "UCvqYqoAu_Yp2v3hOBhi6qiQ",
    "channel": "OctuCode",
-   "count": 13,
+   "count": 11,
    "cover": "txNPXdl83zs"
   },
   {
@@ -5306,16 +6678,32 @@
    "title": "خارطة الطريق لتصبح مبرمج ناجح من الصفر",
    "channel_id": "UCuEOSK8blSM6j5jxVp3ttnQ",
    "channel": "Programming Advices",
-   "count": 9,
-   "cover": "dmKOjKhjiCA"
+   "count": 14,
+   "cover": "p5tTRcWSxz0"
   },
   {
    "id": "PL3X--QIIK-OHLVNwyhdaRREDUqElPo9vp",
    "title": "سلسلة اسئلة متكرره عن عالم البرمجة واجاباتها",
    "channel_id": "UCuEOSK8blSM6j5jxVp3ttnQ",
    "channel": "Programming Advices",
-   "count": 49,
+   "count": 81,
    "cover": "Wmy4MExVaus"
+  },
+  {
+   "id": "PL3X--QIIK-OGwRuUuCGnZowsYzj3DxfdF",
+   "title": "شرح خارطة الطريق للتاسيس العام في البرمجة واجابة جميع استفساراتكم حولها",
+   "channel_id": "UCuEOSK8blSM6j5jxVp3ttnQ",
+   "channel": "Programming Advices",
+   "count": 2,
+   "cover": "sWCQMMfP8p8"
+  },
+  {
+   "id": "PL3X--QIIK-OH8J85_nBe_xTOiIMQ5ydRA",
+   "title": "هل مستقبل البرمجه في خطر؟",
+   "channel_id": "UCuEOSK8blSM6j5jxVp3ttnQ",
+   "channel": "Programming Advices",
+   "count": 3,
+   "cover": "QiogrlN5-Nk"
   },
   {
    "id": "PLTjRvDozrdlx3IZ3YpHYcjVHWquCDV9Ia",
@@ -5330,8 +6718,8 @@
    "title": "AI & Coding",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 5,
-   "cover": "HXH4yu227EQ"
+   "count": 2,
+   "cover": "BGZB9dn0GV4"
   },
   {
    "id": "PLTjRvDozrdlxAhsPP4ZYtt3G8KbJ449oT",
@@ -5346,7 +6734,7 @@
    "title": "Back-end Development",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 27,
+   "count": 22,
    "cover": "uVwtVBpw7RQ"
   },
   {
@@ -5354,8 +6742,8 @@
    "title": "Beginner's Questions",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 8,
-   "cover": "pEbIhUySqbk"
+   "count": 9,
+   "cover": "r16Rn4_jDfk"
   },
   {
    "id": "PLTjRvDozrdlz3_FPXwb6lX_HoGXa09Yef",
@@ -5370,15 +6758,15 @@
    "title": "Career Development in Tech",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 6,
-   "cover": "Tef1e9FiSR0"
+   "count": 10,
+   "cover": "OeEHJgzqS1k"
   },
   {
    "id": "PLTjRvDozrdlw5En5v2xrBr_EqieHf7hGs",
    "title": "Front-end Development",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 22,
+   "count": 13,
    "cover": "pEbIhUySqbk"
   },
   {
@@ -5394,7 +6782,7 @@
    "title": "JavaScript Tutorials",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 25,
+   "count": 22,
    "cover": "upDLs1sn7g4"
   },
   {
@@ -5402,7 +6790,7 @@
    "title": "Job Interview Preparation Videos",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 8,
+   "count": 4,
    "cover": "BBpAmxU_NQo"
   },
   {
@@ -5410,15 +6798,15 @@
    "title": "Mobile Development",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 10,
-   "cover": "0-S5a0eXPoc"
+   "count": 7,
+   "cover": "SLwpqD8n3d0"
   },
   {
    "id": "PLTjRvDozrdlydy3uUBWZlLUTNpJSGGCEm",
    "title": "Node js Tutorials",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 12,
+   "count": 14,
    "cover": "XUSHH0E-7zk"
   },
   {
@@ -5426,7 +6814,7 @@
    "title": "Programming Languages",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 17,
+   "count": 13,
    "cover": "_uQrJ0TkZlc"
   },
   {
@@ -5442,8 +6830,8 @@
    "title": "Roadmaps",
    "channel_id": "UCWv7vMbMWH4-V0ZXdmDpPBA",
    "channel": "Programming with Mosh",
-   "count": 5,
-   "cover": "6GQRb4fGvtk"
+   "count": 8,
+   "cover": "v7BNtpw53AA"
   },
   {
    "id": "PLTjRvDozrdlxJjrQ4phZAUmiRn-HbK3M_",
@@ -5454,27 +6842,43 @@
    "cover": "NjN00cM18Z4"
   },
   {
+   "id": "PLy87-TjmU9VXECsCyDLF_LtmUb7BY6Fe4",
+   "title": "أفضل وأقوى مصادر تعلم البرمجة للمبتدئين والمحترفين.",
+   "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
+   "channel": "putcodes",
+   "count": 2,
+   "cover": "zZKmS9_3ZwQ"
+  },
+  {
    "id": "PLy87-TjmU9VVY_Q7CbSU0GVI0YiIS6seZ",
    "title": "البرمجة في سوق العمل | كل ما يخص العمل في شركات البرمجة.",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 2,
-   "cover": "SelxUZp92sg"
+   "count": 6,
+   "cover": "up2TcnHd7fc"
   },
   {
    "id": "PLy87-TjmU9VWLAfShZYdWo9ndL4E0V185",
    "title": "الطريق الصحيح للبرمجة | roadmap of programming",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 5,
-   "cover": "dEcgyAba0pk"
+   "count": 14,
+   "cover": "ve-0CkPmpOM"
+  },
+  {
+   "id": "PLy87-TjmU9VUsUusEV0GcoyjHEY6IiFhh",
+   "title": "العمل الحر للمبرمجين 💻 | ازاي تبدأ شغل فريلانسر وتكسب من البرمجة ✅",
+   "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
+   "channel": "putcodes",
+   "count": 4,
+   "cover": "Zg6eeBNtF2k"
   },
   {
    "id": "PLy87-TjmU9VX3eVlK9HFDw8wzYO9LVJXd",
    "title": "برنامج سفراء الذكاء الاصطناعي  | Artificial Intelligence Ambassadors",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 4,
+   "count": 6,
    "cover": "6LDKPsJX6dc"
   },
   {
@@ -5482,15 +6886,23 @@
    "title": "تعلم الذكاء الاصطناعي (AI) من الصفر إلى الاحتراف 🤖",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 7,
+   "count": 10,
    "cover": "8nHtwGoUYto"
+  },
+  {
+   "id": "PLHweVTLdypwI",
+   "title": "خارطة طريق مطور Odoo Developer من الصفر | الطريق الصحيح للاحتراف",
+   "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
+   "channel": "putcodes",
+   "count": 2,
+   "cover": "_7gjgP-d2Lg"
   },
   {
    "id": "PLy87-TjmU9VU1wnPMHzz-rqGkceAByU5b",
    "title": "خطط شاملة لمسارات البرمجة في مختلف التخصصات البرمجية.",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 2,
+   "count": 3,
    "cover": "JPHB6JWA_F4"
   },
   {
@@ -5498,7 +6910,7 @@
    "title": "دليل تخصصات البرمجة: كيف تختار التخصص المناسب وتبدأ مسارك المهني؟",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 9,
+   "count": 13,
    "cover": "hlbSOmOBcBQ"
   },
   {
@@ -5506,63 +6918,39 @@
    "title": "مواضيع برمجية متقدمة | الذكاء الإصطناعي 2025",
    "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
    "channel": "putcodes",
-   "count": 5,
+   "count": 8,
    "cover": "YdiPRT5mii8"
   },
   {
-   "id": "PLUQDw_ve-LUBFlHrCDZU9AGxvPG_hPBDo",
-   "title": "Fast API",
-   "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "channel": "Python Arabic Community",
-   "count": 2,
-   "cover": "jC00zvnYfDg"
-  },
-  {
-   "id": "PLUQDw_ve-LUAwchOl9MDj9XwVPmz7_zVN",
-   "title": "أدوات الذكاء الاصطناعي - AI tools",
-   "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "channel": "Python Arabic Community",
-   "count": 8,
-   "cover": "yCXng4i5O7Q"
+   "id": "PLy87-TjmU9VXlz14LrIVeQ_mBKeLlbztl",
+   "title": "وزارة الإتصالات وتكنولوجيا المعلومات | ITI",
+   "channel_id": "UC3_wZsZVPqBH04GTwqZHmkQ",
+   "channel": "putcodes",
+   "count": 6,
+   "cover": "3pHHMvkttus"
   },
   {
    "id": "PLUQDw_ve-LUCynIloFF5qcU4kjrqKNw4a",
    "title": "أسرار التفوق للمبرمجين",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 64,
-   "cover": "UyQM6R7wGNg"
-  },
-  {
-   "id": "PLUQDw_ve-LUCmbJXHuDrC7yRI2WIDzIjs",
-   "title": "البرمجة 💾",
-   "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "channel": "Python Arabic Community",
-   "count": 2,
-   "cover": "NkR7w-Qo8oc"
+   "count": 8,
+   "cover": "ZDLJaelggpo"
   },
   {
    "id": "PLUQDw_ve-LUA-ZSqorZvFmkF77fSJeEK2",
    "title": "التعلم العميق",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 2,
-   "cover": "ZfTW5hOl-zI"
-  },
-  {
-   "id": "PLUQDw_ve-LUBcV5DMWQaDlvcetKPUc1Iq",
-   "title": "الخوارزميات : سلسلة علمية تطبيقية 🔥",
-   "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "channel": "Python Arabic Community",
    "count": 6,
-   "cover": "nec97NQvXOY"
+   "cover": "_JeumXzQdg8"
   },
   {
    "id": "PLUQDw_ve-LUA0a6OXM1JASSMeFWq44HsB",
    "title": "الذكاء الإصطناعي و تعلم الآلة 🎲",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 9,
+   "count": 10,
    "cover": "zPBj2kfvWIM"
   },
   {
@@ -5570,32 +6958,24 @@
    "title": "الذكاء الاصطناعي في أسبوع",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 63,
-   "cover": "LZwokkLv2EQ"
-  },
-  {
-   "id": "PLUQDw_ve-LUBmNntA7ywcnHhJgTx9BKyj",
-   "title": "تعلم FastApi الآن !",
-   "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
-   "channel": "Python Arabic Community",
-   "count": 2,
-   "cover": "jC00zvnYfDg"
+   "count": 8,
+   "cover": "7oVvTI4FsmE"
   },
   {
    "id": "PLUQDw_ve-LUAKfUt9BbYuva4Ix0kz8Yqz",
    "title": "تعلم بايثون في فيديو واحد | أفضل كورسات بايثون المجانية",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 13,
-   "cover": "Drjvm8p013o"
+   "count": 26,
+   "cover": "8mAITcNt710"
   },
   {
-   "id": "PLUQDw_ve-LUAGpWvaZBl8G5jjss3OAk2t",
-   "title": "سحر الرياضيات",
+   "id": "PLUQDw_ve-LUDLEAmKyzNoMZeciTU1GjGo",
+   "title": "حواسيب خارقة 💻",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
    "count": 2,
-   "cover": "wYAZdcajQlg"
+   "cover": "Z3NT-AiOGsI"
   },
   {
    "id": "PLUQDw_ve-LUBcrPAQYwvxEe2pNw9Cmnv4",
@@ -5610,15 +6990,15 @@
    "title": "علم البيانات",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 5,
-   "cover": "ZfTW5hOl-zI"
+   "count": 4,
+   "cover": "BqNfcTCCY1M"
   },
   {
    "id": "PLUQDw_ve-LUCP6fg2MtbccnSqcLjBMFZj",
    "title": "لغة بايثون 🐍",
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
-   "count": 18,
+   "count": 7,
    "cover": "DDdlU2yfRqI"
   },
   {
@@ -5627,78 +7007,70 @@
    "channel_id": "UC9ocsRoOwj9tkAQNfUt8ZJg",
    "channel": "Python Arabic Community",
    "count": 2,
-   "cover": "Vu32nP-99ko"
+   "cover": "ep3CnxCHDwY"
   },
   {
    "id": "PLJ2FoWouEU2wGmS3UK59Ke0v1ggvDZx1s",
    "title": "Complete Appium Course",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 21,
-   "cover": "vh3_Ewso2LU"
+   "count": 50,
+   "cover": "9mUPLnzJvE8"
   },
   {
    "id": "PLJ2FoWouEU2zZgl9FHFG4AjEDg_2JdBCN",
    "title": "Complete Cucumber Course",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 3,
-   "cover": "XoK1xj3hYWY"
+   "count": 26,
+   "cover": "_d5NxbS6Dzk"
   },
   {
    "id": "PLJ2FoWouEU2wk6xLWf1vABC_bpl-njsiZ",
    "title": "Complete Cypress course in Arabic",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 3,
-   "cover": "q2S7ar_Q_F0"
+   "count": 66,
+   "cover": "AER01beCJ5c"
   },
   {
    "id": "PLJ2FoWouEU2zuf76zVJ0buSJUtjh8Sg9d",
    "title": "Complete ISTQB Foundation Level Course In Arabic",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 16,
-   "cover": "BONlnTllwVI"
+   "count": 67,
+   "cover": "OyC_jPUDq2M"
   },
   {
    "id": "PLJ2FoWouEU2yPMIBTGsMRvxjEevIlMi3F",
    "title": "Complete Postman Course In Arabic",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 5,
-   "cover": "BOleHpRC1IU"
+   "count": 29,
+   "cover": "pPLFGdZoLdo"
   },
   {
    "id": "PLJ2FoWouEU2zpjd0_ukTWM46D7tAXQ_Ln",
    "title": "Manual Testing Bootcamp",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 24,
-   "cover": "r6QANp75VRU"
+   "count": 70,
+   "cover": "lxUd1bz7jYA"
   },
   {
    "id": "PLJ2FoWouEU2w8wnsblKVolmhujkOWgkjo",
    "title": "Selenium Java course in Arabic",
    "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
    "channel": "QAcart",
-   "count": 22,
+   "count": 81,
    "cover": "kmV-ErZypXU"
-  },
-  {
-   "id": "PLJ2FoWouEU2xS_N-1L4B-zEAFUzK2sOcb",
-   "title": "كورسات كاملة — من الصفر للاحتراف",
-   "channel_id": "UCaGo8x7uqxMK5A08AI8s6IQ",
-   "channel": "QAcart",
-   "count": 3,
-   "cover": "bF79P8fvhbs"
   },
   {
    "id": "PLy7NrYWoggjwaatYXUpRgJSVvT1cmHuct",
    "title": "AI Tutorials",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 7,
+   "count": 9,
    "cover": "l-kE11fhfaQ"
   },
   {
@@ -5714,7 +7086,7 @@
    "title": "CI/CD Tutorials",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 13,
+   "count": 14,
    "cover": "R8_veQiYBjI"
   },
   {
@@ -5730,7 +7102,7 @@
    "title": "Courses",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 16,
+   "count": 21,
    "cover": "3c-iBn73dDE"
   },
   {
@@ -5738,7 +7110,7 @@
    "title": "DevOps as a Career",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 23,
+   "count": 27,
    "cover": "G_nVMUtaqCk"
   },
   {
@@ -5746,7 +7118,7 @@
    "title": "DevOps Concepts explained",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 11,
+   "count": 15,
    "cover": "0yWAtQ6wYNM"
   },
   {
@@ -5754,7 +7126,7 @@
    "title": "DevOps Tool of the Month [2021]",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 6,
+   "count": 8,
    "cover": "kgfg8r6_zPk"
   },
   {
@@ -5762,8 +7134,8 @@
    "title": "DevOps Tools",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 22,
-   "cover": "7KCS70sCoK0"
+   "count": 33,
+   "cover": "1id6ERvfozo"
   },
   {
    "id": "PLy7NrYWoggjw0OMxUDIImjWQjM7qZWn_R",
@@ -5794,15 +7166,15 @@
    "title": "Infrastructure as Code (IaC) Tutorials",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 4,
-   "cover": "l5k1ai_GBDE"
+   "count": 7,
+   "cover": "1id6ERvfozo"
   },
   {
    "id": "PLy7NrYWoggjzDAxOxWazuVSsndW3fUinz",
    "title": "IT Fundamentals",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 8,
+   "count": 10,
    "cover": "w0SQGCt-6Ro"
   },
   {
@@ -5842,7 +7214,7 @@
    "title": "Programming Courses",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 3,
+   "count": 5,
    "cover": "t8pPdKYpowI"
   },
   {
@@ -5854,11 +7226,19 @@
    "cover": "h4Sl21AKiDg"
   },
   {
+   "id": "PLy7NrYWoggjyvPa2FNiLoxqH73rndE4La",
+   "title": "Service Mesh Tutorials - Istio and Consul",
+   "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
+   "channel": "TechWorld with Nana",
+   "count": 3,
+   "cover": "16fgzklcF7Y"
+  },
+  {
    "id": "PLy7NrYWoggjwq7i428xjhgd32oytDZ9de",
    "title": "Shorts",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 3,
+   "count": 6,
    "cover": "gU5lK9yeiog"
   },
   {
@@ -5866,7 +7246,7 @@
    "title": "Step by Step Roadmaps",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 8,
+   "count": 9,
    "cover": "S8eX0MxfnB4"
   },
   {
@@ -5874,31 +7254,31 @@
    "title": "Tech Explained in 5 Minutes",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 3,
-   "cover": "Xv9dnKHO8tg"
+   "count": 4,
+   "cover": "_x1GskHtJxo"
   },
   {
    "id": "PLy7NrYWoggjzWeggYOnCigkyu4feE_ADd",
    "title": "TWN Career Interview Series",
    "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
    "channel": "TechWorld with Nana",
-   "count": 8,
+   "count": 9,
    "cover": "vnxkaP8clJE"
   },
   {
-   "id": "PLsyeobzWxl7odnI5wl4LvRl6C0bn1Jg7B",
-   "title": "10 Days Challenge",
-   "channel_id": "UC59K-uG2A5ogwIrHw4bmlEg",
-   "channel": "Telusko",
-   "count": 7,
-   "cover": "fYMO6xefbzo"
+   "id": "PLy7NrYWoggjzNXlhKl6RXsWvMbN97sz9B",
+   "title": "Web Development",
+   "channel_id": "UCdngmbVKX1Tgre699-XLlUA",
+   "channel": "TechWorld with Nana",
+   "count": 4,
+   "cover": "vcRmKtL4o_4"
   },
   {
    "id": "PLsyeobzWxl7q_w9UgGWraeMSACk7j93eV",
    "title": "AI Engineering",
    "channel_id": "UC59K-uG2A5ogwIrHw4bmlEg",
    "channel": "Telusko",
-   "count": 4,
+   "count": 7,
    "cover": "cp0_xWxLGaI"
   },
   {
@@ -5906,7 +7286,7 @@
    "title": "Complete Java, Spring, and Microservices course",
    "channel_id": "UC59K-uG2A5ogwIrHw4bmlEg",
    "channel": "Telusko",
-   "count": 5,
+   "count": 6,
    "cover": "laPmEW913_k"
   },
   {
@@ -5914,7 +7294,7 @@
    "title": "Data Structures and Algorithm",
    "channel_id": "UC59K-uG2A5ogwIrHw4bmlEg",
    "channel": "Telusko",
-   "count": 6,
+   "count": 16,
    "cover": "iZmDcfTtcNg"
   },
   {
@@ -5954,8 +7334,8 @@
    "title": "Microservice Tutorial using Java",
    "channel_id": "UC59K-uG2A5ogwIrHw4bmlEg",
    "channel": "Telusko",
-   "count": 11,
-   "cover": "pidVLkQQom8"
+   "count": 24,
+   "cover": "3WqDbU_Xnu4"
   },
   {
    "id": "PLsyeobzWxl7rtdN-coP0XxS8DyTGNUR89",
@@ -6034,7 +7414,7 @@
    "title": "13: What is Perlin Noise?",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 3,
+   "count": 4,
    "cover": "ZI1dmHv3MeM"
   },
   {
@@ -6050,8 +7430,8 @@
    "title": "2018 Workflow: Editor, Shell, and more",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 5,
-   "cover": "yJw0SyKO9IU"
+   "count": 6,
+   "cover": "gJa6wri8YNQ"
   },
   {
    "id": "PLRqwX-V7Uu6ZmA-d3D0iFIvgrB5_7kB8H",
@@ -6066,7 +7446,7 @@
    "title": "Beginners Guide to Machine Learning in JavaScript",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 15,
+   "count": 30,
    "cover": "26uABexmOX4"
   },
   {
@@ -6074,15 +7454,39 @@
    "title": "Coding Challenges",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 57,
+   "count": 77,
    "cover": "fUkF-YLLXeg"
+  },
+  {
+   "id": "PLRqwX-V7Uu6bVafiIHN-8LR3MUFDboJdU",
+   "title": "Coding in the Cabana",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 3,
+   "cover": "4uU9lZ-HSqA"
+  },
+  {
+   "id": "PLRqwX-V7Uu6bYBG4PsCJpsvMka3boE9pR",
+   "title": "Guest Tutorials and Interviews",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 3,
+   "cover": "Xtnitfj_e10"
+  },
+  {
+   "id": "PLRqwX-V7Uu6avBYxeBSwF48YhAnSn_sA4",
+   "title": "How to Make a Discord Bot with discord.js",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 4,
+   "cover": "7A-bnPlxj4k"
   },
   {
    "id": "PLRqwX-V7Uu6b3gOeqTfLK-Bh3JGBXV0Io",
    "title": "ITP Shows",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 4,
+   "count": 3,
    "cover": "3Dzc6bwpBR0"
   },
   {
@@ -6094,20 +7498,20 @@
    "cover": "QO4NXhWo_NM"
   },
   {
-   "id": "PLRqwX-V7Uu6bxnFR6no70vlxxuxDEzflz",
-   "title": "Live Stream Archive",
-   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
-   "channel": "The Coding Train",
-   "count": 30,
-   "cover": "kWsDL-6D-nk"
-  },
-  {
    "id": "PLRqwX-V7Uu6Y6kSfxOjq5zk4gkDK8q_n1",
    "title": "Machine Learning with TensorFlow, ml5.js, and Spell",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 3,
+   "count": 4,
    "cover": "ggBOAPtFjYU"
+  },
+  {
+   "id": "PLRqwX-V7Uu6ZCtELDdShWS5oZSA3z3HsO",
+   "title": "Recent uploads",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 9,
+   "cover": "rlZYT-uvmGQ"
   },
   {
    "id": "PLRqwX-V7Uu6aBhR9QrBIsyybrnK7MCcYU",
@@ -6118,52 +7522,68 @@
    "cover": "ARnf4ilr9Hc"
   },
   {
+   "id": "PLRqwX-V7Uu6aQ0oh9nH8c6U1j9gCg-GdF",
+   "title": "Session 12: word2vec - Programming with Text",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 3,
+   "cover": "LSS_bos_TPI"
+  },
+  {
    "id": "PLRqwX-V7Uu6byiVX7_Z1rclitVhMBmNFQ",
    "title": "Session 4: Mastodon API and Bots with Node.js - Programming with Text",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 3,
-   "cover": "B8ireAeWRQk"
+   "count": 10,
+   "cover": "sKSxBd56H70"
   },
   {
    "id": "PLRqwX-V7Uu6YIeVA3dNxbR9PYj4wV31oQ",
    "title": "Session 6 - TensorFlow.js - Intelligence and Learning",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 5,
-   "cover": "dLp10CFIvxI"
+   "count": 9,
+   "cover": "Qt3ZABW5lD0"
   },
   {
    "id": "PLRqwX-V7Uu6bmMRCIoTi72aNWHo7epX4L",
    "title": "Session 7 - TensorFlow.js Color Classifier - Intelligence and Learning",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 3,
-   "cover": "Xrhrn8HaFPI"
+   "count": 12,
+   "cover": "y59-frfKR58"
   },
   {
    "id": "PLRqwX-V7Uu6Zy51Q-x9tMWIv9cueOFTFA",
    "title": "Start learning here!",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 4,
-   "cover": "MXs1cOlidWs"
+   "count": 10,
+   "cover": "yPWkPOfnGsw"
+  },
+  {
+   "id": "PLRqwX-V7Uu6aJwX0rFP-7ccA6ivsPDsK5",
+   "title": "Teachable Machine",
+   "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
+   "channel": "The Coding Train",
+   "count": 3,
+   "cover": "kwcillcWOg0"
   },
   {
    "id": "PLRqwX-V7Uu6bF5uyveC9z0KPNz9lEtdB1",
    "title": "The Coding Train Express",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 2,
-   "cover": "trKjYdBASyQ"
+   "count": 5,
+   "cover": "TOEi6T2mtHo"
   },
   {
    "id": "PLRqwX-V7Uu6ZV4yEcW3uDwOgGXKUUsPOM",
    "title": "The Nature of Code",
    "channel_id": "UCvjgXvBlbQiydffZU7m1_aw",
    "channel": "The Coding Train",
-   "count": 5,
-   "cover": "i2ROE_mAhU0"
+   "count": 15,
+   "cover": "3slqsMHKLng"
   },
   {
    "id": "PLRqwX-V7Uu6YxDKpFzf_2D84p0cyk4T7X",
@@ -6174,35 +7594,75 @@
    "cover": "DbcLg8nRWEg"
   },
   {
+   "id": "PLF8OvnCBlEY3F9R_L67uCuFQuWULClfag",
+   "title": "Android Firebase Tutorial Arabic",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 2,
+   "cover": "aTzffMiYCgA"
+  },
+  {
+   "id": "PLF8OvnCBlEY0Iqgkm_QQnHHp_-L8oAUSO",
+   "title": "Android kernel (Security)",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 2,
+   "cover": "G3VNlGC20Ws"
+  },
+  {
+   "id": "PLF8OvnCBlEY1gc8OTRS3567r2FyRKi6XC",
+   "title": "AngularJS 2  for beginners || دورة برمجة ويب",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 9,
+   "cover": "5ZQ7OCU_nN4"
+  },
+  {
    "id": "PLF8OvnCBlEY0UEgX-PDJduL5Tyv4Estam",
    "title": "C# Basic to OOP   تعلم برمجة سي شارب اساسيات",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 2,
-   "cover": "F-X1WvIh5EM"
+   "count": 4,
+   "cover": "N3CXL3IStfY"
   },
   {
    "id": "PLF8OvnCBlEY3a1pbPrE6fvNuV3qi-6KRf",
    "title": "Data Structure and Algorithms analysis || الخوارزميات وهيكلة البيانات",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 29,
+   "count": 48,
    "cover": "eNOZjwJVIxg"
+  },
+  {
+   "id": "PLF8OvnCBlEY2sQQzwhAZSCh624TJtLL7E",
+   "title": "ECMAScript(ES6) new features",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 7,
+   "cover": "oGBsvOD_zWc"
+  },
+  {
+   "id": "PLF8OvnCBlEY2kdWnxuSRZPr9AUcah_07P",
+   "title": "iOS 11 and Swift 4 || Machine Learning",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 3,
+   "cover": "l6ApGmKy0xs"
   },
   {
    "id": "PLF8OvnCBlEY1BC20Bl73DuyW3LE5sGCUH",
    "title": "iOS 12 & Swift 4 App development|| دورة الشاملة لبرمجة تطبيقات ايفون والايباد",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 46,
-   "cover": "eQyfapLoKOc"
+   "count": 51,
+   "cover": "Leoo1podBEI"
   },
   {
    "id": "PLF8OvnCBlEY2ym2YcghR3I_pcunWRn203",
    "title": "Java 8 new features || الميزات الجديدة في جافا",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 7,
+   "count": 8,
    "cover": "5IFtfb_IqSY"
   },
   {
@@ -6210,7 +7670,7 @@
    "title": "JavaFX Tutorial for beginners",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 3,
+   "count": 7,
    "cover": "7Jw1LWRgQAo"
   },
   {
@@ -6250,7 +7710,7 @@
    "title": "PHP and MYSQL  (OOP)  دورة تعلم",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 2,
+   "count": 3,
    "cover": "8VWTwAHIp1k"
   },
   {
@@ -6274,23 +7734,31 @@
    "title": "Ruby on Rails Tutorials || دورة برمجة روبي ويب",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 3,
+   "count": 29,
    "cover": "HfNQtFRh42k"
+  },
+  {
+   "id": "PLF8OvnCBlEY0GJVVe1YquY64Ag7NBbPZq",
+   "title": "Ruby Tutorials Arabic|| دورة برمجة روبي",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 3,
+   "cover": "5cTC4xAROiM"
   },
   {
    "id": "PLF8OvnCBlEY1W54Am_lA9uXK1gAyExMmP",
    "title": "The Complete C++ course | 2021",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 24,
-   "cover": "-9Yaye_Q0sM"
+   "count": 21,
+   "cover": "WlH97Ko1xHo"
   },
   {
    "id": "PLF8OvnCBlEY27rEmxg4F86iFljMXyCmk1",
    "title": "TypeScript  tutorial Arabic",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 15,
+   "count": 22,
    "cover": "jYK5ftaE_p8"
   },
   {
@@ -6298,7 +7766,7 @@
    "title": "Web service c# tutorials",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 2,
+   "count": 3,
    "cover": "3hcbuJWcX2s"
   },
   {
@@ -6306,7 +7774,7 @@
    "title": "Web service Java tutorials",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 2,
+   "count": 3,
    "cover": "3hcbuJWcX2s"
   },
   {
@@ -6322,7 +7790,7 @@
    "title": "الدورة الكاملة لبرمجة تطبيقات الاندرويد || Kotlin on Android",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 72,
+   "count": 75,
    "cover": "hR3D1odn2TQ"
   },
   {
@@ -6330,7 +7798,7 @@
    "title": "تعلم برمجة جافا || Java basic to OOP",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 14,
+   "count": 20,
    "cover": "Qt9_WMNuYP0"
   },
   {
@@ -6338,8 +7806,8 @@
    "title": "دورة برمجة اندرويد || Android Studio Tutorials Arabic",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 9,
-   "cover": "PJZDh5l_6iM"
+   "count": 15,
+   "cover": "mrDlrCZzyxI"
   },
   {
    "id": "PLF8OvnCBlEY31NJ9bQNHKzW_kc16n_ent",
@@ -6362,7 +7830,7 @@
    "title": "كيف تهكر موقع الكتروني",
    "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
    "channel": "TheNewBaghdad",
-   "count": 3,
+   "count": 4,
    "cover": "IzFtXNNSzZM"
   },
   {
@@ -6374,6 +7842,14 @@
    "cover": "rplGZ97-x3E"
   },
   {
+   "id": "PLF8OvnCBlEY0VfIfabOw5t3K3pzErkQDc",
+   "title": "مشاريع مفتوحة المصدر",
+   "channel_id": "UCgntwWFdMDPq0eNhaQ0LHIQ",
+   "channel": "TheNewBaghdad",
+   "count": 2,
+   "cover": "sBYRBDgYFbw"
+  },
+  {
    "id": "PLm323Lc7iSW9oovBnCTjPZnL9CcCCUZyS",
    "title": "DevHour",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
@@ -6382,11 +7858,19 @@
    "cover": "pvBHyip4peo"
   },
   {
+   "id": "PLm323Lc7iSW822c1Ps3aFzJYtqQX8R_nD",
+   "title": "Live On Twitch",
+   "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
+   "channel": "ThePrimeagen",
+   "count": 2,
+   "cover": "hJzqEAf2U4I"
+  },
+  {
    "id": "PLm323Lc7iSW-9NEqYybADIvQVB5PFB2Cm",
    "title": "Performance",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "channel": "ThePrimeagen",
-   "count": 8,
+   "count": 11,
    "cover": "PHvbLmLPX6s"
   },
   {
@@ -6394,15 +7878,15 @@
    "title": "Prime Rants",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "channel": "ThePrimeagen",
-   "count": 12,
-   "cover": "h7UEwBaGoVo"
+   "count": 44,
+   "cover": "G8vdu30EEfw"
   },
   {
    "id": "PLm323Lc7iSW-nUUDxoTAPHeemzCozjdbs",
    "title": "Reacting To Tech",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "channel": "ThePrimeagen",
-   "count": 2,
+   "count": 4,
    "cover": "RNfw23LkFn8"
   },
   {
@@ -6410,16 +7894,32 @@
    "title": "Tech Weekly",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "channel": "ThePrimeagen",
-   "count": 2,
-   "cover": "Xw_qbJp52cY"
+   "count": 3,
+   "cover": "bdumjiHabhQ"
   },
   {
    "id": "PLm323Lc7iSW_wuxqmKx_xxNtJC_hJbQ7R",
    "title": "Vim As Your Editor",
    "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
    "channel": "ThePrimeagen",
-   "count": 5,
+   "count": 7,
    "cover": "X6AR2RMB5tE"
+  },
+  {
+   "id": "PLm323Lc7iSW9CtibHhhQErDh167XfL4EU",
+   "title": "Vim Life",
+   "channel_id": "UC8ENHE5xdFSwx71u3fDH5Xw",
+   "channel": "ThePrimeagen",
+   "count": 2,
+   "cover": "y6VJBeZEDZU"
+  },
+  {
+   "id": "PLillGF-RfqbZutWexF6WGamLXv7o6Z1kR",
+   "title": "AI Discussion",
+   "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
+   "channel": "Traversy Media",
+   "count": 3,
+   "cover": "pjwAeBBAF98"
   },
   {
    "id": "PLillGF-RfqbZyLc9sMQ72_u3FW9fVxo1p",
@@ -6434,8 +7934,8 @@
    "title": "Developer Discussion: Industry, Career & Personal Help",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 31,
-   "cover": "qn6OhK_Irm4"
+   "count": 68,
+   "cover": "NiNuZ2yxwOc"
   },
   {
    "id": "PLillGF-Rfqbb6vZqT-Lzi9Al_noaY5LAs",
@@ -6474,7 +7974,7 @@
    "title": "Guest Creators",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 34,
+   "count": 41,
    "cover": "fxY1q4SCB64"
   },
   {
@@ -6482,7 +7982,7 @@
    "title": "HTML & CSS",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 25,
+   "count": 34,
    "cover": "P7t13SGytRk"
   },
   {
@@ -6498,7 +7998,7 @@
    "title": "Learn The MERN Stack",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 2,
+   "count": 4,
    "cover": "-0exw-9YJBo"
   },
   {
@@ -6506,15 +8006,15 @@
    "title": "Learn The MERN Stack",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 4,
-   "cover": "5yTazHkDR4o"
+   "count": 12,
+   "cover": "PBTYxXADG_k"
   },
   {
    "id": "PLillGF-RfqbZ2ybcoD2OaabW2P7Ws8CWu",
    "title": "Node.js Videos",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 21,
+   "count": 25,
    "cover": "fBNz5xF-Kx4"
   },
   {
@@ -6522,7 +8022,7 @@
    "title": "Programming & Web Development Crash Courses",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 55,
+   "count": 80,
    "cover": "hdI2bqOjy3c"
   },
   {
@@ -6530,7 +8030,7 @@
    "title": "Python Videos",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 15,
+   "count": 16,
    "cover": "JJmcL1N2KQs"
   },
   {
@@ -6546,7 +8046,7 @@
    "title": "React Projects",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 38,
+   "count": 39,
    "cover": "XuFDcZABiDQ"
   },
   {
@@ -6554,7 +8054,7 @@
    "title": "Responsive Portfolio Website Project",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 3,
+   "count": 7,
    "cover": "gYzHS-n2gqU"
   },
   {
@@ -6578,7 +8078,7 @@
    "title": "Vanilla JavaScript",
    "channel_id": "UC29ju8bIPH5as8OGnQzwJyA",
    "channel": "Traversy Media",
-   "count": 30,
+   "count": 35,
    "cover": "hdI2bqOjy3c"
   },
   {
@@ -6586,31 +8086,55 @@
    "title": "AI Coding",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 4,
-   "cover": "t3my5ByUhFU"
+   "count": 6,
+   "cover": "UngVdAsQEiU"
+  },
+  {
+   "id": "PLZlA0Gpn_vH-xGQ-nQ87rXI7QkM6W3E79",
+   "title": "Clean Code",
+   "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "channel": "Web Dev Simplified",
+   "count": 7,
+   "cover": "5GG-VUvruzE"
   },
   {
    "id": "PLZlA0Gpn_vH8mpXIUHjWoMAAgoCEinL0R",
    "title": "CSS Tutorials",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 40,
+   "count": 47,
    "cover": "TUD1AWZVgQ8"
+  },
+  {
+   "id": "PLZlA0Gpn_vH_GPX-SNhGK0crEtlXtC2uF",
+   "title": "Devlogs",
+   "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "channel": "Web Dev Simplified",
+   "count": 3,
+   "cover": "DeFY5F3pWPs"
   },
   {
    "id": "PLZlA0Gpn_vH9I50SHUa_gJo8-kGT1R_T3",
    "title": "Discussions and Explanations",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 20,
-   "cover": "Ksn1tThNTjI"
+   "count": 69,
+   "cover": "ZoZxQwp1PiM"
+  },
+  {
+   "id": "PLZlA0Gpn_vH_XnZHin-Vjma8KylU-N0X8",
+   "title": "Game Development",
+   "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "channel": "Web Dev Simplified",
+   "count": 2,
+   "cover": "wOVEe9eawXc"
   },
   {
    "id": "PLZlA0Gpn_vH9k5ju1yq9qCDqvtuTVgTr6",
    "title": "Introduction to JavaScript",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 8,
+   "count": 17,
    "cover": "7W4pQQ20nJg"
   },
   {
@@ -6618,7 +8142,7 @@
    "title": "Large Projects",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 8,
+   "count": 11,
    "cover": "iqrgggs0Qk0"
   },
   {
@@ -6626,7 +8150,7 @@
    "title": "Learn X in Y Minutes",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 27,
+   "count": 48,
    "cover": "Rh3tobg7hEo"
   },
   {
@@ -6634,7 +8158,7 @@
    "title": "Live Coding",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 12,
+   "count": 20,
    "cover": "RDLg-p6PdTA"
   },
   {
@@ -6642,7 +8166,7 @@
    "title": "Next.js",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 15,
+   "count": 19,
    "cover": "wi8kF8UniUI"
   },
   {
@@ -6650,7 +8174,7 @@
    "title": "React",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 55,
+   "count": 63,
    "cover": "yz8x71BiGXg"
   },
   {
@@ -6658,7 +8182,7 @@
    "title": "React Hooks",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 10,
+   "count": 11,
    "cover": "N5R6NL3UE7I"
   },
   {
@@ -6666,7 +8190,7 @@
    "title": "Shorts",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 52,
+   "count": 76,
    "cover": "4PZeIwXx1hc"
   },
   {
@@ -6674,15 +8198,31 @@
    "title": "Small Projects",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 29,
+   "count": 40,
    "cover": "RDLg-p6PdTA"
+  },
+  {
+   "id": "PLZlA0Gpn_vH_63f0HH-dUtkininO7GO6f",
+   "title": "Testing",
+   "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "channel": "Web Dev Simplified",
+   "count": 4,
+   "cover": "7f-71kYhK00"
+  },
+  {
+   "id": "PLZlA0Gpn_vH_ma_XO-GLSpL9L06ii4mAp",
+   "title": "Top 10 Lists",
+   "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
+   "channel": "Web Dev Simplified",
+   "count": 4,
+   "cover": "TUD1AWZVgQ8"
   },
   {
    "id": "PLZlA0Gpn_vH_z2fqIg50_POJrUkJgBu7g",
    "title": "TypeScript",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 26,
+   "count": 31,
    "cover": "jBmrduvKl5w"
   },
   {
@@ -6698,15 +8238,15 @@
    "title": "Web App Security/Authentication",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 3,
-   "cover": "yoiBv0K6_1U"
+   "count": 11,
+   "cover": "5GG-VUvruzE"
   },
   {
    "id": "PLZlA0Gpn_vH8zJ0Xr82tcA9imLzTzItrK",
    "title": "What Is...",
    "channel_id": "UCFbNIlppjAuEX4znoulh0Cw",
    "channel": "Web Dev Simplified",
-   "count": 2,
+   "count": 5,
    "cover": "lVLz_ASqAio"
   },
   {
@@ -6714,7 +8254,7 @@
    "title": "5 Min Videos | فيديوهات الخمس دقائق",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 2,
+   "count": 3,
    "cover": "qth0BUwIoCs"
   },
   {
@@ -6730,7 +8270,7 @@
    "title": "Programming Insights | تجاربي في البرمجة",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 42,
+   "count": 85,
    "cover": "B2iWpi5GPvQ"
   },
   {
@@ -6738,7 +8278,7 @@
    "title": "Tutorials شروحات مختصرة",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 13,
+   "count": 17,
    "cover": "OS2zUThSNuQ"
   },
   {
@@ -6746,7 +8286,7 @@
    "title": "Vibe Coding - AI in Development",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 5,
+   "count": 6,
    "cover": "wbHCWzc71Sk"
   },
   {
@@ -6754,7 +8294,7 @@
    "title": "بودكاست كلام في البرمجة | Kalam Fel Barmaga",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 26,
+   "count": 68,
    "cover": "gjDRjZCP0zo"
   },
   {
@@ -6778,7 +8318,7 @@
    "title": "مقتطفات كلام في البرمجة | Kalam Fel Barmaga Clips",
    "channel_id": "UCGP8LgaWO1lLfFQUQ2BA7rA",
    "channel": "Yehia Tech",
-   "count": 2,
+   "count": 6,
    "cover": "nfF1nVMrzCM"
   },
   {
@@ -6818,32 +8358,56 @@
    "title": "البرمجة: سؤال وجواب",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 5,
-   "cover": "WTIlbDqtZag"
+   "count": 16,
+   "cover": "bGg8QZvVN5I"
   },
   {
    "id": "PL2Pq82trWJJWybhF2efKga8RD5mFqy5IG",
    "title": "الذكاء الاصطناعي AI",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 3,
-   "cover": "GeJTSuIW25s"
+   "count": 14,
+   "cover": "5e_DUMotO-I"
   },
   {
    "id": "PL2Pq82trWJJWNCG1xxNzDLUZ1J6Owi9Fp",
    "title": "المبرمج في سوق العمل",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 3,
-   "cover": "wLUw5jyLNuI"
+   "count": 15,
+   "cover": "-kW0nbW7VxY"
   },
   {
    "id": "PL2Pq82trWJJUsYjRxJTZ37AxGL7Mxg3XO",
    "title": "بايثون Python",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 12,
+   "count": 15,
    "cover": "y4v8qtXVKUU"
+  },
+  {
+   "id": "PL2Pq82trWJJXetCrxyV8z1u7ylx7EngSt",
+   "title": "برمجة الألعاب",
+   "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "channel": "أكاديمية حسوب",
+   "count": 2,
+   "cover": "O5suGXMNMdU"
+  },
+  {
+   "id": "PL2Pq82trWJJWokD8EvxzpYkYp9gi7YZH0",
+   "title": "تطوير موقع اختصار روابط",
+   "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "channel": "أكاديمية حسوب",
+   "count": 4,
+   "cover": "VkS365Hw_bQ"
+  },
+  {
+   "id": "PL2Pq82trWJJVCfbqHtPY_b36lLAnmTA7q",
+   "title": "تعلم البرمجة",
+   "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "channel": "أكاديمية حسوب",
+   "count": 15,
+   "cover": "AF8eVG0I9pw"
   },
   {
    "id": "PL2Pq82trWJJU6_ez_b5nI6arS5AUXBnRk",
@@ -6858,15 +8422,23 @@
    "title": "دورات أكاديمية حسوب",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 6,
-   "cover": "1niwEWY7CN4"
+   "count": 7,
+   "cover": "9ESA9owvmGM"
+  },
+  {
+   "id": "PL2Pq82trWJJVpfnypQP15Q3-FcSilyMWi",
+   "title": "راسبري باي Raspberry pi",
+   "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
+   "channel": "أكاديمية حسوب",
+   "count": 3,
+   "cover": "Rtrihe6lwJ8"
   },
   {
    "id": "PL2Pq82trWJJUEtSnZ4z3FuvyyiHje55s8",
    "title": "قواعد البيانات Databases",
    "channel_id": "UCJv37tcBvJlBF2MoVMRMvbQ",
    "channel": "أكاديمية حسوب",
-   "count": 7,
+   "count": 8,
    "cover": "OYF0960x3MU"
   },
   {
@@ -6898,15 +8470,15 @@
    "title": "shorts علي السريع",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 2,
-   "cover": "GqyvEkBsXlE"
+   "count": 4,
+   "cover": "AB9nQv1nJis"
   },
   {
    "id": "PL8DDsWuvM_EU8_SW9iNfv_Nj12VZUA4jM",
    "title": "تعلم Claude من الصفر",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 6,
+   "count": 7,
    "cover": "k6bxJsM0Qaw"
   },
   {
@@ -6916,6 +8488,14 @@
    "channel": "اتعلم ببساطة",
    "count": 29,
    "cover": "Tfqnd5ji3Tw"
+  },
+  {
+   "id": "PL8DDsWuvM_EWCkKrVbY3L4nfyoEhgD6jG",
+   "title": "تعلم نوشن من الصفر",
+   "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
+   "channel": "اتعلم ببساطة",
+   "count": 2,
+   "cover": "ySPHs0CgQDo"
   },
   {
    "id": "PL8DDsWuvM_EVIfyd_05hzNDt5vD_1Cf4Q",
@@ -6938,7 +8518,7 @@
    "title": "شرح فيجوال ستوديو كود من الصفر 🧠 | حل كل مشاكل VS Code",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 2,
+   "count": 3,
    "cover": "ArRmu6-txyw"
   },
   {
@@ -6946,7 +8526,7 @@
    "title": "شرح فيجوال ستوديو كود من الصفر 🧠 | حل كل مشاكل VS Code خطوة بخطوة",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 2,
+   "count": 3,
    "cover": "ArRmu6-txyw"
   },
   {
@@ -6954,7 +8534,7 @@
    "title": "كورس ++C | من تحت الصفر إلى الاحتراف خطوة بخطوة",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 10,
+   "count": 11,
    "cover": "35qTqtpQMxg"
   },
   {
@@ -6962,7 +8542,7 @@
    "title": "كورس البرمجة الكائينية |  C++ Object Oriented OOP",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 5,
+   "count": 6,
    "cover": "aJG-KnmfFxM"
   },
   {
@@ -6986,7 +8566,7 @@
    "title": "كورس جافا من الصفر | Java Course للمبتدئين خطوة بخطوة",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 3,
+   "count": 5,
    "cover": "FwxbTGxTcVI"
   },
   {
@@ -6994,7 +8574,7 @@
    "title": "كورس جافا من الصفر | Java Course للمبتدئين خطوة بخطوة",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 2,
+   "count": 3,
    "cover": "FwxbTGxTcVI"
   },
   {
@@ -7006,19 +8586,27 @@
    "cover": "ij6qQQlGKtE"
   },
   {
+   "id": "PL8DDsWuvM_EVctUSOlUjZwSFuPzZOEx6s",
+   "title": "مشاريع بالذكاء الاصطناعي",
+   "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
+   "channel": "اتعلم ببساطة",
+   "count": 3,
+   "cover": "O1Bvaq_gGNY"
+  },
+  {
    "id": "PL8DDsWuvM_EXMOJuYee5sCWk0SwxDMrU_",
    "title": "مكسرات عن البرمجه",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 3,
-   "cover": "tgLK2hOdQj0"
+   "count": 6,
+   "cover": "riuGDEPpCiw"
   },
   {
    "id": "PL8DDsWuvM_EUxs1FpnAcAi1GEObcjyVXd",
    "title": "نصائح في البرمجة - من المبتدئين للمحترفين",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 10,
+   "count": 36,
    "cover": "5W5md0Vq8hg"
   },
   {
@@ -7026,7 +8614,7 @@
    "title": "هياكل البيانات C++| Data Structure Course خطوة بخطوة",
    "channel_id": "UC5COvx1Z8fnfvVkafqL_UZg",
    "channel": "اتعلم ببساطة",
-   "count": 4,
+   "count": 5,
    "cover": "va2GOlPFKv0"
   },
   {
@@ -7034,7 +8622,7 @@
    "title": "تعلم البرمجة الكائنية Object Oriented Programming 💫🔥",
    "channel_id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
    "channel": "بايثون بالعربي",
-   "count": 4,
+   "count": 5,
    "cover": "4w677kmwjL4"
   },
   {
@@ -7043,16 +8631,16 @@
    "channel_id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
    "channel": "بايثون بالعربي",
    "count": 23,
-   "cover": "MPyo8ZIu6UI"
+   "cover": "mT9hEReW8xQ"
   },
   {
    "id": "PLPeHuFBzedrarGsislczatIBM5Lt7hW46",
    "title": "مشاريع بايثون للمبتدئين 🐍💫",
    "channel_id": "UCFxKAFDw_jaHh0Q4ndE9nmQ",
    "channel": "بايثون بالعربي",
-   "count": 4,
-   "cover": "PyOjTxIxwmk"
+   "count": 3,
+   "cover": "EkZPdoN2h0o"
   }
  ],
- "fetched_channels": 63
+ "fetched_channels": 66
 }

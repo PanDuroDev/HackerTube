@@ -69,11 +69,45 @@ ENGLISH_CHANNELS = [
     ("UC8ENHE5xdFSwx71u3fDH5Xw", "ThePrimeagen"),
     ("UC_b1GUJv_2QiMP4BxC9-Dxg", "Arpit Bhayani"),
     ("UCRPMAqdtSgd0Ipeef7iFsKw", "Gaurav Sen"),
+    ("UCSp-OaMpsO8K0KkOqyBl7_w", "Let's Get Rusty"),
+    ("UC_iD0xppBwwsrM9DegC5cQQ", "Jon Gjengset"),
+    ("UCUMwY9iS8oMyWDYIe6_RmoA", "No Boilerplate"),
 ]
 
 CHANNELS = ARABIC_CHANNELS + ENGLISH_CHANNELS
 CHANNEL_LANG = {cid: "ar" for cid, _ in ARABIC_CHANNELS} | {
     cid: "en" for cid, _ in ENGLISH_CHANNELS
+}
+
+# قنوات ذات تخصص واحد: تُستخدم كتصنيف احتياطي فقط عندما لا يظهر موضوع في العنوان
+# أو الوصف أو القوائم، حتى لا تختفي فيديوهات صالحة من الفهرس.
+CHANNEL_TOPIC = {
+    "UCSp-OaMpsO8K0KkOqyBl7_w": "rust",
+    "UC_iD0xppBwwsrM9DegC5cQQ": "rust",
+    "UCUMwY9iS8oMyWDYIe6_RmoA": "rust",
+    "UC9x0AN7BWHpCDHSm9NiJFJQ": "networking",
+    "UCFbNIlppjAuEX4znoulh0Cw": "web",
+    "UCSJbGtTlrDami-tDGPUV9-w": "web",
+    "UCJZv4d5rbIKd4QHMPkcABCw": "web",
+    "UCW5YeuERMmlnqo4oq8vwUpg": "web",
+    "UCY38RvRIxYODO4penyxUwTg": "web",
+    "UCbRP3c757lWg9M-U7TyEkXA": "web",
+    "UC-8QAzbLcRglXeN_MY9blyw": "web",
+    "UCmXmlB4-HJytD7wek0Uo97A": "javascript",
+    "UCCezIgC97PvUuR4_gbFUs5g": "python",
+    "UC_mYaQAE6-71rjSN6CeCA-g": "algorithms",
+    "UCZCFT11CWBi3MHNlGf019nw": "algorithms",
+    "UCZgt6AzoyjslHTC9dz0UoTw": "cs",
+    "UCcabW7890RKJzL968QWEykA": "cs",
+    "UC9-y-6csu5WGm29I7JiwpnA": "cs",
+    "UC8ENHE5xdFSwx71u3fDH5Xw": "cs",
+    "UC_b1GUJv_2QiMP4BxC9-Dxg": "cs",
+    "UCRPMAqdtSgd0Ipeef7iFsKw": "cs",
+}
+
+# قنوات كبيرة نغطيها بالكامل بدل حد 500، حتى لا يضيع محتوى قديم مهم مثل كورس Rust.
+CHANNEL_LIMITS = {
+    "UC8butISFwT-Wl7EV0hUK0BQ": 2500,  # freeCodeCamp.org (2,341 فيديو)
 }
 
 # حد أقصى لكل قناة: أحدث 500 فيديو. رفع الرقم يوسّع التغطية ويبطئ الجلب.

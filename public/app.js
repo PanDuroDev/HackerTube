@@ -4,7 +4,7 @@ const KIND_LABELS = { course: "Course", tutorial: "Tutorial", project: "Project"
 const LEVEL_LABELS = { beginner: "Beginner", advanced: "Advanced", any: "General", unknown: "Unspecified" };
 const TOPIC_LABELS = {
   python: "Python", javascript: "JavaScript", web: "Web Development", php: "PHP",
-  java: "Java", cpp: "C++", csharp: "C#", mobile: "Mobile", database: "Databases",
+  java: "Java", cpp: "C++", rust: "Rust", csharp: "C#", mobile: "Mobile", database: "Databases",
   linux: "Linux", devops: "DevOps & Cloud", git: "Git", security: "Security",
   ai: "AI", data: "Data Analysis", algorithms: "Algorithms", cs: "Computer Science",
   testing: "Testing", networking: "Networking", tools: "Dev Tools",
@@ -60,6 +60,7 @@ const state = {
   hnLimit: 36,
   hnFilters: Object.assign({}, HN_DEFAULTS),
   hnUiOpen: false,
+  hnFacets: null,
   hnTotal: 0,
   topicLabels: {},
   channels: new Map(),
@@ -83,7 +84,7 @@ const state = {
   playlistLimit: 24,
 };
 
-const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
+const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false, facets: null };
 let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
@@ -870,7 +871,23 @@ function filtered(scope) {
   });
   // Keep relevance order for the default "Best" sort. Explicit sort modes still win.
   if (!q || ui.sort !== "best") results.sort(sorter(ui.sort));
+  // A topic page should lead with videos whose title names the topic, not with
+  // weak matches picked up from a description.
+  else if (ui.topics.size) {
+    const topics = [...ui.topics];
+    const hits = new Map(results.map((v) => [v.id, topics.some((t) => topicTitleHit(v, t))]));
+    results.sort((a, b) => Number(hits.get(b.id)) - Number(hits.get(a.id)) || b.score - a.score);
+  }
   return results;
+}
+
+function topicTitleHit(video, topic) {
+  const title = normalizeAr(video.title);
+  const terms = [topic, ...String(TOPIC_SEARCH_ALIASES[topic] || "").split(" ")];
+  return terms.some((term) => {
+    const key = normalizeAr(term);
+    return key.length > 1 && title.includes(key);
+  });
 }
 
 function sorter(sort) {
@@ -920,8 +937,8 @@ function buildHomeOrder(videos, random = Math.random) {
   const previousHome = new Set(storeGet(STORE.homeRecent, []));
   const recentlyWatched = new Set(history.slice(0, 12));
 
-  // Weighted random sampling preserves discovery while letting quality and
-  // local interests influence the odds instead of imposing a rigid ranking.
+  // Quality and local interests rank the feed; a small bounded jitter keeps
+  // refreshes fresh without turning the first screen into a lottery.
   const ranked = videos.map((video) => {
     const topicAffinity = Math.min(1.5, (video.topics || []).reduce(
       (sum, topic) => sum + (topicWeights.get(topic) || 0) / maxTopic, 0
@@ -929,21 +946,22 @@ function buildHomeOrder(videos, random = Math.random) {
     const channelAffinity = (channelWeights.get(video.channel_id) || 0) / maxChannel;
     const languageAffinity = (languageWeights.get(video.lang) || 0) / maxLanguage;
     const quality = Math.max(0, Number(video.score) || 0);
-    const qualityBoost = Math.min(0.7, quality * 0.075);
+    const qualityBoost = Math.min(1.4, quality * 0.12);
+    const kindBoost = video.kind === "course" ? 0.35
+      : video.kind === "project" ? 0.15
+      : video.kind === "talk" ? -0.15
+      : video.kind === "short" ? -0.6 : 0;
+    const depthBoost = video.duration >= 900 ? 0.18 : video.duration < 300 ? -0.25 : 0;
     const seenPenalty = recentlyWatched.has(video.id) ? 0.48 : 0;
     const repeatPenalty = previousHome.has(video.id) ? 0.42 : 0;
     const interestBoost = profileStrength * (
       topicAffinity * 0.82 + languageAffinity * 0.18 + channelAffinity * 0.1
     );
-    const utility = Math.max(-1, Math.min(1.5,
-      qualityBoost + interestBoost - seenPenalty - repeatPenalty
+    const utility = Math.max(-1, Math.min(1.8,
+      qualityBoost + kindBoost + depthBoost + interestBoost - seenPenalty - repeatPenalty
     ));
-    const weight = Math.exp(utility);
-    return {
-      video,
-      key: -Math.log(Math.max(random(), Number.EPSILON)) / weight,
-    };
-  }).sort((a, b) => a.key - b.key).map(({ video }) => video);
+    return { video, rank: utility + random() * 0.2 };
+  }).sort((a, b) => b.rank - a.rank).map(({ video }) => video);
 
   // Greedy diversity constraints keep the first screen from being dominated
   // by one creator or topic. Relax them only if the catalog cannot fill it.
@@ -1056,19 +1074,30 @@ function filtersPanel() {
     field("year", tr("filters.year", "Year"), tr("filters.anyYear", "Any year"), years.map((y) => [y, String(y)]), ui.year),
     field("sort", tr("filters.sort", "Sort"), tr("filters.best", "Best"), sortOptions, ui.sort),
   ].join("");
+  const topicChips = `<div class="chips">
+    <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">${tr("filters.allTopics", "All")}</button>
+    ${topics}
+  </div>`;
   return `<div class="filters">
-    <div class="filter-group">
-      <span class="filter-label">${tr("filters.topic", "Topic")}</span>
-      <div class="chips">
-        <button class="chip ${ui.topics.size ? "" : "on"}" data-topic="" aria-pressed="${!ui.topics.size}">${tr("filters.allTopics", "All")}</button>
-        ${topics}
-      </div>
-    </div>
-    <div class="filter-grid">${selects}</div>
+    ${facet("topics", tr("filters.topic", "Topic"), ui.topics.size, topicChips)}
+    ${facet("fields", tr("filters.refine", "Refine"), filterCount() - ui.topics.size, `<div class="filter-grid">${selects}</div>`)}
     <div class="filter-foot">
       <button class="btn" data-clear ${hasFilters() ? "" : "disabled"}>${tr("filters.clearAll", "Clear all")}</button>
       <button class="btn primary" data-filter-close>${tr("filters.done", "Done")}</button>
     </div>
+  </div>`;
+}
+
+/* Topic chips and refine selects collapse on small screens so the panel opens compact. */
+function facet(key, label, count, body, group = "ui") {
+  const map = group === "hn" ? (state.hnFacets ||= {}) : (ui.facets ||= {});
+  if (map[key] === undefined) map[key] = !matchMedia("(max-width: 720px)").matches;
+  const open = map[key];
+  return `<div class="facet">
+    <button type="button" class="facet-head" data-facet="${key}" data-facet-group="${group}" aria-expanded="${open}">
+      <span>${esc(label)}</span>${count ? `<span class="facet-count">${count}</span>` : ""}${icon("chevron")}
+    </button>
+    <div class="facet-body"${open ? "" : " hidden"}>${body}</div>
   </div>`;
 }
 
@@ -2164,14 +2193,14 @@ function hnFiltersPanel(records) {
         <button type="button" data-hn-scope="all" class="${filters.scope === "all" ? "active" : ""}" aria-pressed="${filters.scope === "all"}">${tr("hn.allHn", "All HN")}</button>
       </div>
     </div>
-    <div class="filter-grid">
+    ${facet("fields", tr("filters.refine", "Refine"), hnFilterCount() - (filters.scope !== HN_DEFAULTS.scope ? 1 : 0), `<div class="filter-grid">
       ${field("recommendation", tr("hn.recommendation", "Recommendation"), tr("hn.allVideos", "All videos"), [["recommended", tr("hn.recommendedOnly", "Recommended only")], ["discussed", tr("hn.discussedOnly", "Discussed only")]], filters.recommendation, "hn")}
       ${field("contentType", tr("hn.type", "Type"), tr("hn.allTypes", "All types"), contentTypes, filters.contentType, "hn")}
       ${field("level", tr("hn.level", "Level"), tr("hn.allLevels", "All levels"), levels, filters.level, "hn")}
       ${field("shelfLife", tr("hn.shelfLife", "Shelf life"), tr("hn.allShelfLives", "All shelf lives"), shelfLives, filters.shelfLife, "hn")}
       ${field("area", tr("hn.area", "Area"), tr("hn.allAreas", "All areas"), areas, filters.area, "hn")}
       ${field("sort", tr("hn.sort", "Sort"), tr("hn.bestMatch", "Best match"), [["score", tr("hn.hnScore", "HN score")], ["recommenders", tr("hn.mostRecommenders", "Most recommenders")], ["mentions", tr("hn.mostMentions", "Most mentions")]], filters.sort, "hn")}
-    </div>
+    </div>`, "hn")}
     <div class="filter-foot">
       <button class="btn" data-hn-clear ${hnFilterCount() ? "" : "disabled"}>${tr("hn.clearAll", "Clear all")}</button>
       <button class="btn primary" data-hn-close>${tr("hn.done", "Done")}</button>
@@ -2759,6 +2788,17 @@ function onViewClick(e) {
     state.homeStale = false;
     renderFeed(state.scope);
     toast(tr("toasts.feedRefreshed", "Feed refreshed"));
+    return;
+  }
+
+  const facetBtn = e.target.closest("[data-facet]");
+  if (facetBtn) {
+    const group = facetBtn.dataset.facetGroup || "ui";
+    const map = group === "hn" ? state.hnFacets : ui.facets;
+    const open = !map[facetBtn.dataset.facet];
+    map[facetBtn.dataset.facet] = open;
+    facetBtn.setAttribute("aria-expanded", String(open));
+    facetBtn.nextElementSibling.hidden = !open;
     return;
   }
 

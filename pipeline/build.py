@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from .classify import TOPIC_LABELS, classify, detect_language, is_episode
-from .config import CHANNEL_LANG, MIN_DURATION
+from .config import CHANNEL_LANG, CHANNEL_TOPIC, MIN_DURATION
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
@@ -30,7 +30,24 @@ def clean_name(name: str) -> str:
     return re.sub(r"\s+", " ", _BIDI.sub("", name or "")).strip()
 
 
-def build_records(payloads: list[dict]) -> list[dict]:
+def load_playlist_hints(folder: Path = PLAYLIST_RAW) -> dict[str, list[str]]:
+    """عناوين القوائم لكل فيديو: إشارة تصنيف قوية (Rust للمبتدئين، Python من الصفر)."""
+    if not folder.exists():
+        return {}
+    hints: dict[str, list[str]] = defaultdict(list)
+    for path in sorted(folder.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for pl in payload.get("playlists", []):
+            title = (pl.get("title") or "").strip()
+            if not title:
+                continue
+            for vid in pl.get("ids", []):
+                hints[vid].append(title)
+    return dict(hints)
+
+
+def build_records(payloads: list[dict], hints: dict[str, list[str]] | None = None) -> list[dict]:
+    hints = hints or {}
     records: dict[str, dict] = {}
 
     for payload in payloads:
@@ -59,12 +76,16 @@ def build_records(payloads: list[dict]) -> list[dict]:
                 "views": views,
                 "duration": duration,
                 "year": year,
-                **classify(title, duration, views, year, description, tags),
+                **classify(
+                    title,
+                    duration,
+                    views,
+                    year,
+                    description,
+                    tags,
+                    hints.get(e["id"], []),
+                ),
             }
-            if description:
-                rec["description"] = description
-            if tags:
-                rec["tags"] = tags
             detected_lang = detect_language(description) if len(description) >= 40 else "mixed"
             if detected_lang in ("ar", "en"):
                 rec["lang"] = detected_lang
@@ -96,8 +117,12 @@ def build_records(payloads: list[dict]) -> list[dict]:
 
     keep = []
     for rec in records.values():
-        if not rec["topics"] and is_episode(rec["title"]) and rec["channel_id"] in dominant:
-            rec["topics"] = [dominant[rec["channel_id"]]]
+        if not rec["topics"]:
+            default = CHANNEL_TOPIC.get(rec["channel_id"])
+            if default:
+                rec["topics"] = [default]
+            elif is_episode(rec["title"]) and rec["channel_id"] in dominant:
+                rec["topics"] = [dominant[rec["channel_id"]]]
         if rec["topics"]:
             keep.append(rec)
 
@@ -171,7 +196,7 @@ def main() -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
     payloads = load_raw()
-    records = build_records(payloads)
+    records = build_records(payloads, load_playlist_hints())
     if not records:
         print("لا يوجد محتوى برمجي بعد التصفية.", file=sys.stderr)
         return 1
