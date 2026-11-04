@@ -89,6 +89,7 @@ const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", yea
 let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
+let grabIdleTimer = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
 let playlistMetaPromise = null;
@@ -720,7 +721,7 @@ function render() {
     const currentId = playerVideoId();
     if (currentId && currentId === arg) {
       const position = Number(playlistPlayer?.getCurrentTime?.() || 0);
-      if (position > 0) state.pendingResume = { id: currentId, position };
+      if (position > 0) state.pendingResume = { id: currentId, position, play: playerIsPlaying() };
     }
   }
   if (!miniState || routeIsWatch) destroyMiniPlayer();
@@ -1461,6 +1462,25 @@ function miniPlayerMobile() {
   return typeof matchMedia === "function" && matchMedia("(max-width: 720px)").matches;
 }
 
+function playerIsPlaying() {
+  return Boolean(playlistPlayer
+    && typeof playlistPlayer.getPlayerState === "function"
+    && [1, 3].includes(playlistPlayer.getPlayerState()));
+}
+
+function clearGrabIdle() {
+  clearTimeout(grabIdleTimer);
+  grabIdleTimer = null;
+  document.querySelector(".watch-main .player")?.classList.remove("grab-idle");
+}
+
+function scheduleGrabIdle(delay = 4000) {
+  clearTimeout(grabIdleTimer);
+  grabIdleTimer = setTimeout(() => {
+    document.querySelector(".watch-main .player")?.classList.add("grab-idle");
+  }, delay);
+}
+
 function playerVideoId() {
   try {
     return playlistPlayer?.getVideoData?.()?.video_id || miniState?.videoId || null;
@@ -1470,6 +1490,7 @@ function playerVideoId() {
 }
 
 function destroyMiniPlayer() {
+  clearGrabIdle();
   if (playlistPlayer) {
     saveCurrentProgress();
     stopProgressPoll();
@@ -1498,16 +1519,32 @@ function minimizePlayer() {
   const frame = $(".watch-main .mini-frame");
   const host = $("#mini-host");
   if (!frame || !host || !miniPlayerMobile() || miniState) return;
+  clearGrabIdle();
   const framePlayer = frame.querySelector(".player");
   framePlayer?.classList.remove("dragging");
   if (framePlayer) framePlayer.style.transform = "";
   const hash = location.hash;
   const params = new URLSearchParams(hash.split("?")[1] || "");
+  const position = Number(playlistPlayer?.getCurrentTime?.() || 0);
+  const wasPlaying = playerIsPlaying();
   miniState = {
     href: hash,
     videoId: state.current || playerVideoId(),
     playlistId: params.get("list"),
   };
+  const iframe = frame.querySelector("iframe");
+  iframe?.addEventListener("load", () => {
+    setTimeout(() => {
+      if (!miniState) return;
+      try {
+        playlistPlayer?.seekTo?.(position, true);
+        if (wasPlaying) playlistPlayer?.playVideo?.();
+        else playlistPlayer?.pauseVideo?.();
+      } catch {
+        // The relocated iframe keeps its native controls if the API is unavailable.
+      }
+    }, 250);
+  }, { once: true });
   host.hidden = false;
   host.appendChild(frame);
   frame.classList.add("mini-player");
@@ -1517,14 +1554,19 @@ function minimizePlayer() {
 
 function restoreMiniPlayer() {
   if (!miniState) return;
+  clearGrabIdle();
   const currentId = playerVideoId();
+  const wasPlaying = playerIsPlaying();
+  const position = Number(playlistPlayer?.getCurrentTime?.() || 0);
+  if (position > 0) state.pendingResume = { id: currentId, position, play: wasPlaying };
   const changed = currentId && currentId !== miniState.videoId;
   const video = changed ? videoById(currentId) : null;
   const target = video ? videoWatchHref(video) : miniState.href.split("?")[0];
   const params = new URLSearchParams();
   if (miniState.playlistId) params.set("list", miniState.playlistId);
-  params.set("autoplay", "1");
-  location.hash = `${target}?${params}`;
+  if (wasPlaying) params.set("autoplay", "1");
+  const query = params.toString();
+  location.hash = query ? `${target}?${query}` : target;
 }
 
 function setupMiniPlayer() {
@@ -1539,6 +1581,7 @@ function setupMiniPlayer() {
   let startX = 0;
   let dragY = 0;
   let dragging = false;
+  let grabVisibleTimer = null;
 
   grab?.addEventListener("touchstart", (event) => {
     if (!miniPlayerMobile() || miniState) return;
@@ -1574,6 +1617,15 @@ function setupMiniPlayer() {
   grab?.addEventListener("touchcancel", finishDrag);
   grab?.addEventListener("click", (event) => {
     event.stopPropagation();
+    if (miniState) return;
+    if (typeof matchMedia === "function"
+      && matchMedia("(hover: none)").matches
+      && !grab.classList.contains("grab-visible")) {
+      grab.classList.add("grab-visible");
+      clearTimeout(grabVisibleTimer);
+      grabVisibleTimer = setTimeout(() => grab.classList.remove("grab-visible"), 4000);
+      return;
+    }
     minimizePlayer();
   });
 
@@ -1735,12 +1787,22 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           const pending = state.pendingResume;
           if (pending && pending.id === videoId) {
             event.target.seekTo(pending.position, true);
-            event.target.playVideo();
+            if (pending.play === false) event.target.pauseVideo();
+            else event.target.playVideo();
             state.pendingResume = null;
           } else if (queue && queue.length > 1) event.target.loadPlaylist(queue, 0, 0);
           else if (autoplay) event.target.playVideo();
+          if (event.target.getPlayerState?.() === YT.PlayerState.PLAYING) clearGrabIdle();
+          else scheduleGrabIdle();
         },
         onStateChange(event) {
+          if (event.data === YT.PlayerState.PLAYING) clearGrabIdle();
+          else if ([
+            YT.PlayerState.PAUSED,
+            YT.PlayerState.ENDED,
+            YT.PlayerState.CUED,
+            YT.PlayerState.UNSTARTED,
+          ].includes(event.data)) scheduleGrabIdle();
           if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             saveCurrentProgress();
           }
@@ -3297,6 +3359,7 @@ async function resetAll() {
   });
   if (!confirmed) return;
 
+  destroyMiniPlayer();
   Object.values(STORE).forEach((key) => localStorage.removeItem(key));
   state.likes.clear();
   state.saved.clear();
