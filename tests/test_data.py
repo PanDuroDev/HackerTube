@@ -11,6 +11,25 @@ META = ROOT / "public" / "data" / "meta.json"
 
 
 @pytest.mark.skipif(not VIDEOS.exists(), reason="الفهرس غير مبني بعد")
+def test_home_payload_is_a_small_prefix():
+    home = json.loads((ROOT / "public" / "data" / "home.json").read_text(encoding="utf-8"))
+    videos = json.loads(VIDEOS.read_text(encoding="utf-8"))
+
+    assert 0 < len(home) <= 60
+    assert [v["id"] for v in home] == [v["id"] for v in videos[:len(home)]]
+
+
+@pytest.mark.skipif(not VIDEOS.exists(), reason="الفهرس غير مبني بعد")
+def test_playlist_metadata_is_split_from_meta():
+    meta = json.loads(META.read_text(encoding="utf-8"))
+    playlists = json.loads((ROOT / "public" / "data" / "playlists-meta.json").read_text(encoding="utf-8"))
+
+    assert "playlists" not in meta
+    assert meta["playlist_count"] == len(playlists) > 0
+    assert {"id", "title", "channel_id", "channel", "count", "cover"} <= playlists[0].keys()
+
+
+@pytest.mark.skipif(not VIDEOS.exists(), reason="الفهرس غير مبني بعد")
 def test_built_dataset_schema():
     videos = json.loads(VIDEOS.read_text(encoding="utf-8"))
     meta = json.loads(META.read_text(encoding="utf-8"))
