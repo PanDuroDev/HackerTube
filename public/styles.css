@@ -36,11 +36,11 @@
 * { box-sizing: border-box; }
 
 html {
+  height: 100%;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--topbar) + 16px);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-  scrollbar-gutter: stable;
 }
 
 ::selection { background: var(--accent); color: #fff; }
@@ -55,7 +55,12 @@ html {
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 body {
+  height: 100vh;
+  height: 100dvh;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: Roboto, "Segoe UI", system-ui, Tahoma, "Noto Sans Arabic", Arial, sans-serif;
@@ -100,6 +105,7 @@ img { max-width: 100%; }
   position: sticky;
   top: 0;
   z-index: 50;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -225,13 +231,14 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
 .layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .side {
-  position: sticky;
-  top: var(--topbar);
-  align-self: start;
-  height: calc(100vh - var(--topbar));
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 8px 8px 24px;
@@ -290,6 +297,11 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
 
 main {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
   padding: 16px 24px 64px;
 }
 
@@ -1737,7 +1749,7 @@ a.card-sub:hover { color: var(--text); }
 }
 
 @media (max-width: 720px) {
-  html { scrollbar-gutter: auto; }
+  #view { scrollbar-gutter: auto; }
   .watch-bar { align-items: center; gap: 12px; }
   .watch-main .player { width: calc(100% + 28px); margin-inline: -14px; border-radius: 0; }
   .player-grab {
