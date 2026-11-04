@@ -67,7 +67,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -1057,18 +1057,33 @@ test("Hacker News no longer renders its intro paragraph", async () => {
   assert.doesNotMatch(harness.view.innerHTML, /Videos recommended or discussed/);
 });
 
-test("watch actions stay inside the More menu and the mobile player is full-bleed", () => {
+test("Like and Watch later stay beside More while the rest stay inside the menu", () => {
   const harness = createHarness();
-  harness.api.saveProgress("video123", 120, 600);
-  const markup = harness.api.watchActionsHTML("video123");
-  assert.ok(markup.indexOf("watch-action-items") < markup.indexOf("data-resume"));
-  assert.match(markup, /data-watch-actions-toggle/);
+  const { api } = harness;
+  api.saveProgress("video123", 120, 600);
+  const markup = api.watchActionsHTML("video123");
+  const toggle = markup.indexOf("data-watch-actions-toggle");
+  const menu = markup.indexOf("watch-action-items");
+
+  assert.ok(markup.indexOf('data-act="like"') < toggle, "Like should precede the More toggle");
+  assert.ok(markup.indexOf('data-act="save"') < toggle, "Watch later should precede the More toggle");
+  assert.ok(menu > toggle, "the menu should follow the toggle");
+  assert.ok(menu < markup.indexOf("data-resume"), "Resume belongs in the menu");
+  assert.ok(menu < markup.indexOf("data-share"), "Share belongs in the menu");
+  assert.ok(menu < markup.indexOf("watch-youtube"), "YouTube belongs in the menu");
+  assert.doesNotMatch(markup.slice(menu), /data-act=/, "Like/Watch later should not be duplicated in the menu");
 
   const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
   assert.match(css, /\.watch-actions-toggle \{ display: inline-flex; \}/);
   assert.match(css, /\.watch-action-items \{ display: none; \}/);
+  assert.match(css, /\.watch-actions\.menu-open\.drop-up \.watch-action-items \{/);
   assert.match(css, /\.watch-main \.player \{ width: calc\(100% \+ 28px\); margin-inline: -14px; border-radius: 0; \}/);
   assert.match(css, /html \{ scrollbar-gutter: auto; \}/);
+
+  assert.equal(api.watchActionMenuOpensUp(400, 100, 250), true, "more room above should open upward");
+  assert.equal(api.watchActionMenuOpensUp(100, 400, 250), false, "more room below should open downward");
+  assert.equal(api.watchActionMenuOpensUp(300, 300, 250), false, "enough room below keeps it downward");
+  assert.equal(api.watchActionMenuOpensUp(200, 150, 300), true, "insufficient room below and more above opens upward");
 });
 
 test("watch players expose the mobile drag handle without extra controls", async () => {

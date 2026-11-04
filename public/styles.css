@@ -751,11 +751,18 @@ a.card-sub:hover { color: var(--text); }
   width: max-content;
   min-width: 220px;
   max-width: min(280px, calc(100vw - 28px));
+  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+.watch-actions.menu-open.drop-up .watch-action-items {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 .watch-action-items > .watch-action-item,
 .watch-action-items > .drop > .watch-action-item {
