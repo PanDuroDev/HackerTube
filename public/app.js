@@ -76,6 +76,7 @@ const state = {
   current: null,
   homeOrder: [],
   homeStale: false,
+  catalogLoaded: false,
   locale: "en",
   builtin: [],
   builtinIds: null,
@@ -89,6 +90,7 @@ let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
 let youtubeApiPromise = null;
+let catalogPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
 let confirmationResolver = null;
@@ -432,17 +434,19 @@ async function init() {
   }, { passive: true });
 
   try {
-    const [videos, meta, hnMeta] = await Promise.all([
-      fetchJson("data/videos.json"),
+    // Boot with the first screen only; the full catalog loads when a route or filter needs it.
+    const [home, meta, hnMeta] = await Promise.all([
+      fetchJson("data/home.json"),
       fetchJson("data/meta.json"),
       fetchJson("data/hacker-news/meta.json").catch(() => null),
     ]);
-    state.videos = videos;
+    state.videos = home;
+    state.catalogLoaded = false;
     state.meta = meta;
     state.hnTotal = Number(hnMeta?.imported_videos) || 0;
     state.builtin = meta.playlists || [];
-    state.homeOrder = buildHomeOrder(videos);
-    state.byId = new Map(videos.map((v) => [v.id, v]));
+    state.homeOrder = buildHomeOrder(home);
+    state.byId = new Map(home.map((v) => [v.id, v]));
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, tr(`topics.${t.id}`, TOPIC_LABELS[t.id] || t.label)]));
     renderSidebar();
@@ -452,7 +456,6 @@ async function init() {
       render();
     });
     render();
-    warmSearchIndex();
   } catch (err) {
     view.innerHTML = `<div class="error"><strong>Could not load the data.</strong>
       <p>Run the site from a local server: <code>python -m http.server 8080 -d public</code></p>
@@ -461,10 +464,38 @@ async function init() {
 }
 
 function fetchJson(url) {
-  return fetch(url, { cache: "no-cache" }).then((r) => {
+  const local = !location.hostname || ["localhost", "127.0.0.1"].includes(location.hostname) || location.protocol === "file:";
+  return fetch(url, local ? { cache: "no-cache" } : undefined).then((r) => {
     if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
     return r.json();
   });
+}
+
+function ensureCatalog() {
+  if (state.catalogLoaded) return Promise.resolve(state.videos);
+  if (!catalogPromise) {
+    catalogPromise = fetchJson("data/videos.json")
+      .then((videos) => {
+        state.videos = videos;
+        state.catalogLoaded = true;
+        state.homeStale = true;
+        state.searchEngine = null;
+        state.byId = new Map(videos.map((v) => [v.id, v]));
+        warmSearchIndex();
+        return videos;
+      })
+      .catch((err) => {
+        catalogPromise = null;
+        throw err;
+      });
+  }
+  return catalogPromise;
+}
+
+function showCatalogError(err) {
+  view.innerHTML = `<div class="error"><strong>Could not load the catalog.</strong>
+    <p>Run the site from a local server: <code>python -m http.server 8080 -d public</code></p>
+    <p>${esc(err.message)}</p></div>`;
 }
 
 function pageSize() {
@@ -679,6 +710,19 @@ function render() {
 
   state.current = null;
   ui.open = false;
+
+  const needsCatalog =
+    ["longs", "search", "channel", "liked", "later", "saved", "history", "playlist"].includes(seg) ||
+    (seg === "watch" && !state.byId.has(arg));
+  if (needsCatalog && !state.catalogLoaded) {
+    renderRouteSkeleton();
+    ensureCatalog()
+      .then(() => {
+        if ((location.hash || "#/") === hash) render();
+      })
+      .catch(showCatalogError);
+    return;
+  }
 
   if (!seg || seg === "home") {
     resetFilters("foryou");
@@ -1022,6 +1066,13 @@ function renderFeed(scope) {
   state.scope = scope;
   if (scope.q !== undefined) $("#q").value = scope.q;
   else if (scope.type !== "search") $("#q").value = "";
+  if (!state.catalogLoaded && hasFilters()) {
+    ensureCatalog()
+      .then(() => {
+        if (state.scope === scope) renderFeed(scope);
+      })
+      .catch(showCatalogError);
+  }
   let list = filtered(scope);
   if (scope.type === "all" && ui.sort === "foryou") {
     const order = ensureHomeOrder();
@@ -1029,6 +1080,7 @@ function renderFeed(scope) {
     list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
   }
   const shown = list.slice(0, ui.limit);
+  const count = scope.type === "all" && !hasFilters() && !state.catalogLoaded ? (state.meta?.total || list.length) : list.length;
   const title = scope.title || "";
   const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
   const description = title
@@ -1043,7 +1095,7 @@ function renderFeed(scope) {
       <button class="btn filter-btn ${hasFilters() ? "on" : ""}" data-filter-toggle aria-expanded="${ui.open}">
         ${icon("filter")} ${tr("filters.button", "Filters")}${hasFilters() ? ` <span class="filter-count">${filterCount()}</span>` : ""}
       </button>
-      <span class="count">${videos(list.length)}</span>
+      <span class="count">${videos(count)}</span>
     </div>
     ${ui.open ? filtersPanel() : ""}
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
@@ -1231,7 +1283,7 @@ function card(v, opts = {}) {
   return `<article class="card">
     <div class="thumb">
       <a class="thumb-link" href="${watchHref}" aria-label="${esc(v.title)}">
-        <img src="${thumbSrc(id)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
+        <img src="${thumbSrc(id)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
       </a>
       <button class="later-btn ${later ? "on" : ""}" data-later-toggle="${id}" aria-pressed="${later}" aria-label="${later ? tr("watch.removeFromWatchLater", "Remove from Watch later") : tr("watch.addToWatchLater", "Add to Watch later")}" title="${tr("watch.watchLater", "Watch later")}">${icon("later")}</button>
       ${remove}
@@ -1619,7 +1671,7 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
 
   return `<iframe ${needsApi ? 'id="youtube-player"' : ""}
     src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}"
-    title="${esc(title)}" loading="lazy" allowfullscreen
+    title="${esc(title)}" loading="eager" allowfullscreen
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
@@ -2803,6 +2855,15 @@ function onViewClick(e) {
   }
 
   if (e.target.closest("[data-filter-toggle]")) {
+    if (!state.catalogLoaded) {
+      ensureCatalog()
+        .then(() => {
+          ui.open = !ui.open;
+          renderFeed(state.scope);
+        })
+        .catch(showCatalogError);
+      return;
+    }
     ui.open = !ui.open;
     renderFeed(state.scope);
     return;
@@ -2919,8 +2980,12 @@ function onViewClick(e) {
   }
 
   if (e.target.closest("[data-more]")) {
-    ui.limit += pageSize();
-    renderFeed(state.scope);
+    const more = () => {
+      ui.limit += pageSize();
+      renderFeed(state.scope);
+    };
+    if (!state.catalogLoaded) ensureCatalog().then(more).catch(showCatalogError);
+    else more();
     return;
   }
 

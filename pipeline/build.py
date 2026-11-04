@@ -205,6 +205,10 @@ def main() -> int:
     (OUT / "videos.json").write_text(
         json.dumps(records, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
+    # First paint only needs the top of the feed; the full catalog loads on demand.
+    (OUT / "home.json").write_text(
+        json.dumps(records[:60], ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
     (OUT / "playlists.json").write_text(
         json.dumps({p["id"]: p["ids"] for p in playlists}, separators=(",", ":")),
         encoding="utf-8",
