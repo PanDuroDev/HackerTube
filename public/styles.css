@@ -1704,11 +1704,28 @@ a.card-sub:hover { color: var(--text); }
     border-radius: 999px;
     background: rgba(0, 0, 0, .45);
     color: #fff;
-    opacity: .75;
+    opacity: 0;
     cursor: ns-resize;
     touch-action: none;
+    transition: opacity .18s ease;
+  }
+  .player-grab::before {
+    content: "";
+    position: absolute;
+    inset: -8px -24px;
   }
   .player-grab .ic { width: 18px; height: 18px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+  .watch-main .player:hover .player-grab,
+  .watch-main .player:focus-within .player-grab,
+  .player-grab:hover,
+  .player-grab:focus-visible,
+  .player-grab.grab-visible {
+    opacity: .8;
+  }
+  .watch-main .player.grab-idle .player-grab {
+    opacity: 0;
+    pointer-events: none;
+  }
   .mini-frame.mini-player {
     position: fixed;
     z-index: 60;

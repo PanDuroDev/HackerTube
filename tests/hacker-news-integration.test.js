@@ -44,6 +44,8 @@ function createHarness() {
     },
     location: { hash: "#/", origin: "https://example.test", pathname: "/", search: "" },
     history: { replaceState() {} },
+    setTimeout: () => 0,
+    clearTimeout: () => {},
     URLSearchParams,
     URL,
     matchMedia: () => ({ matches: false, addEventListener() {} }),
@@ -1153,6 +1155,11 @@ test("watch players expose the mobile drag handle without extra controls", async
   assert.equal((wrapper.match(/class="player"/g) || []).length, 1);
   assert.ok(wrapper.indexOf("mini-bar") < wrapper.indexOf('id="youtube-player"'));
   assert.ok(wrapper.indexOf('id="youtube-player"') < wrapper.indexOf("data-player-grab"));
+
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  assert.match(css, /\.player-grab:hover/);
+  assert.match(css, /\.player-grab\.grab-visible/);
+  assert.match(css, /\.watch-main \.player\.grab-idle \.player-grab/);
 });
 
 test("the mini player window keeps the native YouTube controls and uses the MingCute share icon", () => {
