@@ -86,7 +86,6 @@ const state = {
 const ui = { topics: new Set(), lang: "", level: "", kind: "", duration: "", year: "", channel: "", sort: "best", limit: pageSize(), open: false };
 let playlistPlayer = null;
 let progressPoll = null;
-let miniPoll = null;
 let youtubeApiPromise = null;
 let isMobileLayout = matchMedia("(max-width: 980px)").matches;
 let themeChangeVersion = 0;
@@ -1254,10 +1253,6 @@ function emptyState() {
 function playerContainerMarkup(markup) {
   return `<div class="player">${markup}
     <button class="player-grab" type="button" data-player-grab aria-label="${tr("watch.minimize", "Minimize player")}" title="${tr("watch.minimize", "Minimize player")}">${icon("chevron")}</button>
-    <div class="mini-controls" data-mini-controls>
-      <button class="mini-toggle" type="button" data-mini-toggle aria-label="${tr("watch.play", "Play")}">${icon("play")}</button>
-      <input class="mini-seek" type="range" min="0" max="1000" value="0" step="1" dir="ltr" data-mini-seek aria-label="${tr("watch.seek", "Seek")}">
-    </div>
   </div>`;
 }
 
@@ -1265,48 +1260,19 @@ function miniPlayerMobile() {
   return typeof matchMedia === "function" && matchMedia("(max-width: 720px)").matches;
 }
 
-function miniPlayerAvailable() {
-  return Boolean(playlistPlayer && typeof playlistPlayer.getPlayerState === "function");
-}
-
-function updateMiniControls() {
-  const player = $(".watch-main .player.mini-player");
-  if (!player) return;
-  const toggle = player.querySelector("[data-mini-toggle]");
-  const seek = player.querySelector("[data-mini-seek]");
-  const available = miniPlayerAvailable();
-  if (toggle) toggle.disabled = !available;
-  if (seek) seek.disabled = !available || !(Number(playlistPlayer.getDuration()) > 0);
-  if (!available) return;
-  const playing = [1, 3].includes(playlistPlayer.getPlayerState());
-  if (toggle) {
-    toggle.innerHTML = icon(playing ? "pause" : "play");
-    toggle.setAttribute("aria-label", playing ? tr("watch.pause", "Pause") : tr("watch.play", "Play"));
-  }
-  if (!seek || document.activeElement === seek || seek.disabled) return;
-  const duration = Math.max(0, Number(playlistPlayer.getDuration()) || 0);
-  const current = Math.max(0, Number(playlistPlayer.getCurrentTime()) || 0);
-  const ratio = duration > 0 ? Math.min(1, current / duration) : 0;
-  seek.value = String(Math.round(ratio * 1000));
-  seek.style.setProperty("--seek-progress", `${(ratio * 100).toFixed(2)}%`);
-  seek.setAttribute("aria-valuetext", `${fmtDuration(current)} / ${fmtDuration(duration)}`);
-}
-
-function toggleMiniPlayback() {
-  if (!miniPlayerAvailable()) return;
-  const playing = [1, 3].includes(playlistPlayer.getPlayerState());
-  if (playing) playlistPlayer.pauseVideo();
-  else playlistPlayer.playVideo();
-  setTimeout(updateMiniControls, 120);
+function setGrabLabel(player, expanded) {
+  const grab = player.querySelector("[data-player-grab]");
+  if (!grab) return;
+  const label = expanded ? tr("watch.expand", "Expand player") : tr("watch.minimize", "Minimize player");
+  grab.setAttribute("aria-label", label);
+  grab.setAttribute("title", label);
 }
 
 function minimizePlayer() {
   const player = $(".watch-main .player");
   if (!player || !miniPlayerMobile() || player.classList.contains("mini-player")) return;
   player.classList.add("mini-player");
-  updateMiniControls();
-  clearInterval(miniPoll);
-  miniPoll = setInterval(updateMiniControls, 500);
+  setGrabLabel(player, true);
 }
 
 function restorePlayer(scroll = false) {
@@ -1314,32 +1280,26 @@ function restorePlayer(scroll = false) {
   if (!player || !player.classList.contains("mini-player")) return;
   player.classList.remove("mini-player", "dragging");
   player.style.transform = "";
-  clearInterval(miniPoll);
-  miniPoll = null;
+  setGrabLabel(player, false);
   if (scroll) player.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
 }
 
 function stopMiniPlayer() {
-  clearInterval(miniPoll);
-  miniPoll = null;
   const player = $(".watch-main .player.mini-player");
-  if (player) {
-    player.classList.remove("mini-player", "dragging");
-    player.style.transform = "";
-  }
+  if (!player) return;
+  player.classList.remove("mini-player", "dragging");
+  player.style.transform = "";
+  setGrabLabel(player, false);
 }
 
 function setupMiniPlayer() {
   const player = $(".watch-main .player");
   if (!player) return;
   const grab = player.querySelector("[data-player-grab]");
-  const toggle = player.querySelector("[data-mini-toggle]");
-  const seek = player.querySelector("[data-mini-seek]");
   let startY = null;
   let startX = 0;
   let dragY = 0;
   let dragging = false;
-  let suppressRestoreUntil = 0;
 
   grab?.addEventListener("touchstart", (event) => {
     if (!miniPlayerMobile() || player.classList.contains("mini-player")) return;
@@ -1369,35 +1329,14 @@ function setupMiniPlayer() {
     dragging = false;
     player.classList.remove("dragging");
     player.style.transform = "";
-    if (shouldMinimize) {
-      suppressRestoreUntil = Date.now() + 500;
-      minimizePlayer();
-    }
+    if (shouldMinimize) minimizePlayer();
   };
   grab?.addEventListener("touchend", finishDrag);
   grab?.addEventListener("touchcancel", finishDrag);
   grab?.addEventListener("click", (event) => {
     event.stopPropagation();
-    if (miniPlayerMobile()) minimizePlayer();
-  });
-
-  toggle?.addEventListener("click", (event) => {
-    event.stopPropagation();
-    toggleMiniPlayback();
-  });
-  seek?.addEventListener("input", (event) => {
-    event.stopPropagation();
-    if (!miniPlayerAvailable() || typeof playlistPlayer.seekTo !== "function") return;
-    const duration = Math.max(0, Number(playlistPlayer.getDuration()) || 0);
-    if (duration > 0) playlistPlayer.seekTo(duration * Number(seek.value) / 1000, true);
-  });
-  seek?.addEventListener("click", (event) => event.stopPropagation());
-
-  player.addEventListener("click", (event) => {
-    if (!player.classList.contains("mini-player")) return;
-    if (Date.now() < suppressRestoreUntil) return;
-    if (event.target.closest("[data-mini-toggle], [data-mini-seek]")) return;
-    restorePlayer(true);
+    if (player.classList.contains("mini-player")) restorePlayer(true);
+    else if (miniPlayerMobile()) minimizePlayer();
   });
 }
 

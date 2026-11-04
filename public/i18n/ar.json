@@ -322,10 +322,8 @@
     "continueWatching": "متابعة المشاهدة",
     "addedToWatchLater": "أُضيف إلى المشاهدة لاحقاً",
     "removedFromWatchLater": "أُزيل من المشاهدة لاحقاً",
-    "play": "تشغيل",
-    "pause": "إيقاف مؤقت",
     "minimize": "تصغير المشغل",
-    "seek": "التنقل في الفيديو"
+    "expand": "توسيع المشغل"
   },
   "collections": {
     "likedEmpty": "لا توجد فيديوهات معجب بها بعد.",
