@@ -19,11 +19,14 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.match(main, /nodeIntegration: false/);
   assert.match(main, /window:toggle-maximize/);
   assert.match(main, /setWindowOpenHandler/);
+  assert.match(main, /ipcMain\.handle\("app:uninstall"/);
+  assert.match(main, /dialog\.showMessageBox/);
 
   const preload = read("electron/preload.js");
   assert.match(preload, /contextBridge\.exposeInMainWorld\("electronWindow"/);
   assert.match(preload, /ipcRenderer\.send\("window:minimize"\)/);
   assert.match(preload, /ipcRenderer\.invoke\("window:is-maximized"\)/);
+  assert.match(preload, /ipcRenderer\.invoke\("app:uninstall"\)/);
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
@@ -47,7 +50,10 @@ test("the web app renders window controls and hides the PWA install row in Elect
   assert.match(app, /function setupElectronWindow\(\)/);
   assert.match(app, /window\.electronWindow/);
   assert.match(app, /api\.toggleMaximize\(\)/);
-  assert.match(app, /const installGroup = window\.electronWindow \? ""/);
+  assert.match(app, /async function uninstallApp\(\)/);
+  assert.match(app, /data-uninstall-app/);
+  assert.match(app, /data-uninstall-pwa/);
+  assert.match(app, /const appGroup = window\.electronWindow \? electronAppGroup : installGroup/);
 
   const css = read("public/styles.css");
   assert.match(css, /html\.electron-app \.topbar \{ -webkit-app-region: drag; \}/);

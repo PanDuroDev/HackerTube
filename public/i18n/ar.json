@@ -270,7 +270,12 @@
     "installIos": "على iPhone أو iPad، افتح مشاركة واختر «إضافة إلى الشاشة الرئيسية».",
     "installUnavailable": "افتح قائمة المتصفح واختر «تثبيت التطبيق».",
     "installedHint": "HackerTube مثبّت على هذا الجهاز.",
-    "installDismissed": "تم إلغاء التثبيت"
+    "installDismissed": "تم إلغاء التثبيت",
+    "uninstall": "إلغاء التثبيت",
+    "uninstallTitle": "إلغاء تثبيت HackerTube",
+    "uninstallHint": "إزالة تطبيق سطح المكتب من هذا الجهاز.",
+    "uninstallManual": "استخدم إعدادات التطبيقات في نظامك لإلغاء تثبيت HackerTube.",
+    "uninstallBrowser": "افتح إعدادات التطبيقات في المتصفح وأزل HackerTube."
   },
   "dialogs": {
     "clearTitle": "مسح {label}؟",

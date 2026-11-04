@@ -262,7 +262,12 @@
     "installIos": "On iPhone or iPad, open Share and choose “Add to Home Screen”.",
     "installUnavailable": "Open your browser menu and choose “Install app”.",
     "installedHint": "HackerTube is installed on this device.",
-    "installDismissed": "Install dismissed"
+    "installDismissed": "Install dismissed",
+    "uninstall": "Uninstall",
+    "uninstallTitle": "Uninstall HackerTube",
+    "uninstallHint": "Remove the desktop app from this computer.",
+    "uninstallManual": "Use your system's app settings to uninstall HackerTube.",
+    "uninstallBrowser": "Open your browser's app settings and remove HackerTube."
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",
