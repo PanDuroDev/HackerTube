@@ -870,7 +870,23 @@ function filtered(scope) {
   });
   // Keep relevance order for the default "Best" sort. Explicit sort modes still win.
   if (!q || ui.sort !== "best") results.sort(sorter(ui.sort));
+  // A topic page should lead with videos whose title names the topic, not with
+  // weak matches picked up from a description.
+  else if (ui.topics.size) {
+    const topics = [...ui.topics];
+    const hits = new Map(results.map((v) => [v.id, topics.some((t) => topicTitleHit(v, t))]));
+    results.sort((a, b) => Number(hits.get(b.id)) - Number(hits.get(a.id)) || b.score - a.score);
+  }
   return results;
+}
+
+function topicTitleHit(video, topic) {
+  const title = normalizeAr(video.title);
+  const terms = [topic, ...String(TOPIC_SEARCH_ALIASES[topic] || "").split(" ")];
+  return terms.some((term) => {
+    const key = normalizeAr(term);
+    return key.length > 1 && title.includes(key);
+  });
 }
 
 function sorter(sort) {
@@ -930,15 +946,20 @@ function buildHomeOrder(videos, random = Math.random) {
     const languageAffinity = (languageWeights.get(video.lang) || 0) / maxLanguage;
     const quality = Math.max(0, Number(video.score) || 0);
     const qualityBoost = Math.min(1.4, quality * 0.12);
+    const kindBoost = video.kind === "course" ? 0.35
+      : video.kind === "project" ? 0.15
+      : video.kind === "talk" ? -0.15
+      : video.kind === "short" ? -0.6 : 0;
+    const depthBoost = video.duration >= 900 ? 0.18 : video.duration < 300 ? -0.25 : 0;
     const seenPenalty = recentlyWatched.has(video.id) ? 0.48 : 0;
     const repeatPenalty = previousHome.has(video.id) ? 0.42 : 0;
     const interestBoost = profileStrength * (
       topicAffinity * 0.82 + languageAffinity * 0.18 + channelAffinity * 0.1
     );
     const utility = Math.max(-1, Math.min(1.8,
-      qualityBoost + interestBoost - seenPenalty - repeatPenalty
+      qualityBoost + kindBoost + depthBoost + interestBoost - seenPenalty - repeatPenalty
     ));
-    return { video, rank: utility + random() * 0.3 };
+    return { video, rank: utility + random() * 0.2 };
   }).sort((a, b) => b.rank - a.rank).map(({ video }) => video);
 
   // Greedy diversity constraints keep the first screen from being dominated

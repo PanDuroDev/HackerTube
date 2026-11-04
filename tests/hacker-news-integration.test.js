@@ -759,6 +759,20 @@ test("Home order keeps first-page channel diversity and invalidates after watchi
   assert.equal(harness.api.state.homeStale, true);
 });
 
+test("Home order prefers substantial courses over shorts at equal score", () => {
+  const harness = createHarness();
+  const course = sampleMainVideo("course", {
+    kind: "course", duration: 3600, topics: ["python"], channel_id: "channel_course",
+  });
+  const short = sampleMainVideo("short", {
+    kind: "short", duration: 90, topics: ["python"], channel_id: "channel_short",
+  });
+
+  const order = harness.api.buildHomeOrder([short, course], () => 0.5);
+
+  assert.equal(order[0].id, "course");
+});
+
 test("creator playlists preview diversifies channels and supports filtering", async () => {
   const harness = createHarness();
   const { api, view, location } = harness;
