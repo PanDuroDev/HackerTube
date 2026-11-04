@@ -186,6 +186,38 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
 
 .icon-btn:hover { background: var(--soft-2); }
 
+.update-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  margin-inline-end: 2px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.update-btn[hidden] { display: none; }
+.update-btn:hover { filter: brightness(1.08); }
+.update-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.update-btn .ic { width: 18px; height: 18px; }
+.update-btn.is-busy { pointer-events: none; opacity: .8; }
+.update-btn.is-busy .ic { animation: update-pulse .9s ease-in-out infinite alternate; }
+
+@keyframes update-pulse {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
+
 .search {
   display: flex;
   flex: 1;
@@ -1859,6 +1891,8 @@ a.card-sub:hover { color: var(--text); }
 
   .brand-name { display: none; }
   .brand small { display: none; }
+  .update-btn { width: 40px; height: 40px; margin-inline-end: 0; padding: 0; border-radius: 50%; }
+  .update-btn > span { display: none; }
   .search { margin-inline: 0; }
   .topbar { gap: 4px; padding: 0 8px; }
   .search button { width: 52px; }

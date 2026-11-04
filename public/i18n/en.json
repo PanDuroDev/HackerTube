@@ -11,6 +11,9 @@
     "toggleTheme": "Toggle theme",
     "switchLight": "Switch to light theme",
     "switchDark": "Switch to dark theme",
+    "update": "Update",
+    "updateTo": "Update to version {version}",
+    "updating": "Updating…",
     "closeMenu": "Close menu"
   },
   "window": {
@@ -270,7 +273,17 @@
     "uninstallTitle": "Uninstall HackerTube",
     "uninstallHint": "Remove the desktop app from this computer.",
     "uninstallManual": "Use your system's app settings to uninstall HackerTube.",
-    "uninstallBrowser": "Open your browser's app settings and remove HackerTube."
+    "uninstallBrowser": "Open your browser's app settings and remove HackerTube.",
+    "version": "Version",
+    "checkUpdates": "Check for updates",
+    "checkingUpdates": "Checking for updates…",
+    "upToDate": "You’re up to date.",
+    "updateAvailable": "Version {version} is available.",
+    "updateInstalling": "Downloading the update. The installer will open when it is ready.",
+    "updateManual": "The update was downloaded. Close the app and run the new file to finish.",
+    "updateWebReady": "A new version is ready. Select Update to reload the app.",
+    "updateFailed": "Could not update. Try again or download the latest release from GitHub.",
+    "updateNote": "Updates keep your likes, history, playlists and settings."
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",
