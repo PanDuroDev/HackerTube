@@ -1099,7 +1099,9 @@ function renderFeed(scope) {
     </div>
     ${ui.open ? filtersPanel() : ""}
     ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
-    ${list.length > ui.limit ? `<div class="more"><button class="btn" data-more>${tr("filters.showMore", "Show more")} (${list.length - ui.limit})</button></div>` : ""}
+    ${list.length > ui.limit || (!state.catalogLoaded && scope.type === "all" && !hasFilters() && !scope.q)
+      ? `<div class="more"><button class="btn" data-more>${tr("filters.showMore", "Show more")}${list.length > ui.limit ? ` (${list.length - ui.limit})` : ""}</button></div>`
+      : ""}
   </section>`;
   syncFeedUrl();
   syncSidebar();
