@@ -90,6 +90,7 @@ let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
 let grabIdleTimer = null;
+let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
 let playlistMetaPromise = null;
@@ -321,12 +322,29 @@ function renderRouteSkeleton() {
 
 async function init() {
   applyTheme(state.theme);
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      // The site keeps working online if service worker registration is unavailable.
+    });
+  }
+  addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    syncInstallButton();
+  });
+  addEventListener("appinstalled", () => {
+    installPrompt = null;
+    syncInstallButton();
+    if ((location.hash || "#/").startsWith("#/settings")) renderSettings();
+    else toast(tr("settings.installed", "Installed"));
+  });
   renderRouteSkeleton();
   try {
     await setLocale(initialLocale(), { persist: true, updateUrl: false });
   } catch {
     state.locale = "en";
   }
+  setupElectronWindow();
   if (view.querySelector(".skeleton-screen")) renderRouteSkeleton();
   if (matchMedia("(max-width: 980px)").matches) setSidebar(false);
   $("#menuBtn").addEventListener("click", () => {
@@ -2718,6 +2736,94 @@ async function renderPlaylist(id) {
 }
 /* ---------- Settings ---------- */
 
+function setupElectronWindow() {
+  const api = window.electronWindow;
+  if (!api) return;
+  document.documentElement.classList.add("electron-app");
+  const controls = $("#windowControls");
+  if (controls) controls.hidden = false;
+
+  const minimize = $("#windowMinimize");
+  if (minimize) {
+    const label = tr("window.minimize", "Minimize window");
+    minimize.setAttribute("aria-label", label);
+    minimize.setAttribute("title", label);
+    minimize.addEventListener("click", () => api.minimize());
+  }
+
+  const close = $("#windowClose");
+  if (close) {
+    const label = tr("window.close", "Close window");
+    close.setAttribute("aria-label", label);
+    close.setAttribute("title", label);
+    close.addEventListener("click", () => api.close());
+  }
+
+  const maximize = $("#windowMaximize");
+  if (maximize) {
+    const setMaximized = (maximized) => {
+      const label = maximized ? tr("window.restore", "Restore window") : tr("window.maximize", "Maximize window");
+      maximize.innerHTML = icon(maximized ? "window-restore" : "window-maximize");
+      maximize.setAttribute("aria-label", label);
+      maximize.setAttribute("title", label);
+      maximize.setAttribute("aria-pressed", String(Boolean(maximized)));
+    };
+    maximize.addEventListener("click", () => api.toggleMaximize());
+    api.onMaximizedChange?.((maximized) => setMaximized(Boolean(maximized)));
+    if (typeof api.isMaximized === "function") {
+      api.isMaximized().then((maximized) => setMaximized(Boolean(maximized))).catch(() => {});
+    }
+  }
+}
+
+function isStandalone() {
+  return Boolean(
+    (typeof matchMedia === "function" && matchMedia("(display-mode: standalone)").matches)
+    || (typeof navigator !== "undefined" && navigator.standalone === true),
+  );
+}
+
+function isIos() {
+  if (typeof navigator === "undefined") return false;
+  return /iphone|ipad|ipod/i.test(String(navigator.userAgent || ""))
+    || (navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints) > 1);
+}
+
+function installHintText() {
+  if (isStandalone()) return tr("settings.installedHint", "HackerTube is installed on this device.");
+  if (isIos()) return tr("settings.installIos", "On iPhone or iPad, open Share and choose “Add to Home Screen”.");
+  if (installPrompt) return tr("settings.installHint", "Install HackerTube for quick access and offline browsing.");
+  return tr("settings.installUnavailable", "Open your browser menu and choose “Install app”.");
+}
+
+function syncInstallButton() {
+  const button = document.querySelector("[data-install-app]");
+  const hint = document.querySelector("[data-install-hint]");
+  if (hint) hint.textContent = installHintText();
+  if (!button) return;
+  const installed = isStandalone();
+  const label = installed ? tr("settings.installed", "Installed") : tr("settings.install", "Install");
+  button.disabled = installed;
+  button.setAttribute("aria-label", label);
+  button.innerHTML = `${icon(installed ? "check" : "download")} <span>${esc(label)}</span>`;
+}
+
+async function requestInstall() {
+  if (isStandalone()) {
+    syncInstallButton();
+    return;
+  }
+  if (!installPrompt) {
+    toast(installHintText());
+    return;
+  }
+  installPrompt.prompt();
+  const choice = await installPrompt.userChoice;
+  installPrompt = null;
+  syncInstallButton();
+  if (choice.outcome !== "accepted") toast(tr("settings.installDismissed", "Install dismissed"));
+}
+
 function renderSettings() {
   document.title = `${tr("pages.settings", "Settings")} — HackerTube`;
   const s = state.settings;
@@ -2728,6 +2834,16 @@ function renderSettings() {
   const localeSeg = locales
     .map(({ code, name }) => `<button type="button" data-locale-pref="${esc(code)}" lang="${esc(code)}" class="${state.locale === code ? "active" : ""}" aria-pressed="${state.locale === code}">${esc(name)}</button>`)
     .join("");
+  const installed = isStandalone();
+  const installLabel = installed ? tr("settings.installed", "Installed") : tr("settings.install", "Install");
+  const installGroup = window.electronWindow ? "" : `<div class="settings-group">
+      <h2>${icon("download")} ${tr("settings.app", "App")}</h2>
+      <div class="setting-row">
+        <span class="row-ic">${icon("download")}</span>
+        <span class="setting-text"><b>${tr("settings.installTitle", "Install HackerTube")}</b><small data-install-hint>${esc(installHintText())}</small></span>
+        <button class="btn" type="button" data-install-app aria-label="${esc(installLabel)}" ${installed ? "disabled" : ""}>${icon(installed ? "check" : "download")} <span>${esc(installLabel)}</span></button>
+      </div>
+    </div>`;
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
@@ -2738,6 +2854,7 @@ function renderSettings() {
       <h2>${icon("language")} ${tr("settings.language", "Language")}</h2>
       <div class="segmented" role="group" aria-label="${tr("settings.language", "Language")}">${localeSeg}</div>
     </div>
+    ${installGroup}
     <div class="settings-group">
       <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
       <label class="setting-row">
@@ -2946,6 +3063,13 @@ function onViewClick(e) {
       ui.limit = pageSize();
       renderFeed(state.scope);
     }
+    return;
+  }
+
+  const installButton = e.target.closest("[data-install-app]");
+  if (installButton) {
+    e.preventDefault();
+    requestInstall();
     return;
   }
 

@@ -21,7 +21,15 @@
 <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
 <link rel="preconnect" href="https://www.youtube.com" crossorigin>
 <link rel="preconnect" href="https://i.ytimg.com">
-<link rel="stylesheet" href="styles.css?v=46">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="application-name" content="HackerTube">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HackerTube">
+<link rel="stylesheet" href="styles.css?v=47">
 </head>
 <body>
 
@@ -59,6 +67,10 @@
   <symbol id="i-monitor" viewBox="0 0 24 24"><path fill="currentColor" d="M20 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h6v2H8v2h8v-2h-2v-2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 13H4V5h16v11z"/></symbol>
   <symbol id="i-database" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C7.6 2 4 3.8 4 6v12c0 2.2 3.6 4 8 4s8-1.8 8-4V6c0-2.2-3.6-4-8-4zm0 2c3.9 0 6 1.3 6 2s-2.1 2-6 2-6-1.3-6-2 2.1-2 6-2zm6 14c0 .7-2.1 2-6 2s-6-1.3-6-2v-2.2c1.5 1 3.7 1.5 6 1.5s4.5-.5 6-1.5V18zm0-5c0 .7-2.1 2-6 2s-6-1.3-6-2v-2.2c1.5 1 3.7 1.5 6 1.5s4.5-.5 6-1.5V13z"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path fill="currentColor" d="M6.343 9.343a1.5 1.5 0 0 1 2.122 0L12 12.879l3.536-3.536a1.5 1.5 0 0 1 2.121 2.122l-4.596 4.596a1.5 1.5 0 0 1-2.122 0l-4.596-4.596a1.5 1.5 0 0 1 0-2.122Z"/></symbol>
+  <symbol id="i-window-minimize" viewBox="0 0 24 24"><path fill="currentColor" d="M19.27 10.524c1.727.312 1.616 2.892-.27 2.976H5c-.717-.032-1.344-.502-1.476-1.23-.172-.953.543-1.728 1.476-1.77h14Z"/></symbol>
+  <symbol id="i-window-maximize" viewBox="0 0 24 24"><path fill="currentColor" d="M21 19.057c-.063 1.1-.843 1.88-1.943 1.943H4.943c-.445-.026-.846-.153-1.198-.435-.47-.377-.711-.915-.745-1.508V4.943c.026-.445.153-.846.435-1.198.377-.47.915-.711 1.508-.745h14.114c.593.034 1.131.275 1.508.745.282.352.409.753.435 1.198ZM5.006 5.006v13.988h13.988V5.006Z"/></symbol>
+  <symbol id="i-window-restore" viewBox="0 0 24 24"><path fill="currentColor" d="M17 17v2.057c-.034.593-.275 1.131-.745 1.508-.352.282-.753.409-1.198.435H4.943c-.593-.034-1.131-.275-1.508-.745-.282-.352-.409-.753-.435-1.198V8.943c.026-.445.153-.846.435-1.198.377-.47.915-.711 1.508-.745H7V4.943c.034-.593.275-1.131.745-1.508.352-.282.753-.409 1.198-.435h10.114c.445.026.846.153 1.198.435.47.377.711.915.745 1.508v10.114c-.026.445-.153.846-.435 1.198-.377.47-.915.711-1.508.745ZM5.006 9.006v9.988h9.988V9.006ZM17 15l1.994-.006V5.006H9.006L9 7h6.057c1.1.063 1.88.843 1.943 1.943Z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 19.5h13V16c.054-.956.855-1.686 1.834-1.462.703.16 1.127.767 1.166 1.462v4a2.6 2.6 0 0 1-.659 1.686c-.469.524-1.147.794-1.841.814H5c-.44-.013-.86-.12-1.245-.336-.782-.438-1.23-1.282-1.255-2.164v-4c.039-.695.463-1.302 1.166-1.462.979-.224 1.78.506 1.834 1.462Zm5-7.464V3c.047-.83.634-1.5 1.5-1.5s1.453.67 1.5 1.5v9.036l1.682-1.682c.259-.232.542-.391.893-.43 1.239-.14 2.101 1.232 1.438 2.288l-.21.263-4.242 4.243c-.259.231-.542.39-.893.429-.47.053-.884-.122-1.229-.429l-4.242-4.243-.21-.263c-.663-1.056.199-2.428 1.438-2.288.351.039.634.198.893.43Z"/></symbol>
   <symbol id="i-expand-player" viewBox="0 0 24 24"><path fill="currentColor" d="M20.324 12.026c.984.16 1.637 1.005 1.676 1.974v4c-.022.535-.202 1.03-.586 1.414s-.879.564-1.414.586h-5c-.535-.022-1.03-.202-1.414-.586S13.022 18.535 13 18v-4c.046-1.146.854-1.954 2-2h5ZM15 14v4h5v-4Zm6-4h-7c-1.708.057-2.943 1.292-3 3v6H4a2 2 0 0 1-.632-.102C2.535 18.622 2.034 17.856 2 17V6c.022-.535.202-1.03.586-1.414S3.465 4.022 4 4h15c1.146.046 1.954.854 2 2Zm-14 .414 1.915 1.915c.152.133.256.209.453.26a1.01 1.01 0 0 0 1.254-.967c0-.278-.114-.502-.293-.707L8.414 9c.329 0 .714.051 1.026-.102.732-.358.732-1.438 0-1.796A1 1 0 0 0 9 7H6c-.307.018-.583.129-.78.375A1.05 1.05 0 0 0 5 8v3a1 1 0 0 0 .102.44c.358.732 1.438.732 1.796 0 .153-.312.102-.697.102-1.026"/></symbol>
   <symbol id="i-miniplayer" viewBox="0 0 24 24"><path fill="currentColor" d="M20.324 12.026c.984.16 1.637 1.005 1.676 1.974v4c-.022.535-.202 1.03-.586 1.414s-.879.564-1.414.586h-5c-.535-.022-1.03-.202-1.414-.586S13.022 18.535 13 18v-4c.046-1.146.854-1.954 2-2h5ZM15 14v4h5v-4Zm6-4h-7c-1.708.057-2.943 1.292-3 3v6H4a2 2 0 0 1-.632-.102C2.535 18.622 2.034 17.856 2 17V6c.022-.535.202-1.03.586-1.414S3.465 4.022 4 4h15c1.146.046 1.954.854 2 2ZM6.088 9.502c-.329 0-.714-.051-1.026.102-.732.358-.732 1.438 0 1.796a1 1 0 0 0 .44.102h3a1.04 1.04 0 0 0 .625-.22c.246-.197.357-.473.375-.78v-3a1 1 0 0 0-.102-.44c-.358-.732-1.438-.732-1.796 0-.153.312-.102.697-.102 1.026L5.587 6.173c-.152-.133-.256-.209-.453-.26a1.01 1.01 0 0 0-1.254.967c0 .278.114.502.293.707Z"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="currentColor" d="M9.171 15.365L19.424 5.112c.703-.635 1.769-.588 2.314.235c.403.609.281 1.363-.192 1.886L10.232 18.547c-.17.154-.283.243-.496.33c-.574.233-1.178.074-1.625-.33L2.454 12.89c-.474-.524-.595-1.277-.192-1.886c.544-.823 1.611-.87 2.313-.235Z"/></symbol>
@@ -89,6 +101,17 @@
     <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" data-i18n-attr="aria-label:header.toggleTheme">
       <svg class="ic" aria-hidden="true"><use href="#i-moon"></use></svg>
     </button>
+    <div class="window-controls" id="windowControls" hidden>
+      <button class="window-control" type="button" id="windowMinimize" aria-label="Minimize window" title="Minimize window">
+        <svg class="ic" aria-hidden="true"><use href="#i-window-minimize"></use></svg>
+      </button>
+      <button class="window-control" type="button" id="windowMaximize" aria-label="Maximize window" title="Maximize window" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-window-maximize"></use></svg>
+      </button>
+      <button class="window-control close" type="button" id="windowClose" aria-label="Close window" title="Close window">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -124,6 +147,6 @@
 <noscript><p style="padding:24px" data-i18n="noscript">This site needs JavaScript to show and filter the index.</p></noscript>
 <script src="i18n.js?v=1"></script>
 <script src="search.js?v=3"></script>
-<script src="app.js?v=61"></script>
+<script src="app.js?v=63"></script>
 </body>
 </html>

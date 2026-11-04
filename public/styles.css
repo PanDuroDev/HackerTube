@@ -109,6 +109,38 @@ img { max-width: 100%; }
 }
 
 .top-start, .top-end { display: flex; align-items: center; gap: 4px; }
+
+.window-controls {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+html.electron-app .window-controls { display: flex; }
+
+.window-control {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.window-control:hover { background: var(--soft-2); color: var(--text); }
+.window-control.close:hover { background: #c42b1c; color: #fff; }
+.window-control .ic { width: 16px; height: 16px; }
+
+html.electron-app .topbar { -webkit-app-region: drag; }
+html.electron-app .topbar a,
+html.electron-app .topbar button,
+html.electron-app .topbar input,
+html.electron-app .search,
+html.electron-app .window-controls { -webkit-app-region: no-drag; }
 .top-start { min-width: 208px; }
 .top-end { min-width: 48px; justify-content: flex-end; }
 
