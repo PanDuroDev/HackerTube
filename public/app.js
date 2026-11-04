@@ -1227,14 +1227,14 @@ function watchActionsHTML(videoId) {
     ? state.playlists.map((p) => `<button data-add-playlist="${p.id}">${icon("playlists")}<span>${esc(p.name)}</span><span class="side-count">${p.ids.length}</span></button>`).join("")
     : `<p>${tr("watch.noPlaylists", "No playlists yet.")}</p><a href="#/playlists">${tr("watch.createPlaylistFirst", "Create one first")}</a>`;
   return `<div class="actions watch-actions">
+    <button class="btn watch-quick ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? tr("watch.liked", "Liked") : tr("watch.like", "Like")}</span></button>
+    <button class="btn watch-quick ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later")}</span></button>
     <button class="btn watch-actions-toggle" type="button" data-watch-actions-toggle
       aria-label="${tr("watch.moreActions", "More video actions")}" aria-controls="watchActionItems" aria-expanded="false">
       ${icon("more")} <span>${tr("watch.more", "More")}</span>
     </button>
     <div class="watch-action-items" id="watchActionItems">
       ${resume}
-      <button class="btn watch-action-item ${liked ? "on" : ""}" id="watch-like" data-act="like" aria-pressed="${liked}">${icon("liked")} <span>${liked ? tr("watch.liked", "Liked") : tr("watch.like", "Like")}</span></button>
-      <button class="btn watch-action-item ${later ? "on" : ""}" id="watch-save" data-act="save" aria-pressed="${later}">${icon("later")} <span>${later ? tr("watch.saved", "Saved") : tr("watch.save", "Watch later")}</span></button>
       <details class="drop">
         <summary class="btn watch-action-item">${icon("playlists")} <span>${tr("watch.addToPlaylist", "Add to playlist")}</span>${icon("down-small-fill")}</summary>
         <div class="drop-panel">${playlistPanel}</div>
@@ -1243,6 +1243,21 @@ function watchActionsHTML(videoId) {
       <a class="btn watch-action-item watch-action-item--external watch-youtube" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">${icon("external")} ${tr("watch.youtube", "YouTube")}</a>
     </div>
   </div>`;
+}
+
+function watchActionMenuOpensUp(spaceAbove, spaceBelow, menuHeight) {
+  return spaceBelow < menuHeight + 12 && spaceAbove > spaceBelow;
+}
+
+function placeWatchActionMenu(actions) {
+  const menu = actions.querySelector(".watch-action-items");
+  if (!menu) return;
+  const rect = actions.getBoundingClientRect();
+  const topbar = document.querySelector(".topbar");
+  const topbarBottom = topbar ? topbar.getBoundingClientRect().bottom : 0;
+  const spaceAbove = Math.max(0, rect.top - topbarBottom);
+  const spaceBelow = Math.max(0, window.innerHeight - rect.bottom);
+  actions.classList.toggle("drop-up", watchActionMenuOpensUp(spaceAbove, spaceBelow, menu.offsetHeight));
 }
 
 function emptyState() {
@@ -2636,6 +2651,8 @@ function onViewClick(e) {
     const open = !actions.classList.contains("menu-open");
     actions.classList.toggle("menu-open", open);
     actionsToggle.setAttribute("aria-expanded", String(open));
+    if (open) placeWatchActionMenu(actions);
+    else actions.classList.remove("drop-up");
     return;
   }
 
@@ -2860,7 +2877,7 @@ function onViewClick(e) {
 
   const act = e.target.closest("[data-act]");
   if (act) {
-    closeWatchActionMenu(true);
+    closeWatchActionMenu();
     toggleAct(act.dataset.act);
     return;
   }
@@ -2874,7 +2891,7 @@ function onViewClick(e) {
 function closeWatchActionMenu(restoreFocus = false) {
   const actions = document.querySelector(".watch-actions.menu-open");
   if (!actions) return;
-  actions.classList.remove("menu-open");
+  actions.classList.remove("menu-open", "drop-up");
   const toggle = actions.querySelector("[data-watch-actions-toggle]");
   toggle?.setAttribute("aria-expanded", "false");
   if (restoreFocus) toggle?.focus();
