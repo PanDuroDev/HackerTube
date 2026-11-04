@@ -427,9 +427,6 @@ async function init() {
       document.querySelectorAll(".watch-submenu[open]").forEach(closeWatchSubmenu);
     }
   });
-  addEventListener("scroll", () => {
-    document.querySelectorAll(".watch-submenu[open]").forEach(closeWatchSubmenu);
-  }, { passive: true });
   addEventListener("resize", () => {
     document.querySelectorAll(".watch-submenu[open]").forEach(closeWatchSubmenu);
   }, { passive: true });
@@ -1369,69 +1366,8 @@ function placeWatchActionMenu(actions) {
   actions.classList.toggle("drop-up", watchActionMenuOpensUp(spaceAbove, spaceBelow, menu.offsetHeight));
 }
 
-function playlistSubmenuPlacement({ menuLeft, menuRight, rowTop, width, height, viewportWidth, viewportHeight, topbarBottom }) {
-  const margin = 12;
-  const gap = 6;
-  const panelWidth = Math.min(width, viewportWidth - margin * 2);
-  const spaceRight = viewportWidth - menuRight;
-  const spaceLeft = menuLeft;
-  const fitsRight = spaceRight >= panelWidth + gap + margin;
-  const fitsLeft = spaceLeft >= panelWidth + gap + margin;
-  let side = "overlay";
-  let left;
-  if (fitsRight && (!fitsLeft || spaceRight > spaceLeft)) {
-    side = "right";
-    left = menuRight + gap;
-  } else if (fitsLeft) {
-    side = "left";
-    left = menuLeft - panelWidth - gap;
-  } else {
-    left = Math.max(margin, Math.min(
-      viewportWidth - panelWidth - margin,
-      menuLeft + (menuRight - menuLeft - panelWidth) / 2,
-    ));
-  }
-  const panelHeight = Math.min(height, 280);
-  let top = rowTop;
-  const maxTop = viewportHeight - panelHeight - margin;
-  if (top > maxTop) top = Math.max(topbarBottom + gap, maxTop);
-  top = Math.max(topbarBottom + gap, top);
-  return { side, left: Math.round(left), top: Math.round(top), width: Math.round(panelWidth) };
-}
-
-function placePlaylistSubmenu(details) {
-  const panel = details.querySelector(".drop-panel");
-  const menu = details.closest(".watch-action-items");
-  const row = details.querySelector("summary");
-  if (!panel || !menu || !row) return;
-  const menuRect = menu.getBoundingClientRect();
-  const rowRect = row.getBoundingClientRect();
-  const topbar = document.querySelector(".topbar");
-  const placement = playlistSubmenuPlacement({
-    menuLeft: menuRect.left,
-    menuRight: menuRect.right,
-    rowTop: rowRect.top,
-    width: panel.offsetWidth || 260,
-    height: panel.offsetHeight,
-    viewportWidth: window.innerWidth,
-    viewportHeight: window.innerHeight,
-    topbarBottom: topbar ? topbar.getBoundingClientRect().bottom : 0,
-  });
-  details.classList.toggle("submenu-left", placement.side === "left");
-  details.classList.toggle("submenu-right", placement.side === "right");
-  panel.style.left = `${placement.left}px`;
-  panel.style.top = `${placement.top}px`;
-  panel.style.width = `${placement.width}px`;
-}
-
 function closeWatchSubmenu(details) {
   details.removeAttribute("open");
-  details.classList.remove("submenu-left", "submenu-right");
-  const panel = details.querySelector(".drop-panel");
-  if (!panel) return;
-  panel.style.left = "";
-  panel.style.top = "";
-  panel.style.width = "";
 }
 
 function emptyState() {
@@ -2840,16 +2776,6 @@ function onViewClick(e) {
       actions.classList.remove("drop-up");
       actions.querySelectorAll(".watch-submenu").forEach(closeWatchSubmenu);
     }
-    return;
-  }
-
-  const submenuSummary = e.target.closest(".watch-submenu > summary");
-  if (submenuSummary) {
-    const details = submenuSummary.parentElement;
-    setTimeout(() => {
-      if (details.open) placePlaylistSubmenu(details);
-      else closeWatchSubmenu(details);
-    }, 0);
     return;
   }
 

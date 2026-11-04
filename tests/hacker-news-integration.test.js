@@ -67,7 +67,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, playlistSubmenuPlacement, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -1114,39 +1114,16 @@ test("Like and Watch later stay beside More while the rest stay inside the menu"
   assert.equal(api.watchActionMenuOpensUp(200, 150, 300), true, "insufficient room below and more above opens upward");
 });
 
-test("Add to playlist opens a side submenu that flips with available space", () => {
+test("Add to playlist opens an inline submenu inside the actions menu", () => {
   const { api } = createHarness();
   const markup = api.watchActionsHTML("video123");
   assert.match(markup, /class="drop watch-submenu"/);
   assert.match(markup, /watch-submenu[\s\S]*drop-panel/);
 
   const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
-  assert.match(css, /\.watch-action-items \.watch-submenu \.drop-panel \{[\s\S]*?position: fixed;/);
-  assert.match(css, /\.watch-submenu\.submenu-left\[open\]/);
-  assert.match(css, /\.watch-submenu\.submenu-right\[open\]/);
-
-  const left = api.playlistSubmenuPlacement({ menuLeft: 1000, menuRight: 1200, rowTop: 240, width: 260, height: 280, viewportWidth: 1280, viewportHeight: 900, topbarBottom: 56 });
-  assert.equal(left.side, "left");
-  assert.equal(left.left, 734);
-  assert.equal(left.top, 240);
-
-  const right = api.playlistSubmenuPlacement({ menuLeft: 40, menuRight: 260, rowTop: 240, width: 260, height: 280, viewportWidth: 1280, viewportHeight: 900, topbarBottom: 56 });
-  assert.equal(right.side, "right");
-  assert.equal(right.left, 266);
-
-  const largerLeft = api.playlistSubmenuPlacement({ menuLeft: 700, menuRight: 900, rowTop: 240, width: 260, height: 280, viewportWidth: 1280, viewportHeight: 900, topbarBottom: 56 });
-  assert.equal(largerLeft.side, "left");
-  assert.equal(largerLeft.left, 434);
-
-  const largerRight = api.playlistSubmenuPlacement({ menuLeft: 300, menuRight: 500, rowTop: 240, width: 260, height: 280, viewportWidth: 1280, viewportHeight: 900, topbarBottom: 56 });
-  assert.equal(largerRight.side, "right");
-  assert.equal(largerRight.left, 506);
-
-  const narrow = api.playlistSubmenuPlacement({ menuLeft: 150, menuRight: 370, rowTop: 700, width: 260, height: 280, viewportWidth: 390, viewportHeight: 844, topbarBottom: 56 });
-  assert.equal(narrow.side, "overlay");
-  assert.ok(narrow.left >= 12);
-  assert.ok(narrow.left + narrow.width <= 390 - 12);
-  assert.ok(narrow.top + 280 <= 844 - 12);
+  assert.match(css, /\.watch-actions\.menu-open \.watch-action-items \{[\s\S]*?max-height:[^;]+;[\s\S]*?overflow-y: auto;/);
+  assert.match(css, /\.watch-action-items \.watch-submenu \.drop-panel \{[\s\S]*?position: static;[\s\S]*?max-height: 200px;/);
+  assert.doesNotMatch(css, /\.watch-submenu\.submenu-(left|right)/);
 });
 
 test("watch players expose the mobile drag handle without extra controls", async () => {
