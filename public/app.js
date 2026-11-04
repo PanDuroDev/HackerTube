@@ -1063,7 +1063,7 @@ function filtersPanel() {
   </div>`;
 }
 
-function field(name, label, allLabel, options, current, group = "ui") {
+function field(name, label, allLabel, options, current, group = "ui", showLabel = true) {
   const cur = String(current);
   const isAll = cur === "" || (name === "sort" && cur === "best");
   const activeOption = options.find(([value]) => String(value) === cur);
@@ -1076,9 +1076,9 @@ function field(name, label, allLabel, options, current, group = "ui") {
     })
     .join("");
   return `<div class="filter-field">
-    <span class="filter-label">${esc(label)}</span>
+    ${showLabel ? `<span class="filter-label">${esc(label)}</span>` : ""}
     <div class="select">
-      <button type="button" class="select-btn" data-select-toggle="${name}" data-select-group="${group}" aria-haspopup="listbox" aria-controls="${menuId}" aria-expanded="false">
+      <button type="button" class="select-btn" data-select-toggle="${name}" data-select-group="${group}" aria-haspopup="listbox" aria-controls="${menuId}" aria-expanded="false" aria-label="${esc(label)}">
         <span>${esc(shown)}</span>${icon("chevron")}
       </button>
       <div class="select-menu" id="${menuId}" role="listbox" aria-label="${esc(label)}">${rows}</div>
@@ -2438,10 +2438,7 @@ async function renderPlaylists() {
     ${state.builtin.length ? `<h2 class="section-title">${tr("playlists.fromCreators", "From creators")} <span class="count">${filtered.length}${isFiltered ? ` ${tr("playlists.of", "of {total}", { total: state.builtin.length })}` : ""}</span></h2>
       <form class="pl-filter" data-playlist-filter>
         <input name="q" value="${esc(state.playlistQuery)}" placeholder="${tr("playlists.searchPlaceholder", "Search creator playlists")}" aria-label="${tr("playlists.searchPlaceholder", "Search creator playlists")}">
-        <select name="channel" aria-label="${tr("filters.channel", "Channel")}">
-          <option value="">${tr("filters.allChannels", "All channels")}</option>
-          ${channels.map(([id, name]) => `<option value="${esc(id)}" ${state.playlistChannel === id ? "selected" : ""}>${esc(name)}</option>`).join("")}
-        </select>
+        ${field("channel", tr("filters.channel", "Channel"), tr("filters.allChannels", "All channels"), channels, state.playlistChannel, "playlists", false)}
         <button class="btn" type="submit">${icon("search")} ${tr("header.search", "Search")}</button>
         ${isFiltered ? `<button class="btn" type="button" data-playlist-clear>${tr("filters.clearAll", "Clear all")}</button>` : ""}
       </form>
@@ -2722,6 +2719,12 @@ function onViewClick(e) {
       state.hnFilters[fieldName] = fieldName === "sort" && !value ? "best" : value;
       state.hnLimit = pageSize();
       renderHackerNews(state.hnQuery || "");
+    } else if (group === "playlists") {
+      const form = document.querySelector("[data-playlist-filter]");
+      state.playlistQuery = form?.elements?.q?.value.trim() ?? state.playlistQuery;
+      state.playlistChannel = value;
+      state.playlistLimit = 24;
+      renderPlaylists();
     } else {
       ui[fieldName] = fieldName === "sort" && !value ? "best" : value;
       ui.limit = pageSize();
@@ -2929,7 +2932,6 @@ function onViewSubmit(e) {
   if (filterForm) {
     e.preventDefault();
     state.playlistQuery = filterForm.elements.q.value.trim();
-    state.playlistChannel = filterForm.elements.channel.value;
     state.playlistLimit = 24;
     renderPlaylists();
     return;

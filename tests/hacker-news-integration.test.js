@@ -784,6 +784,10 @@ test("creator playlists preview diversifies channels and supports filtering", as
 
   await api.renderPlaylists();
   assert.match(view.innerHTML, /data-playlist-filter/);
+  assert.match(view.innerHTML, /data-select-group="playlists"/);
+  assert.match(view.innerHTML, /data-select-opt="channel"/);
+  assert.match(view.innerHTML, /class="select-menu"/);
+  assert.doesNotMatch(view.innerHTML, /<select/);
   assert.match(view.innerHTML, /data-more-playlists/);
   assert.match(view.innerHTML, /Course 0-0/);
   assert.match(view.innerHTML, /Course 1-0/);
@@ -1121,4 +1125,22 @@ test("the mini player window keeps the native YouTube controls and uses the Ming
     assert.ok(en.watch[key], `en watch.${key} is missing`);
     assert.ok(ar.watch[key], `ar watch.${key} is missing`);
   }
+});
+
+test("filter dropdowns stack above the video grid and playlists reuse the shared menu", () => {
+  const harness = createHarness();
+  const markup = harness.api.field("channel", "Channel", "All channels", [["c1", "Creator 1"]], "", "playlists", false);
+  assert.doesNotMatch(markup, /filter-label/);
+  assert.match(markup, /aria-label="Channel"/);
+  assert.match(markup, /data-select-group="playlists"/);
+
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  const filtersRule = css.match(/\.filters \{([\s\S]*?)\}/)?.[1] || "";
+  assert.match(filtersRule, /position: relative/);
+  assert.match(filtersRule, /z-index: 20/);
+
+  const plFilterRule = css.match(/\.pl-filter \{([\s\S]*?)\}/)?.[1] || "";
+  assert.match(plFilterRule, /position: relative/);
+  assert.match(plFilterRule, /z-index: 20/);
+  assert.match(css, /\.pl-filter \.select-btn \{/);
 });

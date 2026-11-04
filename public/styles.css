@@ -318,6 +318,8 @@ main {
 .filter-btn.on .filter-count { background: var(--on-strong); color: var(--strong); }
 
 .filters {
+  position: relative;
+  z-index: 20;
   margin: 0 0 24px;
   padding: 16px;
   border: 1px solid var(--border);
@@ -973,6 +975,8 @@ a.card-sub:hover { color: var(--text); }
 .create-pl input:focus { border-color: var(--text); }
 
 .pl-filter {
+  position: relative;
+  z-index: 20;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -980,8 +984,7 @@ a.card-sub:hover { color: var(--text); }
   margin-bottom: 18px;
 }
 
-.pl-filter input,
-.pl-filter select {
+.pl-filter input {
   height: 36px;
   padding: 0 14px;
   border: 1px solid var(--border);
@@ -994,9 +997,11 @@ a.card-sub:hover { color: var(--text); }
 }
 
 .pl-filter input { flex: 1 1 240px; min-width: 0; }
-.pl-filter select { flex: 0 1 220px; min-width: 0; }
-.pl-filter input:focus,
-.pl-filter select:focus { border-color: var(--text); }
+.pl-filter input:focus { border-color: var(--text); }
+
+.pl-filter .filter-field { flex: 0 1 220px; min-width: 0; }
+.pl-filter .select { width: 100%; }
+.pl-filter .select-btn { height: 36px; padding: 0 14px; border-radius: 999px; }
 
 .pl-grid {
   display: grid;
