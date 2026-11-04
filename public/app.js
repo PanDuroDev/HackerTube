@@ -189,12 +189,7 @@ function initialLocale() {
   if (requested && I18N.hasLocale(requested)) return requested;
   const saved = storeGet(STORE.locale, "");
   if (saved && I18N.hasLocale(saved)) return saved;
-  if (typeof navigator !== "undefined") {
-    for (const candidate of navigator.languages || [navigator.language || ""]) {
-      const base = String(candidate || "").toLowerCase().split("-")[0];
-      if (I18N.hasLocale(base)) return base;
-    }
-  }
+  // First visits start in English; browser language must not override this.
   return "en";
 }
 
