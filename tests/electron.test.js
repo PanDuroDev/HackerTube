@@ -134,6 +134,7 @@ test("the desktop app serves the bundled site locally instead of the network", (
 
   const app = read("public/app.js");
   assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);
+  assert.match(app, /location\.protocol === "app:" \? SITE_URL \+ location\.hash/, "sharing must copy the public web URL, not app://");
 });
 
 test("desktop updates compare versions, validate URLs and pick platform assets", () => {  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);

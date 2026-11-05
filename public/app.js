@@ -3496,7 +3496,7 @@ function closeWatchActionMenu(restoreFocus = false) {
 }
 
 async function shareCurrentPage() {
-  const url = location.href;
+  const url = location.protocol === "app:" ? SITE_URL + location.hash : location.href;
   const title = document.title;
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
