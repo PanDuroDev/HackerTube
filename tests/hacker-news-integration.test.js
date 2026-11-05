@@ -69,7 +69,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customPanelHtml, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customPanelHtml, nextFeedLimit, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -598,6 +598,14 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(view.innerHTML, /class="settings-warning"/);
 });
 
+test("feed paging stops at the available results", () => {
+  const { api } = createHarness();
+  assert.equal(api.nextFeedLimit(36, 36, 60), 60);
+  assert.equal(api.nextFeedLimit(36, 36, 100), 72);
+  assert.equal(api.nextFeedLimit(60, 36, 60), 60);
+  assert.equal(api.nextFeedLimit(96, 36, 100), 100);
+});
+
 test("custom player panel lists speed, quality, and caption choices", () => {
   const { api } = createHarness();
 
@@ -701,6 +709,9 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /dataset\.htTab !== "captions"/);
   assert.match(APP_SOURCE, /if \(custom\) \{\s*applyCustomVolume\(\);/);
   assert.match(APP_SOURCE, /fallbackToNative\(videoId, queue, autoplay, playerHost\)/);
+  assert.match(APP_SOURCE, /insertAdjacentHTML\("beforeend"/);
+  assert.match(APP_SOURCE, /defer: true/);
+  assert.match(APP_SOURCE, /requestIdleCallback\(callback/);
 });
 
 

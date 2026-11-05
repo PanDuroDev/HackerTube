@@ -113,6 +113,19 @@ test("search diversifies channels in the first result page", () => {
   assert.ok([...counts.values()].every((count) => count <= 2));
 });
 
+test("an index can be built incrementally", () => {
+  const videos = [
+    { id: "python", title: "Python for Beginners", channel: "Code Academy" },
+    { id: "rust", title: "Rust Ownership", channel: "Systems Lab" },
+  ];
+  const index = new SearchIndex(videos, (video) => video, { defer: true });
+  index.addRange(0, 1);
+  index.addRange(1, videos.length);
+  index.finish();
+  assert.equal(index.search("python")[0].item.id, "python");
+  assert.equal(index.search("rust")[0].item.id, "rust");
+});
+
 test("search collapses exact duplicate title and channel results", () => {
   const videos = [
     { id: "a", title: "Python Guide", channel: "Channel C" },

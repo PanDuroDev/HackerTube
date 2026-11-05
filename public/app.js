@@ -45,6 +45,7 @@ const state = {
   meta: null,
   byId: new Map(),
   searchEngine: null,
+  searchIndexPending: null,
   hnVideos: null,
   hnVideosPromise: null,
   hnPreview: null,
@@ -166,9 +167,8 @@ function searchDedupeKey(item) {
   return `${String(channel).trim().toLowerCase()}|${String(item.title || "").trim().toLowerCase()}`;
 }
 
-function ensureMainSearchIndex() {
-  if (state.searchEngine) return state.searchEngine;
-  state.searchEngine = new window.HackerTubeSearch.SearchIndex(state.videos, (video) => ({
+function mainSearchFields(video) {
+  return {
     title: video.title,
     channel: video.channel,
     topics: (video.topics || []).map((topic) => [
@@ -176,33 +176,78 @@ function ensureMainSearchIndex() {
       TOPIC_LABELS[topic] || topic,
       TOPIC_SEARCH_ALIASES[topic] || "",
     ].join(" ")).join(" "),
-    metadata: [
-      KIND_LABELS[video.kind],
-      LEVEL_LABELS[video.level],
-      video.lang === "ar" ? "Arabic عربي" : "English",
-      video.year,
-    ].join(" "),
-    description: video.description || "",
-    tags: (video.tags || []).join(" "),
-    id: video.id,
-  }), {
+  };
+}
+
+function mainSearchOptions() {
+  return {
     getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
     getGroup: (video) => video.channel_id || video.channel,
     getDedupeKey: searchDedupeKey,
     groupLimit: 2,
     diversityLimit: 36,
-  });
+  };
+}
+
+function ensureMainSearchIndex() {
+  if (state.searchEngine) return state.searchEngine;
+  const pending = state.searchIndexPending;
+  if (pending && typeof pending.index.addRange === "function") {
+    pending.index.addRange(pending.next, pending.index.items.length);
+    pending.index.finish();
+    state.searchEngine = pending.index;
+    state.searchIndexPending = null;
+    return state.searchEngine;
+  }
+  state.searchIndexPending = null;
+  state.searchEngine = new window.HackerTubeSearch.SearchIndex(
+    state.videos,
+    mainSearchFields,
+    mainSearchOptions(),
+  );
   return state.searchEngine;
 }
 
 function warmSearchIndex() {
-  if (state.searchEngine || !state.videos.length) return;
-  const build = () => { try { ensureMainSearchIndex(); } catch { /* Build on first search instead. */ } };
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(build, { timeout: 3000 });
-  } else {
-    setTimeout(build, 1200);
+  if (state.searchEngine || state.searchIndexPending || !state.videos.length) return;
+  const SearchIndex = window.HackerTubeSearch?.SearchIndex;
+  if (!SearchIndex
+    || typeof SearchIndex.prototype?.addItem !== "function"
+    || typeof SearchIndex.prototype?.addRange !== "function"
+    || typeof SearchIndex.prototype?.finish !== "function") return;
+  let index;
+  try {
+    index = new SearchIndex(state.videos, mainSearchFields, Object.assign(mainSearchOptions(), { defer: true }));
+  } catch {
+    return;
   }
+  const pending = { index, next: 0 };
+  state.searchIndexPending = pending;
+  const schedule = (callback) => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(callback, { timeout: 1500 });
+    } else {
+      setTimeout(() => callback(null), 0);
+    }
+  };
+  const build = (deadline) => {
+    if (state.searchIndexPending !== pending) return;
+    const started = performance.now();
+    const remaining = deadline && typeof deadline.timeRemaining === "function" ? deadline.timeRemaining() : 6;
+    const budget = remaining > 0 ? Math.min(8, remaining) : 4;
+    while (pending.next < state.videos.length && performance.now() - started < budget) {
+      index.addItem(state.videos[pending.next], pending.next);
+      pending.next += 1;
+    }
+    if (pending.next < state.videos.length) {
+      schedule(build);
+    } else {
+      index.finish();
+      state.searchEngine = index;
+      state.searchIndexPending = null;
+    }
+  };
+  schedule(build);
 }
 
 function initialLocale() {
@@ -532,6 +577,7 @@ function ensureCatalog() {
         state.catalogLoaded = true;
         state.homeStale = true;
         state.searchEngine = null;
+        state.searchIndexPending = null;
         state.byId = new Map(videos.map((v) => [v.id, v]));
         warmSearchIndex();
         return videos;
@@ -1145,6 +1191,44 @@ function invalidateHomeOrder() {
 
 /* ---------- Feed ---------- */
 
+function feedList(scope) {
+  let list = filtered(scope);
+  if (scope.type === "all" && ui.sort === "foryou") {
+    const order = ensureHomeOrder();
+    const rank = new Map(order.map((video, index) => [video.id, index]));
+    list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
+  }
+  return list;
+}
+
+function nextFeedLimit(rendered, size, total) {
+  return Math.max(rendered, Math.min(total, rendered + size));
+}
+
+function appendFeedPage(scope, list) {
+  const grid = view.querySelector(".feed .grid");
+  if (!grid) return false;
+  const rendered = grid.children.length;
+  const nextLimit = nextFeedLimit(rendered, pageSize(), list.length);
+  if (nextLimit <= rendered) return false;
+  grid.insertAdjacentHTML("beforeend", list.slice(rendered, nextLimit).map((video) => card(video)).join(""));
+  ui.limit = nextLimit;
+  const more = view.querySelector(".more");
+  const hasMore = list.length > ui.limit || (!state.catalogLoaded && scope.type === "all" && !hasFilters() && !scope.q);
+  if (!hasMore) {
+    more?.remove();
+  } else {
+    const button = more?.querySelector("[data-more]");
+    if (button) {
+      button.innerHTML = `${tr("filters.showMore", "Show more")}${list.length > ui.limit ? ` (${list.length - ui.limit})` : ""}`;
+      button.disabled = false;
+    }
+  }
+  syncFeedUrl();
+  syncSidebar();
+  return true;
+}
+
 function renderFeed(scope) {
   state.scope = scope;
   if (scope.q !== undefined) $("#q").value = scope.q;
@@ -1156,12 +1240,7 @@ function renderFeed(scope) {
       })
       .catch(showCatalogError);
   }
-  let list = filtered(scope);
-  if (scope.type === "all" && ui.sort === "foryou") {
-    const order = ensureHomeOrder();
-    const rank = new Map(order.map((video, index) => [video.id, index]));
-    list = list.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
-  }
+  const list = feedList(scope);
   const shown = list.slice(0, ui.limit);
   const title = scope.title || "";
   const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
@@ -4247,13 +4326,30 @@ function onViewClick(e) {
     return;
   }
 
-  if (e.target.closest("[data-more]")) {
-    const more = () => {
-      ui.limit += pageSize();
-      renderFeed(state.scope);
-    };
-    if (!state.catalogLoaded) ensureCatalog().then(more).catch(showCatalogError);
-    else more();
+  const moreButton = e.target.closest("[data-more]");
+  if (moreButton) {
+    if (moreButton.disabled) return;
+    const scope = state.scope;
+    const list = feedList(scope);
+    if (list.length > ui.limit) {
+      appendFeedPage(scope, list);
+      return;
+    }
+    if (!state.catalogLoaded && scope.type === "all" && !hasFilters() && !scope.q) {
+      moreButton.disabled = true;
+      moreButton.textContent = tr("skeleton.loading", "Loading…");
+      ensureCatalog()
+        .then(() => {
+          if (state.scope !== scope) return;
+          if (ui.sort === "foryou" && appendFeedPage(scope, feedList(scope))) return;
+          ui.limit += pageSize();
+          renderFeed(scope);
+        })
+        .catch(showCatalogError);
+      return;
+    }
+    ui.limit += pageSize();
+    renderFeed(scope);
     return;
   }
 

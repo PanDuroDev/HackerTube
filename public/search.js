@@ -55,8 +55,8 @@
     return query;
   }
 
-  function tokenize(value) {
-    const matches = normalize(value).match(/[\p{L}\p{N}_+#.]+/gu) || [];
+  function tokenizeNormalized(text) {
+    const matches = String(text || "").match(/[\p{L}\p{N}_+#.]+/gu) || [];
     const tokens = [];
     for (const match of matches) {
       tokens.push(match);
@@ -67,6 +67,10 @@
       }
     }
     return tokens;
+  }
+
+  function tokenize(value) {
+    return tokenizeNormalized(normalize(value));
   }
 
   function queryTokens(value) {
@@ -112,29 +116,46 @@
       this.documents = [];
       this.postings = new Map();
       this.terms = [];
+      this.ready = false;
+      this.items = Array.isArray(items) ? items : [];
+      if (!settings.defer) {
+        this.addRange(0, this.items.length);
+        this.finish();
+      }
+    }
 
-      this.items.forEach((item, index) => {
-        const source = this.getFields(item) || {};
-        const fields = [];
-        const weights = new Map();
-        for (const [name, value] of Object.entries(source)) {
-          if (value == null || value === "") continue;
-          const text = normalize(Array.isArray(value) ? value.join(" ") : value);
-          if (!text) continue;
-          fields.push({ name: name, text: text });
-          const weight = FIELD_WEIGHTS[name] || 2;
-          for (const token of new Set(tokenize(text))) {
-            weights.set(token, (weights.get(token) || 0) + weight);
-          }
+    addItem(item, index) {
+      const source = this.getFields(item) || {};
+      const fields = [];
+      const weights = new Map();
+      for (const [name, value] of Object.entries(source)) {
+        if (value == null || value === "") continue;
+        const text = normalize(Array.isArray(value) ? value.join(" ") : value);
+        if (!text) continue;
+        fields.push({ name: name, text: text });
+        const weight = FIELD_WEIGHTS[name] || 2;
+        for (const token of new Set(tokenizeNormalized(text))) {
+          weights.set(token, (weights.get(token) || 0) + weight);
         }
-        this.documents.push({ item: item, fields: fields, index: index });
-        for (const [token, weight] of weights) {
-          let posting = this.postings.get(token);
-          if (!posting) { posting = new Map(); this.postings.set(token, posting); }
-          posting.set(index, weight);
-        }
-      });
+      }
+      this.documents.push({ item: item, fields: fields, index: index });
+      for (const [token, weight] of weights) {
+        let posting = this.postings.get(token);
+        if (!posting) { posting = new Map(); this.postings.set(token, posting); }
+        posting.set(index, weight);
+      }
+    }
+
+    addRange(start, end) {
+      const last = Math.min(Number(end) || 0, this.items.length);
+      for (let index = Math.max(0, Number(start) || 0); index < last; index += 1) {
+        this.addItem(this.items[index], index);
+      }
+    }
+
+    finish() {
       this.terms = Array.from(this.postings.keys());
+      this.ready = true;
     }
 
     matchingTerms(token, isLast) {
