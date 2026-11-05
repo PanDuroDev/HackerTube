@@ -504,6 +504,38 @@ ipcMain.handle("app:custom-player-chrome-applied", async (event) => {
   return results.some(Boolean);
 });
 
+const YOUTUBE_CHAPTERS_SCRIPT = `(() => {
+  const line = document.querySelector("yt-chaptered-progress-bar-line");
+  if (!line) return [];
+  const segments = Array.from(line.querySelectorAll(".ytChapteredProgressBarChapteredPlayerBarChapter"));
+  if (segments.length < 2) return [];
+  const widths = segments.map((node) => Number.parseFloat(node.style.width) || 0);
+  const total = widths.reduce((sum, width) => sum + width, 0);
+  if (!(total > 0)) return [];
+  let elapsed = 0;
+  const marks = [];
+  for (let index = 0; index < widths.length - 1; index += 1) {
+    elapsed += widths[index];
+    const percent = (elapsed / total) * 100;
+    if (percent > 0.5 && percent < 99.5) marks.push(Math.round(percent * 100) / 100);
+    if (marks.length >= 80) break;
+  }
+  return marks;
+})()`;
+
+ipcMain.handle("app:youtube-chapters", async (event) => {
+  if (!isTrusted(event)) return [];
+  for (const frame of youtubeFrames(event.sender)) {
+    try {
+      const marks = await frame.executeJavaScript(YOUTUBE_CHAPTERS_SCRIPT);
+      if (Array.isArray(marks) && marks.length) return marks.slice(0, 80);
+    } catch {
+      // Chapters are optional; other frames may still expose them.
+    }
+  }
+  return [];
+});
+
 function createWindow() {
   win = new BrowserWindow({
     title: "HackerTube",

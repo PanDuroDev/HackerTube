@@ -45,14 +45,24 @@ html {
 
 ::selection { background: var(--accent); color: #fff; }
 
-::-webkit-scrollbar { width: 12px; height: 12px; }
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+}
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  border: 3px solid var(--bg);
+  border: 0;
   border-radius: 999px;
-  background: var(--soft-2);
+  background: var(--border);
+  background: color-mix(in srgb, var(--muted) 42%, transparent);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background: color-mix(in srgb, var(--muted) 70%, transparent);
+}
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-corner { background: transparent; }
 
 body {
   height: 100vh;
@@ -842,7 +852,7 @@ a.card-sub:hover { color: var(--text); }
 }
 .player.ht-player.ht-hide .ht-controls { opacity: 0; transform: translateY(8px); pointer-events: none; }
 
-.ht-seek-wrap { display: flex; align-items: center; padding: 0 2px; }
+.ht-seek-wrap { position: relative; display: flex; align-items: center; padding: 0 2px; }
 
 .ht-seek,
 .ht-volume {
@@ -853,24 +863,50 @@ a.card-sub:hover { color: var(--text); }
   margin: 0;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(to right, var(--accent) var(--ht-progress), rgba(255, 255, 255, .3) var(--ht-progress)) center / 100% 3px no-repeat;
   cursor: pointer;
 }
 
-.ht-seek { flex: 1 1 auto; width: 100%; height: 16px; }
-.ht-volume { flex: 0 0 0; width: 0; height: 16px; margin: 0; opacity: 0; pointer-events: none; background-size: 100% 3px; transition: width .18s ease, flex-basis .18s ease, opacity .18s ease, margin .18s ease; }
+.ht-seek {
+  --ht-buffered: 0%;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 18px;
+  background:
+    linear-gradient(to right, var(--accent) var(--ht-progress), transparent var(--ht-progress)) center / 100% 4px no-repeat,
+    linear-gradient(to right, rgba(255, 255, 255, .36) var(--ht-buffered), rgba(255, 255, 255, .18) var(--ht-buffered)) center / 100% 4px no-repeat;
+  transition: background-size .15s ease;
+}
+.ht-seek:hover,
+.ht-seek:focus-visible { background-size: 100% 6px, 100% 6px; }
+.ht-volume { flex: 0 0 0; width: 0; height: 16px; margin: 0; opacity: 0; pointer-events: none; background: linear-gradient(to right, var(--accent) var(--ht-progress), rgba(255, 255, 255, .3) var(--ht-progress)) center / 100% 3px no-repeat; background-size: 100% 3px; transition: width .18s ease, flex-basis .18s ease, opacity .18s ease, margin .18s ease; }
 .ht-volume-wrap { display: flex; align-items: center; flex: 0 0 auto; }
 .ht-volume-wrap:hover .ht-volume,
 .ht-volume-wrap:focus-within .ht-volume { flex-basis: 72px; width: 72px; margin-inline-start: 4px; opacity: 1; pointer-events: auto; }
 
-.ht-seek::-webkit-slider-runnable-track { height: 3px; border-radius: 999px; background: transparent; }
+.ht-chapters {
+  position: absolute;
+  inset-inline: 2px;
+  top: 50%;
+  height: 6px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.ht-chapters i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, .34);
+}
+
+.ht-seek::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: transparent; }
 .ht-volume::-webkit-slider-runnable-track { height: 3px; border-radius: 999px; background: transparent; }
 .ht-seek::-webkit-slider-thumb,
 .ht-volume::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 11px;
   height: 11px;
-  margin-top: -4px;
+  margin-top: -3.5px;
   border: 0;
   border-radius: 50%;
   background: #fff;
@@ -881,7 +917,8 @@ a.card-sub:hover { color: var(--text); }
 .ht-seek:focus-visible::-webkit-slider-thumb { opacity: 1; }
 .ht-volume::-webkit-slider-thumb { width: 9px; height: 9px; margin-top: -3px; }
 .ht-seek::-moz-range-track,
-.ht-volume::-moz-range-track { height: 3px; border-radius: 999px; background: transparent; }
+.ht-volume::-moz-range-track { height: 4px; border-radius: 999px; background: transparent; }
+.ht-volume::-moz-range-track { height: 3px; }
 .ht-seek::-moz-range-thumb,
 .ht-volume::-moz-range-thumb { width: 11px; height: 11px; border: 0; border-radius: 50%; background: #fff; }
 .ht-seek:focus-visible,
