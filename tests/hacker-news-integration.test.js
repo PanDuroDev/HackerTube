@@ -69,7 +69,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customMenuHtml, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -575,6 +575,10 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(wrapper, /data-ht-action="forward10"/);
   assert.match(wrapper, /data-ht-action="mute"/);
   assert.match(wrapper, /data-ht-action="fullscreen"/);
+  assert.match(wrapper, /ht-volume-wrap/);
+  assert.match(wrapper, /data-ht-menu="speed"/);
+  assert.match(wrapper, /data-ht-menu="quality"/);
+  assert.match(wrapper, /data-ht-menu="captions"/);
   assert.match(wrapper, /ht-center/);
   assert.match(wrapper, /id="youtube-player"/);
 
@@ -585,18 +589,82 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(view.innerHTML, /class="settings-warning"/);
 });
 
+test("custom player menus list speed, quality, and caption choices", () => {
+  const { api } = createHarness();
+
+  const speed = api.customMenuHtml("speed", { getPlaybackRate: () => 1.5 });
+  assert.match(speed, /Playback speed/);
+  assert.match(speed, /1\.5×/);
+  assert.equal((speed.match(/is-selected/g) || []).length, 1);
+
+  const quality = api.customMenuHtml("quality", {
+    getPlaybackQuality: () => "hd1080",
+    getAvailableQualityLevels: () => ["hd1080", "hd720", "large"],
+  });
+  assert.match(quality, /Auto/);
+  assert.match(quality, /1080p/);
+  assert.match(quality, /720p/);
+  assert.match(quality, /480p/);
+
+  const captions = api.customMenuHtml("captions", {
+    getOption: (module, key) => key === "tracklist"
+      ? [{ languageCode: "en", displayName: "English" }, { languageCode: "ar", displayName: "Arabic" }]
+      : null,
+  });
+  assert.match(captions, /Off/);
+  assert.match(captions, /English/);
+  assert.match(captions, /Arabic/);
+
+  const singleTrack = api.customMenuHtml("captions", {
+    getOption: (module, key) => key === "tracklist"
+      ? []
+      : { languageCode: "en", displayName: "English (auto-generated)" },
+  });
+  assert.match(singleTrack, /English \(auto-generated\)/);
+
+  const translations = api.customMenuHtml("captions", {
+    getOptions: () => ["captions"],
+    getOption: (module, key) => {
+      if (key === "tracklist" || key === "track") return [];
+      if (key === "translationLanguages") {
+        return [
+          { languageCode: "en", languageName: "English" },
+          { languageCode: "ar", languageName: "Arabic" },
+          { languageCode: "es", languageName: "Spanish" },
+        ];
+      }
+      return null;
+    },
+  });
+  assert.match(translations, /Translate to/);
+  assert.match(translations, /data-value="en\|ar"/);
+  assert.match(translations, /Arabic/);
+  assert.match(translations, /Spanish/);
+
+  const manyTranslations = api.customMenuHtml("captions", {
+    getOptions: () => ["captions"],
+    getOption: (module, key) => key === "translationLanguages"
+      ? Array.from({ length: 14 }, (_, index) => ({ languageCode: `l${index}`, languageName: `Language ${index}` }))
+      : [],
+  });
+  assert.match(manyTranslations, /data-ht-caption-search/);
+});
+
 test("custom playback assets use the MingCute sprite and require the disclaimer", () => {
   const root = path.join(__dirname, "..", "public");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 
-  for (const id of ["pause", "volume", "volume-mute", "fullscreen", "fullscreen-exit", "rewind-back-10", "rewind-forward-10", "warning"]) {
+  for (const id of ["pause", "volume", "volume-mute", "fullscreen", "fullscreen-exit", "rewind-back-10", "rewind-forward-10", "warning", "hd", "captions", "dashboard-2"]) {
     assert.match(html, new RegExp(`<symbol id="i-${id}"`), `missing icon ${id}`);
   }
   assert.match(css, /\.player\.ht-player iframe \{ pointer-events: none; \}/);
   assert.match(css, /\.ht-controls/);
   assert.match(css, /\.ht-center/);
   assert.match(css, /\.player\.ht-player\.ht-hide \.ht-controls/);
+  assert.match(css, /\.ht-volume-wrap:hover \.ht-volume/);
+  assert.match(css, /\.ht-pop\.open \.ht-menu/);
+  assert.match(css, /\.ht-menu-item\[hidden\]/);
   assert.match(css, /\.settings-warning/);
   assert.match(APP_SOURCE, /enableCustomPlayer/);
   assert.match(APP_SOURCE, /customPlayerTitle/);

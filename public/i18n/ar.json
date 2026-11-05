@@ -387,7 +387,17 @@
     "volume": "مستوى الصوت",
     "seek": "الانتقال في الفيديو",
     "fullscreen": "ملء الشاشة",
-    "exitFullscreen": "إنهاء ملء الشاشة"
+    "exitFullscreen": "إنهاء ملء الشاشة",
+    "speed": "سرعة التشغيل",
+    "quality": "الجودة",
+    "captions": "الترجمة",
+    "off": "إيقاف",
+    "auto": "تلقائي",
+    "original": "الأصلية",
+    "translateTo": "الترجمة إلى",
+    "searchLanguages": "ابحث عن لغة",
+    "captionsHint": "شغّل الفيديو لتحميل لغات الترجمة.",
+    "noCaptions": "لا تتوفر ترجمة"
   },
   "collections": {
     "likedEmpty": "لا توجد فيديوهات معجب بها بعد.",

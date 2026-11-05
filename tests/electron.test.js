@@ -336,6 +336,33 @@ test("install path containment handles same, nested, and case-variant folders", 
   }
 });
 
+test("custom playback hides the YouTube chrome inside its own frame", () => {
+  const main = read("electron/main.js");
+  assert.match(main, /app:custom-player-chrome/);
+  assert.match(main, /YOUTUBE_FRAME_RE/);
+  assert.match(main, /framesInSubtree/);
+  assert.match(main, /executeJavaScript/);
+  assert.match(main, /ytmCuedOverlayHost/);
+  assert.match(main, /embedded-player-video-details/);
+  assert.match(main, /player-top-controls/);
+  assert.match(main, /player-middle-controls/);
+  assert.match(main, /player-bottom-controls/);
+  assert.match(main, /ytPlayerProgressBarHost/);
+  assert.match(main, /\.ytp-chrome-controls/);
+  assert.match(main, /did-frame-finish-load/);
+  assert.match(main, /scheduleCustomPlayerChrome/);
+  assert.match(main, /remove\(\)/);
+  assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
+
+  const preload = read("electron/preload.js");
+  assert.match(preload, /setCustomPlayerChrome/);
+  assert.match(preload, /app:custom-player-chrome/);
+
+  const app = read("public/app.js");
+  assert.match(app, /syncCustomPlayerChrome/);
+  assert.match(app, /setCustomPlayerChrome\?\./);
+});
+
 test("the AppImage updater restores the backup and relaunches only after exit", () => {
   const main = read("electron/main.js");
   assert.match(main, /let movedCurrent = false/);

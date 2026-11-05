@@ -96,6 +96,8 @@ let customUiPoll = null;
 let customHideTimer = null;
 let customVolume = 100;
 let customSeeking = false;
+let customCaptionCode = "";
+let customCaptionName = "";
 let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
@@ -398,6 +400,10 @@ async function init() {
   });
   document.addEventListener("fullscreenchange", syncCustomFullscreenUi);
   document.addEventListener("keydown", onCustomPlayerKeydown);
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.(".ht-pop")) closeCustomMenus();
+  });
+  addEventListener("resize", closeCustomMenus);
   document.addEventListener("keydown", (e) => {
     if ($("#confirmDialog")?.open) return;
 
@@ -1439,12 +1445,19 @@ function customPlayerActive() {
   return Boolean(window.electronWindow) && state.settings.customPlayer === true;
 }
 
+function syncCustomPlayerChrome() {
+  window.electronWindow?.setCustomPlayerChrome?.(customPlayerActive());
+}
+
 function customControlsMarkup() {
   const play = tr("player.play", "Play");
   const back10 = tr("player.back10", "Back 10 seconds");
   const forward10 = tr("player.forward10", "Forward 10 seconds");
   const mute = tr("player.mute", "Mute");
   const fullscreen = tr("player.fullscreen", "Fullscreen");
+  const speed = tr("player.speed", "Playback speed");
+  const quality = tr("player.quality", "Quality");
+  const captions = tr("player.captions", "Captions");
   return `<div class="ht-controls" data-ht-controls>
     <div class="ht-seek-wrap">
       <input class="ht-seek" type="range" min="0" max="0" step="0.1" value="0" dir="ltr" aria-label="${esc(tr("player.seek", "Seek"))}" data-ht-seek>
@@ -1453,10 +1466,24 @@ function customControlsMarkup() {
       <button class="ht-btn" type="button" data-ht-action="toggle" aria-label="${esc(play)}" title="${esc(play)}">${icon("play")}</button>
       <button class="ht-btn" type="button" data-ht-action="back10" aria-label="${esc(back10)}" title="${esc(back10)}">${icon("rewind-back-10")}</button>
       <button class="ht-btn" type="button" data-ht-action="forward10" aria-label="${esc(forward10)}" title="${esc(forward10)}">${icon("rewind-forward-10")}</button>
-      <button class="ht-btn" type="button" data-ht-action="mute" aria-label="${esc(mute)}" title="${esc(mute)}" aria-pressed="false">${icon("volume")}</button>
-      <input class="ht-volume" type="range" min="0" max="100" step="1" value="100" dir="ltr" aria-label="${esc(tr("player.volume", "Volume"))}" data-ht-volume>
+      <div class="ht-volume-wrap">
+        <button class="ht-btn" type="button" data-ht-action="mute" aria-label="${esc(mute)}" title="${esc(mute)}" aria-pressed="false">${icon("volume")}</button>
+        <input class="ht-volume" type="range" min="0" max="100" step="1" value="100" dir="ltr" aria-label="${esc(tr("player.volume", "Volume"))}" data-ht-volume>
+      </div>
       <span class="ht-time" data-ht-time dir="ltr">0:00 / 0:00</span>
       <span class="ht-spacer"></span>
+      <div class="ht-pop">
+        <button class="ht-btn" type="button" data-ht-menu="speed" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(speed)}" title="${esc(speed)}">${icon("dashboard-2")}</button>
+        <div class="ht-menu" role="menu" aria-label="${esc(speed)}" dir="auto"></div>
+      </div>
+      <div class="ht-pop">
+        <button class="ht-btn" type="button" data-ht-menu="quality" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(quality)}" title="${esc(quality)}">${icon("hd")}</button>
+        <div class="ht-menu" role="menu" aria-label="${esc(quality)}" dir="auto"></div>
+      </div>
+      <div class="ht-pop">
+        <button class="ht-btn" type="button" data-ht-menu="captions" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(captions)}" title="${esc(captions)}">${icon("captions")}</button>
+        <div class="ht-menu" role="menu" aria-label="${esc(captions)}" dir="auto"></div>
+      </div>
       <button class="ht-btn" type="button" data-ht-action="fullscreen" aria-label="${esc(fullscreen)}" title="${esc(fullscreen)}" aria-pressed="false">${icon("fullscreen")}</button>
     </div>
   </div>
@@ -1509,7 +1536,7 @@ function showCustomControls(sticky = false) {
 function scheduleCustomHide() {
   clearTimeout(customHideTimer);
   customHideTimer = null;
-  if (!playerIsPlaying()) return;
+  if (!playerIsPlaying() || document.querySelector(".ht-pop.open")) return;
   customHideTimer = setTimeout(() => {
     const player = activeCustomPlayerEl();
     if (!player || player.contains(document.activeElement) || !playerIsPlaying()) return;
@@ -1596,6 +1623,188 @@ function previewCustomSeek(seek) {
   if (timeLabel) timeLabel.textContent = `${fmtDuration(time)} / ${fmtDuration(duration)}`;
 }
 
+function customQualityLabel(level) {
+  if (!level || level === "unknown" || level === "auto" || level === "default") return tr("player.auto", "Auto");
+  return {
+    highres: "4K",
+    hd2160: "2160p",
+    hd1440: "1440p",
+    hd1080: "1080p",
+    hd720: "720p",
+    large: "480p",
+    medium: "360p",
+    small: "240p",
+    tiny: "144p",
+  }[level] || level;
+}
+
+function customMenuHtml(kind, player) {
+  const check = icon("check", "ht-menu-check");
+  const item = (selected, value, label) => `<button class="ht-menu-item${selected ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${selected}" data-ht-choice="${kind}" data-value="${esc(value)}" dir="auto"><span>${esc(label)}</span>${check}</button>`;
+  let title = "";
+  let items = "";
+  let search = "";
+
+  if (kind === "speed") {
+    title = tr("player.speed", "Playback speed");
+    let current = 1;
+    try { current = Number(player.getPlaybackRate?.() || 1); } catch {}
+    items = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+      .map((rate) => item(Math.abs(current - rate) < 0.01, String(rate), `${rate}×`))
+      .join("");
+  } else if (kind === "quality") {
+    title = tr("player.quality", "Quality");
+    let current = "";
+    let levels = [];
+    try {
+      current = player.getPlaybackQuality?.() || "";
+      levels = player.getAvailableQualityLevels?.() || [];
+    } catch {}
+    const auto = !current || ["auto", "default", "unknown"].includes(current);
+    const options = ["default", ...levels.filter((level) => level !== "default" && level !== "auto")];
+    items = options.map((level) => {
+      const selected = level === "default" ? auto : level === current;
+      return item(selected, level, customQualityLabel(level));
+    }).join("");
+  } else if (kind === "captions") {
+    title = tr("player.captions", "Captions");
+    const current = customCaptionCode;
+    let tracks = [];
+    let translations = [];
+    let moduleLoaded = false;
+    try {
+      moduleLoaded = (player.getOptions?.("captions") || []).length > 0;
+      const trackList = player.getOption?.("captions", "tracklist");
+      tracks = Array.isArray(trackList) ? trackList : [];
+      if (!tracks.length) {
+        const activeTrack = player.getOption?.("captions", "track");
+        if (activeTrack?.languageCode) tracks = [activeTrack];
+      }
+      const translationList = player.getOption?.("captions", "translationLanguages");
+      translations = Array.isArray(translationList) ? translationList : [];
+    } catch {
+      // The captions module is only readable while the player is active.
+    }
+    let source = current.includes("|") ? current.split("|")[0] : current;
+    if (!source) {
+      source = tracks.find((track) => track.languageCode)?.languageCode || "";
+    }
+    if (!source && state.current) {
+      const video = videoById(state.current);
+      source = textLang(`${video?.title || ""} ${video?.description || ""}`) || "en";
+    }
+    source ||= "en";
+    const sourceTrack = tracks.find((track) => track.languageCode === source);
+    const sourceName = translations.find((language) => language.languageCode === source)?.languageName
+      || sourceTrack?.displayName
+      || sourceTrack?.languageName
+      || source;
+    const trackCodes = new Set(tracks.map((track) => track.languageCode).filter(Boolean));
+    const translateTo = translations
+      .filter((language) => language.languageCode && language.languageCode !== source)
+      .sort((a, b) => String(a.languageName || a.languageCode).localeCompare(String(b.languageName || b.languageCode)));
+
+    items = item(!current, "", tr("player.off", "Off"));
+    if (tracks.length || translateTo.length) {
+      items += item(current === source, source, `${sourceName} (${tr("player.original", "Original")})`);
+    }
+    items += tracks
+      .filter((track) => track.languageCode && track.languageCode !== source)
+      .map((track) => item(current === track.languageCode, track.languageCode, track.displayName || track.languageName || track.languageCode))
+      .join("");
+    if (translateTo.length) {
+      if (translateTo.length > 12) {
+        const searchLabel = tr("player.searchLanguages", "Search languages");
+        search = `<input class="ht-menu-search" type="search" placeholder="${esc(searchLabel)}" aria-label="${esc(searchLabel)}" data-ht-caption-search>`;
+      }
+      items += `<div class="ht-menu-title ht-menu-subtitle">${esc(tr("player.translateTo", "Translate to"))}</div>`;
+      items += translateTo
+        .map((language) => {
+          const value = `${source}|${language.languageCode}`;
+          return item(current === value, value, language.languageName || language.languageCode);
+        })
+        .join("");
+    }
+    if (!trackCodes.size && !translateTo.length) {
+      const message = moduleLoaded
+        ? tr("player.noCaptions", "No captions available")
+        : tr("player.captionsHint", "Play the video to load caption languages.");
+      items += `<span class="ht-menu-empty">${esc(message)}</span>`;
+    }
+  }
+
+  return `<div class="ht-menu-title">${esc(title)}</div>${search}${items}`;
+}
+
+function closeCustomMenus() {
+  let closed = false;
+  document.querySelectorAll(".ht-pop.open").forEach((pop) => {
+    pop.classList.remove("open");
+    pop.querySelector("[data-ht-menu]")?.setAttribute("aria-expanded", "false");
+    closed = true;
+  });
+  return closed;
+}
+
+function toggleCustomMenu(kind, button) {
+  const pop = button.closest(".ht-pop");
+  const wasOpen = pop?.classList.contains("open");
+  closeCustomMenus();
+  if (!pop || wasOpen || !playlistPlayer) {
+    if (playlistPlayer) scheduleCustomHide();
+    return;
+  }
+  const menu = pop.querySelector(".ht-menu");
+  if (!menu) return;
+  const playerHeight = button.closest(".player")?.clientHeight || 320;
+  menu.style.maxHeight = `${Math.min(300, Math.max(140, playerHeight - 94))}px`;
+  menu.innerHTML = customMenuHtml(kind, playlistPlayer);
+  pop.classList.add("open");
+  button.setAttribute("aria-expanded", "true");
+  showCustomControls(true);
+  if (kind === "captions") {
+    if (playerIsPlaying()) {
+      try { playlistPlayer.loadModule?.("captions"); } catch {}
+    }
+    for (const delay of [600, 1800]) {
+      setTimeout(() => {
+        if (!pop.classList.contains("open") || !playlistPlayer) return;
+        if (menu.querySelector("[data-ht-caption-search]")?.value) return;
+        menu.innerHTML = customMenuHtml(kind, playlistPlayer);
+      }, delay);
+    }
+  }
+}
+
+function applyCustomMenuChoice(kind, value, label = "") {
+  const player = playlistPlayer;
+  if (!player) return;
+  try {
+    if (kind === "speed") player.setPlaybackRate?.(Number(value) || 1);
+    else if (kind === "quality") player.setPlaybackQuality?.(value);
+    else if (kind === "captions") {
+      customCaptionCode = value;
+      customCaptionName = value ? (label || value) : "";
+      const [source, target] = value.split("|");
+      if (!value) {
+        player.unloadModule?.("captions");
+        player.setOption?.("captions", "track", {});
+      } else {
+        player.loadModule?.("captions");
+        const track = target
+          ? { languageCode: source, translationLanguage: { languageCode: target } }
+          : { languageCode: source };
+        player.setOption?.("captions", "track", track);
+      }
+    }
+  } catch {
+    // Some embeds restrict the captions module; keep the menu usable.
+  }
+  closeCustomMenus();
+  syncCustomPlayerUi();
+  showCustomControls();
+}
+
 function syncCustomPlayerUi() {
   const playerEl = activeCustomPlayerEl();
   const player = playlistPlayer;
@@ -1659,6 +1868,40 @@ function syncCustomPlayerUi() {
     setRangeProgress(volumeInput, silent ? 0 : volume);
   }
 
+  let rate = 1;
+  let quality = "";
+  try {
+    rate = Number(player.getPlaybackRate?.() || 1);
+    quality = player.getPlaybackQuality?.() || "";
+  } catch {
+    // Quality and rate are only available after the player is ready.
+  }
+  const speedButton = playerEl.querySelector('[data-ht-menu="speed"]');
+  if (speedButton) {
+    const label = `${tr("player.speed", "Playback speed")}: ${rate}×`;
+    if (speedButton.title !== label) {
+      speedButton.title = label;
+      speedButton.setAttribute("aria-label", label);
+    }
+  }
+  const qualityButton = playerEl.querySelector('[data-ht-menu="quality"]');
+  if (qualityButton) {
+    const label = `${tr("player.quality", "Quality")}: ${quality ? customQualityLabel(quality) : tr("player.auto", "Auto")}`;
+    if (qualityButton.title !== label) {
+      qualityButton.title = label;
+      qualityButton.setAttribute("aria-label", label);
+    }
+  }
+  const captionsButton = playerEl.querySelector('[data-ht-menu="captions"]');
+  if (captionsButton) {
+    captionsButton.classList.toggle("is-on", Boolean(customCaptionCode));
+    const label = `${tr("player.captions", "Captions")}${customCaptionCode ? `: ${customCaptionName || customCaptionCode}` : ""}`;
+    if (captionsButton.title !== label) {
+      captionsButton.title = label;
+      captionsButton.setAttribute("aria-label", label);
+    }
+  }
+
   const seek = playerEl.querySelector("[data-ht-seek]");
   if (seek && !customSeeking) {
     if (duration > 0) seek.max = String(duration);
@@ -1715,11 +1958,27 @@ function setupCustomControls() {
   if (!playerEl || playerEl.dataset.htReady === "1") return;
   playerEl.dataset.htReady = "1";
   playerEl.classList.add("is-paused");
+  customCaptionCode = "";
+  customCaptionName = "";
 
   const savedVolume = Number(storeGet("ht_player_volume", 100));
   if (Number.isFinite(savedVolume)) customVolume = Math.min(100, Math.max(0, savedVolume));
 
   playerEl.addEventListener("click", (event) => {
+    const menuButton = event.target.closest("[data-ht-menu]");
+    if (menuButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCustomMenu(menuButton.dataset.htMenu, menuButton);
+      return;
+    }
+    const choice = event.target.closest("[data-ht-choice]");
+    if (choice) {
+      event.preventDefault();
+      event.stopPropagation();
+      applyCustomMenuChoice(choice.dataset.htChoice, choice.dataset.value, choice.textContent.trim());
+      return;
+    }
     const actionButton = event.target.closest("[data-ht-action]");
     if (actionButton) {
       event.preventDefault();
@@ -1727,7 +1986,7 @@ function setupCustomControls() {
       customPlayerAction(actionButton.dataset.htAction);
       return;
     }
-    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab")) return;
+    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab, .ht-pop")) return;
     customPlayerAction("toggle");
   });
 
@@ -1735,6 +1994,15 @@ function setupCustomControls() {
   playerEl.addEventListener("pointerdown", () => showCustomControls());
   playerEl.addEventListener("pointerleave", () => {
     if (playerIsPlaying()) scheduleCustomHide();
+  });
+  playerEl.addEventListener("input", (event) => {
+    const search = event.target.closest("[data-ht-caption-search]");
+    if (!search) return;
+    const needle = search.value.trim().toLowerCase();
+    search.closest(".ht-pop")?.querySelectorAll('[data-ht-choice="captions"]').forEach((button) => {
+      button.hidden = Boolean(needle) && Boolean(button.dataset.value)
+        && !button.textContent.toLowerCase().includes(needle);
+    });
   });
   playerEl.addEventListener("focusin", () => showCustomControls(true));
   playerEl.addEventListener("focusout", () => {
@@ -1781,6 +2049,10 @@ function setupCustomControls() {
 
 function onCustomPlayerKeydown(event) {
   if (!customPlayerActive() || event.defaultPrevented) return;
+  if (event.key === "Escape" && closeCustomMenus()) {
+    event.preventDefault();
+    return;
+  }
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   if (document.querySelector("#confirmDialog")?.open) return;
   const target = event.target;
@@ -2108,6 +2380,7 @@ function loadYouTubeIframeApi() {
 
 function restoreNativePlayer(videoId, queue, routeHash, autoplay) {
   if (location.hash !== routeHash) return;
+  window.electronWindow?.setCustomPlayerChrome?.(false);
   stopCustomControls();
   try {
     playlistPlayer?.destroy?.();
@@ -2128,7 +2401,10 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
   const custom = Boolean(playerFrame.closest?.(".player.ht-player"));
-  if (custom) setupCustomControls();
+  if (custom) {
+    syncCustomPlayerChrome();
+    setupCustomControls();
+  }
   try {
     const YT = await loadYouTubeIframeApi();
     if (location.hash !== routeHash || !playerFrame.isConnected) return;
@@ -3177,6 +3453,7 @@ function setupElectronWindow() {
   const api = window.electronWindow;
   if (!api) return;
   document.documentElement.classList.add("electron-app");
+  syncCustomPlayerChrome();
   const controls = $("#windowControls");
   if (controls) controls.hidden = false;
 
@@ -3955,6 +4232,7 @@ async function enableCustomPlayer(input) {
   if (!confirmed) return;
   state.settings.customPlayer = true;
   storeSet(STORE.settings, state.settings);
+  syncCustomPlayerChrome();
   if (input) input.checked = true;
   toast(tr("settings.customPlayerEnabled", "Custom controls enabled"));
 }
@@ -3970,6 +4248,7 @@ function onViewChange(e) {
     }
     state.settings[key] = setting.type === "checkbox" ? setting.checked : Number(setting.value);
     storeSet(STORE.settings, state.settings);
+    if (key === "customPlayer") syncCustomPlayerChrome();
     if (key === "pageSize") ui.limit = pageSize();
     syncSidebar();
     toast(tr("settings.saved", "Saved"));

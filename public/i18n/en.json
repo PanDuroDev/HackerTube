@@ -379,7 +379,17 @@
     "volume": "Volume",
     "seek": "Seek",
     "fullscreen": "Fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "speed": "Playback speed",
+    "quality": "Quality",
+    "captions": "Captions",
+    "off": "Off",
+    "auto": "Auto",
+    "original": "Original",
+    "translateTo": "Translate to",
+    "searchLanguages": "Search languages",
+    "captionsHint": "Play the video to load caption languages.",
+    "noCaptions": "No captions available"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",
