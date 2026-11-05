@@ -1,28 +1,21 @@
 const { app, BrowserWindow, dialog, ipcMain, Menu, net, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
 const { Readable } = require("node:stream");
 const { pipeline } = require("node:stream/promises");
 const update = require("./update");
+const installer = require("./installer");
 
 const APP_URL = (process.env.HACKERTUBE_URL || "https://pandurodev.github.io/HackerTube/").replace(/\/?$/, "/");
 const APP_ID = "com.pandurodev.hackertube";
 let win = null;
 
+const installerLaunch = Boolean(process.env.PORTABLE_EXECUTABLE_FILE) || process.argv.includes("--installer");
+const uninstallLaunch = process.argv.includes("--uninstall");
+const standaloneInstaller = installerLaunch || uninstallLaunch;
+
 function isTrusted(event) {
   return String(event.senderFrame?.url || "").startsWith(APP_URL);
-}
-
-function findWindowsUninstaller() {
-  if (!app.isPackaged) return null;
-  const dir = path.dirname(app.getPath("exe"));
-  try {
-    const match = fs.readdirSync(dir).find((name) => /^Uninstall.*\.exe$/i.test(name));
-    return match ? path.join(dir, match) : null;
-  } catch {
-    return null;
-  }
 }
 
 async function latestReleaseInfo() {
@@ -182,95 +175,59 @@ ipcMain.handle("app:install-update", async (event) => {
   }
 });
 
-ipcMain.handle("app:uninstall", async (event) => {
+ipcMain.handle("app:uninstall", (event) => {
   if (!isTrusted(event) || !win) return { ok: false, reason: "untrusted" };
-  const { response } = await dialog.showMessageBox(win, {
-    type: "warning",
-    buttons: ["Cancel", "Uninstall"],
-    defaultId: 0,
-    cancelId: 0,
-    noLink: true,
-    title: "Uninstall HackerTube",
-    message: "Uninstall HackerTube from this computer?",
-    detail: "The app will close and the uninstaller will open. Your browser data is not affected.",
-  });
-  if (response !== 1) return { ok: false, canceled: true };
-
-  if (process.platform === "darwin") {
-    try {
-      await shell.trashItem(path.resolve(app.getPath("exe"), "../../.."));
-      setTimeout(() => app.quit(), 200);
-      return { ok: true };
-    } catch {
-      // Fall through to manual instructions.
-    }
-  }
-
-  if (process.platform === "win32") {
-    const uninstaller = findWindowsUninstaller();
-    if (uninstaller) {
-      spawn(uninstaller, [], { detached: true, stdio: "ignore" }).unref();
-      setTimeout(() => app.quit(), 300);
-      return { ok: true };
-    }
-  }
-
-  if (process.platform === "linux" && process.env.APPIMAGE) {
-    try {
-      await shell.trashItem(process.env.APPIMAGE);
-      setTimeout(() => app.quit(), 200);
-      return { ok: true };
-    } catch {
-      // Fall through to manual instructions.
-    }
-  }
-
-  await dialog.showMessageBox(win, {
-    type: "info",
-    title: "Uninstall HackerTube",
-    message: "Uninstall HackerTube",
-    detail: "Use your system's app settings to uninstall the desktop app.",
-  });
-  return { ok: false, reason: "manual", handled: true };
+  installer.openWindow("uninstall", win);
+  return { ok: true, handled: true };
 });
 
-const gotLock = app.requestSingleInstanceLock();
-
-if (!gotLock) {
-  app.quit();
-} else {
-  app.on("second-instance", () => {
-    if (!win) return;
-    if (win.isMinimized()) win.restore();
-    win.show();
-    win.focus();
-  });
-
+if (standaloneInstaller) {
   app.whenReady().then(() => {
     app.setAppUserModelId(APP_ID);
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
-      ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
-      {
-        label: "Edit",
-        submenu: [
-          { role: "undo" },
-          { role: "redo" },
-          { type: "separator" },
-          { role: "cut" },
-          { role: "copy" },
-          { role: "paste" },
-          { role: "selectAll" },
-        ],
-      },
-      { role: "windowMenu" },
-    ]));
-    createWindow();
-    app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
+    installer.start(uninstallLaunch ? "uninstall" : "install");
   });
-
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
   });
+} else {
+  const gotLock = app.requestSingleInstanceLock();
+
+  if (!gotLock) {
+    app.quit();
+  } else {
+    app.on("second-instance", () => {
+      if (!win) return;
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    });
+
+    app.whenReady().then(() => {
+      app.setAppUserModelId(APP_ID);
+      Menu.setApplicationMenu(Menu.buildFromTemplate([
+        ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
+        {
+          label: "Edit",
+          submenu: [
+            { role: "undo" },
+            { role: "redo" },
+            { type: "separator" },
+            { role: "cut" },
+            { role: "copy" },
+            { role: "paste" },
+            { role: "selectAll" },
+          ],
+        },
+        { role: "windowMenu" },
+      ]));
+      createWindow();
+      app.on("activate", () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      });
+    });
+
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") app.quit();
+    });
+  }
 }

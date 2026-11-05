@@ -141,36 +141,49 @@ test("desktop updates compare versions, validate URLs and pick platform assets",
   assert.equal(update.pickReleaseAsset(assets, "freebsd", "x64"), null);
 });
 
-test("the NSIS build uses the branded install and uninstall UI", () => {
+test("the Windows build ships a custom Electron installer and uninstaller", () => {
   const pkg = JSON.parse(read("electron/package.json"));
-  const nsisOptions = pkg.build.nsis;
-  assert.equal(nsisOptions.include, "build/installer.nsh");
-  assert.equal(nsisOptions.allowToChangeInstallationDirectory, false);
-  assert.equal(nsisOptions.oneClick, false);
-  for (const key of ["installerIcon", "uninstallerIcon", "installerHeader", "installerSidebar", "uninstallerSidebar"]) {
-    assert.ok(fs.existsSync(path.join(ROOT, "electron", nsisOptions[key])), `${key} asset should exist`);
+  assert.equal(pkg.build.nsis, undefined, "the old NSIS target should be gone");
+  assert.equal(pkg.build.win.target[0].target, "portable");
+  assert.equal(pkg.build.win.artifactName, "HackerTube-win-${arch}.${ext}");
+  for (const file of ["installer.js", "installer.html", "installer.css", "installer-ui.js", "installer-preload.js"]) {
+    assert.ok(pkg.build.files.includes(file), `${file} should be packaged`);
+    assert.ok(fs.existsSync(path.join(ROOT, "electron", file)), `${file} should exist`);
   }
 
-  const script = read("electron/build/installer.nsh");
+  const html = read("electron/installer.html");
   for (const token of [
-    "customWelcomePage", "customFinishPage", "customUnWelcomePage", "customUnInstall",
-    "customPageAfterChangeDir", "DO_NOT_CREATE_DESKTOP_SHORTCUT", "MUI_BGCOLOR",
-    "MUI_HEADERIMAGE_UNBITMAP", "Install HackerTube", "Remove HackerTube?", "Uninstall",
-    "stay on this device", "htOptionsPageShow", "htFinishPageShow", "un.htUninstallPageShow",
+    'id="installView"', 'id="progressView"', 'id="successView"', 'id="uninstallView"',
+    'id="installBtn"', 'id="uninstallBtn"', 'id="desktopShortcut"', 'id="launchApp"',
+    '#i-download', '#i-folder-2', '#i-shield', '#i-trash', '#i-window-minimize', '#i-close',
   ]) {
-    assert.ok(script.includes(token), `installer.nsh should include ${token}`);
+    assert.ok(html.includes(token), `installer.html should include ${token}`);
   }
-  assert.ok(!script.includes("allowToChangeInstallationDirectory"), "the stock directory page is replaced");
+  assert.doesNotMatch(html, /cdn\.|unpkg|fonts\.googleapis/i, "the installer must use local assets");
 
-  function bmpSize(file) {
-    const bytes = fs.readFileSync(path.join(ROOT, file));
-    assert.equal(bytes.toString("ascii", 0, 2), "BM");
-    return { width: bytes.readInt32LE(18), height: Math.abs(bytes.readInt32LE(22)) };
-  }
-  assert.deepEqual(bmpSize("electron/build/installerHeader.bmp"), { width: 150, height: 57 });
-  assert.deepEqual(bmpSize("electron/build/installerSidebar.bmp"), { width: 164, height: 314 });
-  assert.deepEqual(bmpSize("electron/build/uninstallerSidebar.bmp"), { width: 164, height: 314 });
+  const ui = read("electron/installer-ui.js");
+  assert.match(ui, /window\.installer/);
+  assert.match(ui, /api\.install\(/);
+  assert.match(ui, /api\.uninstall\(/);
+  assert.match(ui, /api\.finishUninstall\(/);
+  assert.match(ui, /onProgress/);
 
-  const ico = fs.readFileSync(path.join(ROOT, "electron/build/icon.ico"));
-  assert.equal(ico.readUInt16LE(4), 7, "the Windows icon should contain seven sizes");
+  const installer = read("electron/installer.js");
+  assert.match(installer, /require\("original-fs"\)/);
+  assert.match(installer, /function install\(options, window\)/);
+  assert.match(installer, /shell\.writeShortcutLink/);
+  assert.match(installer, /UNINSTALL_KEY = .*HackerTube/);
+  assert.match(installer, /--uninstall --silent/);
+  assert.match(installer, /Remove-Item/);
+
+  const main = read("electron/main.js");
+  assert.match(main, /PORTABLE_EXECUTABLE_FILE/);
+  assert.match(main, /process\.argv\.includes\("--uninstall"\)/);
+  assert.match(main, /installer\.openWindow\("uninstall", win\)/);
+  assert.match(main, /standaloneInstaller/);
+
+  const preload = read("electron/installer-preload.js");
+  assert.match(preload, /installer:install/);
+  assert.match(preload, /installer:uninstall/);
+  assert.match(preload, /installer:finish-uninstall/);
 });
