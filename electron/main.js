@@ -900,7 +900,6 @@ if (standaloneInstaller) {
 
     app.whenReady().then(async () => {
       app.setAppUserModelId(APP_ID);
-      startSearchBackend();
       // The previous AppImage is replaced in place during an update; drop the leftover.
       if (process.env.APPIMAGE) {
         try { fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true }); } catch { /* retry on next start */ }

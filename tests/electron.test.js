@@ -371,13 +371,14 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /app:youtube-quality/);
   assert.match(main, /setPlaybackQualityRange/);
   assert.match(main, /startSearchBackend/);
+  assert.doesNotMatch(main, /app\.setAppUserModelId\(APP_ID\);\s*startSearchBackend/);
   assert.match(main, /app:search-catalog/);
   assert.match(main, /app:search-backend-status/);
   assert.match(main, /app:search-backend-stats/);
   assert.match(main, /app:search-backend-trim/);
   assert.match(main, /ids: result\.ids \|\| \[\]/);
   assert.match(main, /backend-bin/);
-  assert.match(main, /before-quit", stopSearchBackend/);
+  assert.match(main, /before-quit[\s\S]*stopSearchBackend\(\)[\s\S]*startupTimers\.clear\(\)/);
   assert.match(main, /remove\(\)/);
   assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
 
