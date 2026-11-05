@@ -20,6 +20,16 @@ const WEBSITE = "https://pandurodev.github.io/HackerTube/";
 const INSTALLER_HTML = path.join(__dirname, "installer.html");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// A portable launcher passes its own file to children; the installed copy must
+// not inherit it or it would think it is a setup window too.
+function appEnv() {
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) {
+    if (key.startsWith("PORTABLE_EXECUTABLE")) delete env[key];
+  }
+  return env;
+}
+
 let installerWindow = null;
 let installerMode = null;
 let busy = false;
@@ -188,6 +198,14 @@ function addRegistryValue(name, type, value) {
   return execFileAsync("reg.exe", ["add", UNINSTALL_KEY, "/v", name, "/t", type, "/d", String(value), "/f"], { windowsHide: true });
 }
 
+// The portable build marks every launch as an installer; a copy in the
+// registered install folder is the app itself.
+function isInstalledCopy(file) {
+  const installed = registeredInstallDir();
+  if (!installed || !file) return false;
+  return path.resolve(installed).toLowerCase() === path.resolve(path.dirname(file)).toLowerCase();
+}
+
 async function registerUninstall(dir) {
   if (process.platform !== "win32") return;
   const exe = path.join(dir, APP_EXE);
@@ -279,7 +297,7 @@ async function install(options, window) {
     send(window, { stage: "finish", percent: 100, label: "HackerTube is ready." });
 
     if (options?.launch) {
-      spawn(path.join(dir, APP_EXE), [], { detached: true, stdio: "ignore" }).unref();
+      spawn(path.join(dir, APP_EXE), [], { detached: true, stdio: "ignore", env: appEnv() }).unref();
     }
     return { ok: true, dir };
   } finally {
@@ -393,7 +411,7 @@ function registerIpc() {
     if (!trusted(event)) return { ok: false };
     const exe = path.join(String(dir || path.dirname(process.execPath)), APP_EXE);
     if (!fs.existsSync(exe)) return { ok: false, error: "HackerTube is not installed in that folder." };
-    spawn(exe, [], { detached: true, stdio: "ignore" }).unref();
+    spawn(exe, [], { detached: true, stdio: "ignore", env: appEnv() }).unref();
     return { ok: true };
   });
 
@@ -426,8 +444,8 @@ function openWindow(mode = "install", parent = null) {
   installerMode = mode;
   const uninstallMode = mode === "uninstall";
   installerWindow = new BrowserWindow({
-    width: uninstallMode ? 460 : 560,
-    height: uninstallMode ? 320 : 400,
+    width: uninstallMode ? 510 : 610,
+    height: uninstallMode ? 370 : 460,
     minWidth: 440,
     minHeight: 300,
     resizable: false,
@@ -467,6 +485,7 @@ module.exports = {
   start,
   openWindow,
   defaultInstallDir,
+  isInstalledCopy,
   normalizeInstallDir,
   sourceDir,
   install,

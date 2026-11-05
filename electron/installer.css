@@ -80,7 +80,7 @@ button:disabled { cursor: default; opacity: .4; }
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-.view { width: 100%; max-width: 520px; margin-inline: auto; animation: view-in .16s ease-out both; }
+.view { width: 100%; max-width: 520px; margin: auto; animation: view-in .16s ease-out both; }
 .view.center { max-width: 400px; margin-block: auto; text-align: center; padding-block: 8px; }
 .view.middle { margin-block: auto; }@keyframes view-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
