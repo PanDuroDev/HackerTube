@@ -173,6 +173,8 @@
     SetCtlColors $1 ${HT_TEXT} ${HT_BG}
     GetDlgItem $1 $0 1004
     SetCtlColors $1 ${HT_TEXT} ${HT_BG}
+    GetDlgItem $0 $HWNDPARENT 3
+    ShowWindow $0 ${SW_HIDE}
   FunctionEnd
 
   Function htFinishPageShow
@@ -196,7 +198,7 @@
     SendMessage $4 ${WM_SETFONT} $3 1
 
     CreateFont $3 "Segoe UI" "9" "400"
-    ${NSD_CreateLabel} 23% 19% 72% 9% "HackerTube is installed on this computer."
+    ${NSD_CreateLabel} 23% 22% 72% 9% "HackerTube is installed on this computer."
     Pop $4
     SetCtlColors $4 ${HT_MUTED} ${HT_BG}
     SendMessage $4 ${WM_SETFONT} $3 1
