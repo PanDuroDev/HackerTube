@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
@@ -21,6 +21,7 @@ let updateInFlight = false;
 const installerLaunch = process.argv.includes("--installer")
   || (Boolean(process.env.PORTABLE_EXECUTABLE_FILE) && !installer.isInstalledCopy(process.env.PORTABLE_EXECUTABLE_FILE));
 const uninstallLaunch = process.argv.includes("--uninstall");
+const autoInstall = process.argv.includes("--auto");
 const standaloneInstaller = installerLaunch || uninstallLaunch;
 
 protocol.registerSchemesAsPrivileged([{
@@ -201,7 +202,7 @@ function replaceAppImage(file) {
 
 async function launchInstaller(file) {
   if (process.platform === "linux") return replaceAppImage(file);
-  if (await spawnDetached(file, ["--installer"])) return true;
+  if (await spawnDetached(file, ["--installer", "--auto"])) return true;
   const error = await shell.openPath(file);
   if (!error) return true;
   shell.showItemInFolder(file);
@@ -291,18 +292,6 @@ ipcMain.handle("app:install-update", async (event) => {
     if (!info.available) return info;
     if (!update.isReleaseDownloadUrl(info.asset.url)) return { ok: false, reason: "untrusted-asset" };
 
-    const { response } = await dialog.showMessageBox(win, {
-      type: "question",
-      buttons: ["Cancel", "Install update"],
-      defaultId: 1,
-      cancelId: 0,
-      noLink: true,
-      title: "Update HackerTube",
-      message: `Install HackerTube ${info.version}?`,
-      detail: "The update downloads from GitHub and replaces the installed copy in place, keeping your likes, history, playlists and settings. If a download was interrupted it continues where it stopped.",
-    });
-    if (response !== 1) return { ok: false, canceled: true };
-
     try {
       const file = await downloadUpdate(info.asset, info.version);
       const launched = await launchInstaller(file);
@@ -326,7 +315,7 @@ ipcMain.handle("app:uninstall", (event) => {
 if (standaloneInstaller) {
   app.whenReady().then(() => {
     app.setAppUserModelId(APP_ID);
-    installer.start(uninstallLaunch ? "uninstall" : "install");
+    installer.start(uninstallLaunch ? "uninstall" : "install", null, autoInstall);
   });
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();

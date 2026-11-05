@@ -209,14 +209,29 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
 .update-btn[hidden] { display: none; }
 .update-btn:hover { filter: brightness(1.08); }
 .update-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.update-btn .ic { width: 18px; height: 18px; }
-.update-btn.is-busy { pointer-events: none; opacity: .8; }
-.update-btn.is-busy .ic { animation: update-pulse .9s ease-in-out infinite alternate; }
-
-@keyframes update-pulse {
-  from { opacity: .45; }
-  to { opacity: 1; }
+.update-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
 }
+.update-ring .ic { position: relative; z-index: 1; width: 18px; height: 18px; }
+.update-btn.is-busy { pointer-events: none; }
+.update-btn.is-busy .update-ring {
+  background: conic-gradient(#fff calc(var(--update-progress, 0) * 1%), rgba(255, 255, 255, .32) 0);
+  transition: background .2s linear;
+}
+.update-btn.is-busy .update-ring::before {
+  content: "";
+  position: absolute;
+  inset: 2.5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.update-btn.is-busy .update-ring .ic { width: 12px; height: 12px; }
 
 .search {
   display: flex;
@@ -1514,8 +1529,9 @@ a.card-sub:hover { color: var(--text); }
   height: 40px;
   border-radius: 50%;
   background: var(--soft-2);
-  color: var(--danger);
+  color: var(--accent);
 }
+.confirm-dialog.is-danger .confirm-icon { color: var(--danger); }
 
 .confirm-icon .ic { width: 20px; height: 20px; }
 

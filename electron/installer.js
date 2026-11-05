@@ -435,7 +435,7 @@ function ensureIpc() {
   registerIpc();
 }
 
-function openWindow(mode = "install", parent = null) {
+function openWindow(mode = "install", parent = null, auto = false) {
   ensureIpc();
   if (installerWindow && !installerWindow.isDestroyed()) {
     installerWindow.focus();
@@ -472,13 +472,13 @@ function openWindow(mode = "install", parent = null) {
     shell.openExternal(url);
     return { action: "deny" };
   });
-  installerWindow.loadFile(INSTALLER_HTML, { query: { mode } });
+  installerWindow.loadFile(INSTALLER_HTML, { query: auto ? { mode, auto: "1" } : { mode } });
   return installerWindow;
 }
 
-function start(mode = "install", parent = null) {
+function start(mode = "install", parent = null, auto = false) {
   ensureIpc();
-  return openWindow(mode, parent);
+  return openWindow(mode, parent, auto);
 }
 
 module.exports = {
