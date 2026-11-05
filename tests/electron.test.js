@@ -141,6 +141,10 @@ test("the desktop app serves the bundled site locally instead of the network", (
     "the build should ship the Go search backend",
   );
   assert.match(pkg.scripts?.["build:backend"] || "", /build-backend/);
+  assert.match(pkg.scripts?.["dist:win"] || "", /--target windows --arch x64/);
+  assert.match(pkg.scripts?.["dist:mac"] || "", /--target mac --arch universal/);
+  assert.match(pkg.scripts?.["dist:linux"] || "", /--target linux --arch x64/);
+  assert.equal(pkg.build?.mac?.x64ArchFiles, "Contents/Resources/backend/hackertube-backend");
 
   const app = read("public/app.js");
   assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);

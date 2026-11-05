@@ -727,6 +727,7 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /initSearchBackend/);
   assert.match(APP_SOURCE, /backendSearchItems/);
   assert.match(APP_SOURCE, /requestBackendSearch/);
+  assert.match(APP_SOURCE, /backend catalog does not match/);
   assert.match(APP_SOURCE, /trimSearchBackend/);
   assert.match(APP_SOURCE, /search\.searching/);
   assert.match(APP_SOURCE, /:focus-visible/);

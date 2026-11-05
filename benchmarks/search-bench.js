@@ -1,9 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
-const readline = require("node:readline");
 const { SearchIndex } = require("../public/search.js");
 const { mainSearchFields, mainSearchOptions } = require("../public/search-fields.js");
+const { startBackend } = require("./backend-client.js");
 
 const root = path.join(__dirname, "..");
 const binary = path.join(root, "electron", "backend-bin", process.platform === "win32" ? "hackertube-backend.exe" : "hackertube-backend");
@@ -23,52 +22,9 @@ function percentile(values, value) {
   return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * value))];
 }
 
-function startBackend() {
-  if (!fs.existsSync(binary)) throw new Error(`Missing backend binary at ${binary}`);
-  const child = spawn(binary, ["--data", dataFile], { stdio: ["pipe", "pipe", "pipe"] });
-  const lines = readline.createInterface({ input: child.stdout });
-  let ready = false;
-  let readyMessage = null;
-  let nextId = 0;
-  const pending = new Map();
-  lines.on("line", (line) => {
-    const message = JSON.parse(line);
-    if (message.type === "ready") {
-      if (!message.ok) throw new Error(message.error || "backend failed to start");
-      ready = true;
-      readyMessage = message;
-      return;
-    }
-    const request = pending.get(message.id);
-    if (!request) return;
-    pending.delete(message.id);
-    request.resolve(message);
-  });
-  child.stderr.on("data", (chunk) => process.stderr.write(chunk));
-  return {
-    get readyMessage() { return readyMessage; },
-    async waitReady() {
-      while (!ready) {
-        if (child.exitCode !== null) throw new Error(`backend exited with ${child.exitCode}`);
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      }
-    },
-    request(method, params = {}) {
-      return new Promise((resolve) => {
-        const id = ++nextId;
-        pending.set(id, { resolve });
-        child.stdin.write(`${JSON.stringify({ id, method, ...params })}\n`);
-      });
-    },
-    stop() {
-      try { child.stdin.write(`${JSON.stringify({ id: 0, method: "shutdown" })}\n`); } catch { /* closed */ }
-      child.stdin.end();
-      child.kill();
-    },
-  };
-}
-
 async function main() {
+  if (!fs.existsSync(binary)) throw new Error(`Missing backend binary at ${binary}`);
+
   const raw = fs.readFileSync(dataFile, "utf8");
   const parseStarted = performance.now();
   const videos = JSON.parse(raw);
@@ -89,22 +45,28 @@ async function main() {
     }
   }
 
-  const backend = startBackend();
-  await backend.waitReady();
-  const goBuildMs = Number(backend.readyMessage.build_ms) || 0;
+  const backend = startBackend(binary, ["--data", dataFile]);
   const goInternal = [];
   const goIpc = [];
-  for (let round = 0; round < rounds; round += 1) {
-    for (const query of queries) {
-      const started = performance.now();
-      const response = await backend.request("search", { query, limit: 20000 });
-      goIpc.push(performance.now() - started);
-      goInternal.push(Number(response.took_ms) || 0);
+  let goBuildMs = 0;
+  let stats = null;
+  let trimmed = null;
+  try {
+    await backend.waitReady();
+    goBuildMs = Number(backend.readyMessage.build_ms) || 0;
+    for (let round = 0; round < rounds; round += 1) {
+      for (const query of queries) {
+        const started = performance.now();
+        const response = await backend.request("search", { query, limit: 20000 });
+        goIpc.push(performance.now() - started);
+        goInternal.push(Number(response.took_ms) || 0);
+      }
     }
+    stats = await backend.request("stats");
+    trimmed = await backend.request("trim");
+  } finally {
+    backend.stop();
   }
-  const stats = await backend.request("stats");
-  const trimmed = await backend.request("trim");
-  backend.stop();
 
   const result = {
     videos: videos.length,
@@ -118,14 +80,14 @@ async function main() {
     },
     go: {
       build_ms: Number(goBuildMs.toFixed(1)),
-      heap_mb: Number(stats.stats?.heap_mb || 0),
+      heap_mb: Number(stats?.stats?.heap_mb || 0),
       query_p50_ms: Number(percentile(goInternal, 0.5).toFixed(2)),
       query_p95_ms: Number(percentile(goInternal, 0.95).toFixed(2)),
       query_max_ms: Number(Math.max(...goInternal).toFixed(2)),
       ipc_p50_ms: Number(percentile(goIpc, 0.5).toFixed(2)),
       ipc_p95_ms: Number(percentile(goIpc, 0.95).toFixed(2)),
       ipc_max_ms: Number(Math.max(...goIpc).toFixed(2)),
-      trim_freed_mb: Number(trimmed.freed_mb || 0),
+      trim_freed_mb: Number(trimmed?.freed_mb || 0),
     },
   };
 

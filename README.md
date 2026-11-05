@@ -110,15 +110,17 @@ node --check public/app.js
 node --test tests/*.test.js
 ~~~
 
-The desktop app ships a Go search sidecar. Build it before running Electron from source:
+The desktop app ships a Go search sidecar. Install Electron, build the backend, then start the app from source:
 
 ~~~bash
 cd electron
+npm install
 npm run build:backend
 npm start
+cd ..
 ~~~
 
-Search benchmarks compare the Go backend with the JavaScript fallback and enforce latency/memory budgets:
+Search benchmarks compare the Go backend with the JavaScript fallback and enforce latency/memory budgets from the repository root:
 
 ~~~bash
 node benchmarks/search-parity.js

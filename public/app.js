@@ -279,6 +279,8 @@ function requestBackendSearch(query) {
       if (!result?.ok || !Array.isArray(result.indices) || !state.catalogLoaded) {
         throw new Error("search backend unavailable");
       }
+      const indexedDocs = Number(state.backendStatus?.docs || 0);
+      if (indexedDocs && indexedDocs !== state.videos.length) throw new Error("backend catalog does not match the loaded catalog");
       const items = result.indices.map((index) => state.videos[index]).filter(Boolean);
       if (items.length !== result.indices.length) throw new Error("search result mismatch");
       state.backendSearchCache.set(query, items);

@@ -5,7 +5,23 @@ const { spawnSync } = require("node:child_process");
 const root = path.join(__dirname, "..", "..");
 const backend = path.join(root, "backend");
 const outputDir = path.join(__dirname, "..", "backend-bin");
-const name = process.platform === "win32" ? "hackertube-backend.exe" : "hackertube-backend";
+
+function flag(name, fallback) {
+  const index = process.argv.indexOf(name);
+  return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
+}
+
+function normalizeTarget(value) {
+  if (!value || value === "current") return process.platform;
+  const aliases = { win: "win32", windows: "win32", mac: "darwin", darwin: "darwin", linux: "linux" };
+  return aliases[String(value).toLowerCase()] || String(value);
+}
+
+function normalizeArchitecture(value, target) {
+  const requested = value && value !== "current" ? String(value).toLowerCase() : process.arch;
+  if (requested === "universal" && target === "darwin") return "universal";
+  return { x64: "amd64", ia32: "386", arm: "arm", arm64: "arm64", amd64: "amd64" }[requested] || requested;
+}
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: "inherit", cwd: backend, ...options });
@@ -19,12 +35,18 @@ function build(goos, goarch, output) {
   });
 }
 
-fs.mkdirSync(outputDir, { recursive: true });
-const target = path.join(outputDir, name);
+const targetOs = normalizeTarget(flag("--target"));
+const targetArch = normalizeArchitecture(flag("--arch"), targetOs);
+const binaryName = targetOs === "win32" ? "hackertube-backend.exe" : "hackertube-backend";
+const goOs = targetOs === "win32" ? "windows" : targetOs;
 
-if (process.platform === "darwin") {
-  const arm = path.join(outputDir, `${name}-arm64`);
-  const intel = path.join(outputDir, `${name}-amd64`);
+fs.mkdirSync(outputDir, { recursive: true });
+const target = path.join(outputDir, binaryName);
+
+if (targetArch === "universal") {
+  if (process.platform !== "darwin") throw new Error("Universal macOS binaries must be built on macOS.");
+  const arm = path.join(outputDir, `${binaryName}-arm64`);
+  const intel = path.join(outputDir, `${binaryName}-amd64`);
   build("darwin", "arm64", arm);
   build("darwin", "amd64", intel);
   const lipo = spawnSync("lipo", ["-create", "-output", target, arm, intel], { stdio: "inherit" });
@@ -33,9 +55,7 @@ if (process.platform === "darwin") {
   if (lipo.error) throw lipo.error;
   if (lipo.status !== 0) process.exit(lipo.status || 1);
 } else {
-  const goos = process.platform === "win32" ? "windows" : process.platform;
-  const goarch = { x64: "amd64", ia32: "386", arm: "arm" }[process.arch] || process.arch;
-  build(goos, goarch, target);
-  if (process.platform !== "win32") fs.chmodSync(target, 0o755);
+  build(goOs, targetArch, target);
+  if (targetOs !== "win32") fs.chmodSync(target, 0o755);
 }
 console.log(`Built ${target}`);

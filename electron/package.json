@@ -10,10 +10,10 @@
     "start": "electron .",
     "build:backend": "node scripts/build-backend.js",
     "dist": "npm run build:backend && electron-builder",
-    "dist:win": "npm run build:backend && electron-builder --win portable",
-    "dist:mac": "npm run build:backend && electron-builder --mac",
-    "dist:linux": "npm run build:backend && electron-builder --linux",
-    "dir:win": "npm run build:backend && electron-builder --win --dir"
+    "dist:win": "node scripts/build-backend.js --target windows --arch x64 && electron-builder --win portable",
+    "dist:mac": "node scripts/build-backend.js --target mac --arch universal && electron-builder --mac",
+    "dist:linux": "node scripts/build-backend.js --target linux --arch x64 && electron-builder --linux",
+    "dir:win": "node scripts/build-backend.js --target windows --arch x64 && electron-builder --win --dir"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -64,6 +64,7 @@
       "icon": "build/icon.png",
       "category": "public.app-category.education",
       "artifactName": "HackerTube-mac-${arch}.${ext}",
+      "x64ArchFiles": "Contents/Resources/backend/hackertube-backend",
       "target": [
         "dmg"
       ]
