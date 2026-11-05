@@ -40,7 +40,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.3");
+  assert.equal(pkg.version, "1.0.4");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
@@ -280,9 +280,15 @@ test("the Windows build ships a custom Electron installer and uninstaller", () =
   assert.match(installer, /UNINSTALL_KEY = .*HackerTube/);
   assert.match(installer, /--uninstall --silent/);
   assert.match(installer, /Remove-Item/);
+  assert.match(installer, /function isInstalledCopy\(file\)/, "the installed copy must be told apart from the portable launch");
+  assert.match(installer, /InstallLocation\\s\+REG_SZ/);
+  assert.match(installer, /function appEnv\(\)/);
+  assert.match(installer, /key\.startsWith\("PORTABLE_EXECUTABLE"\)/);
+  assert.equal((installer.match(/env: appEnv\(\)/g) || []).length, 2, "both app launches must drop the portable env");
 
   const main = read("electron/main.js");
   assert.match(main, /PORTABLE_EXECUTABLE_FILE/);
+  assert.match(main, /!installer\.isInstalledCopy\(process\.env\.PORTABLE_EXECUTABLE_FILE\)/, "the installed copy must boot the app, not the setup window");
   assert.match(main, /process\.argv\.includes\("--uninstall"\)/);
   assert.match(main, /installer\.openWindow\("uninstall", win\)/);
   assert.match(main, /standaloneInstaller/);

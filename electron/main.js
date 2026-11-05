@@ -18,7 +18,8 @@ const APP_ID = "com.pandurodev.hackertube";
 let win = null;
 let updateInFlight = false;
 
-const installerLaunch = Boolean(process.env.PORTABLE_EXECUTABLE_FILE) || process.argv.includes("--installer");
+const installerLaunch = process.argv.includes("--installer")
+  || (Boolean(process.env.PORTABLE_EXECUTABLE_FILE) && !installer.isInstalledCopy(process.env.PORTABLE_EXECUTABLE_FILE));
 const uninstallLaunch = process.argv.includes("--uninstall");
 const standaloneInstaller = installerLaunch || uninstallLaunch;
 
