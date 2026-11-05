@@ -136,7 +136,16 @@ test("the desktop app serves the bundled site locally instead of the network", (
 
   const app = read("public/app.js");
   assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);
-  assert.match(app, /location\.protocol === "app:" \? SITE_URL \+ location\.hash/, "sharing must copy the public web URL, not app://");
+  assert.match(app, /Boolean\(window\.electronWindow\) \|\| location\.protocol === "app:"/, "sharing must copy the public web URL from the desktop app");
+  assert.match(main, /http\.createServer/, "the bundled site should be served over HTTP for YouTube");
+  assert.match(main, /127\.0\.0\.1/);
+  assert.match(main, /await startLocalSite\(\)/);
+  assert.match(main, /migrateLegacyStorage/);
+  assert.match(main, /__storage/);
+  assert.match(app, /if \(\/\^https\?:\$\/\.test\(location\.protocol\)\) params\.set\("origin", location\.origin\)/, "YouTube should only receive a valid HTTP origin");
+  assert.match(main, /return "manual"/, "macOS updates should be reported as manual");
+  assert.match(main, /manualType: process\.platform === "darwin" \? "macos" : "file"/);
+  assert.match(app, /settings\.updateMac/);
 });
 
 test("desktop updates resume, verify and replace the installed copy cleanly", () => {

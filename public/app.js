@@ -1717,10 +1717,10 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
     enablejsapi: "1",
     fs: "1",
     iv_load_policy: "1",
-    origin: location.origin,
     rel: "0",
     playsinline: "1",
   });
+  if (/^https?:$/.test(location.protocol)) params.set("origin", location.origin);
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
 
@@ -2990,7 +2990,12 @@ async function applyUpdate() {
     toast(tr("settings.updateInstalling", "Downloading the update. The app closes, updates itself and opens again."), "refresh");
     const result = await api.installUpdate();
     if (result?.manual) {
-      toast(tr("settings.updateManual", "The update was downloaded. Close the app and run the new file to finish."), "info");
+      toast(
+        result.manualType === "macos"
+          ? tr("settings.updateMac", "The disk image was opened. Drag HackerTube to Applications, then reopen it.")
+          : tr("settings.updateManual", "The update was downloaded. Close the app and run the new file to finish."),
+        "info",
+      );
     } else if (result?.ok === false && !result.canceled) {
       toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
     }
@@ -3524,7 +3529,8 @@ function closeWatchActionMenu(restoreFocus = false) {
 }
 
 async function shareCurrentPage() {
-  const url = location.protocol === "app:" ? SITE_URL + location.hash : location.href;
+  const localApp = Boolean(window.electronWindow) || location.protocol === "app:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  const url = localApp ? SITE_URL + location.hash : location.href;
   const title = document.title;
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {

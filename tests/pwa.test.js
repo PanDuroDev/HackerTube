@@ -37,6 +37,14 @@ test("the PWA icons have the expected PNG dimensions", () => {
   assert.deepEqual(pngSize("icons/apple-touch-icon.png"), { width: 180, height: 180 });
 });
 
+test("the document metadata keeps the em dash intact", () => {
+  const html = read("index.html");
+  assert.doesNotMatch(html, /â€”/);
+  assert.match(html, /<title[^>]*>[^<]*—[^<]*<\/title>/);
+  assert.match(html, /property="og:title" content="[^"]*—/);
+  assert.match(html, /name="twitter:title" content="[^"]*—/);
+});
+
 test("the document links the install manifest and Apple metadata", () => {
   const html = read("index.html");
   assert.match(html, /rel="manifest" href="manifest\.webmanifest"/);
