@@ -19,7 +19,7 @@ func fixtureIndex() *SearchIndex {
 func ids(indexes []int, index *SearchIndex) []string {
 	values := make([]string, len(indexes))
 	for position, value := range indexes {
-		values[position] = index.videos[value].ID
+		values[position] = index.documents[value].ID
 	}
 	return values
 }

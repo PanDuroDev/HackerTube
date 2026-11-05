@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"sync"
 	"time"
 )
 
@@ -62,7 +63,7 @@ func (service *backend) stats() stats {
 		average = service.totalMS / float64(service.queries)
 	}
 	return stats{
-		Docs:      len(service.index.videos),
+		Docs:      len(service.index.documents),
 		Terms:     service.index.TermCount(),
 		HeapMB:    bytesToMB(memory.HeapAlloc),
 		HeapSysMB: bytesToMB(memory.HeapSys),
@@ -89,7 +90,7 @@ func (service *backend) search(query string, limit int) response {
 	indices := service.index.Search(query, limit)
 	ids := make([]string, len(indices))
 	for position, index := range indices {
-		ids[position] = service.index.videos[index].ID
+		ids[position] = service.index.documents[index].ID
 	}
 	elapsed := float64(time.Since(started).Microseconds()) / 1000
 	service.queries++
@@ -110,6 +111,7 @@ func (service *backend) trim() response {
 }
 
 func main() {
+	debug.SetGCPercent(50)
 	dataPath := flag.String("data", "", "Path to data/videos.json")
 	flag.Parse()
 	if *dataPath == "" {
@@ -134,32 +136,60 @@ func main() {
 		Stats:   statsFor(service),
 	})
 
+	idleTrim := time.NewTimer(20 * time.Second)
+	defer idleTrim.Stop()
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
-	encoder := json.NewEncoder(os.Stdout)
-	for scanner.Scan() {
-		var message request
-		if err := json.Unmarshal(scanner.Bytes(), &message); err != nil {
-			writeLine(response{OK: false, Error: "invalid json"})
-			continue
+	requests := make(chan request, 4)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for scanner.Scan() {
+			var message request
+			if err := json.Unmarshal(scanner.Bytes(), &message); err != nil {
+				writeLine(response{OK: false, Error: "invalid json"})
+				continue
+			}
+			if message.Method == "shutdown" {
+				idleTrim.Stop()
+				writeLine(response{ID: message.ID, OK: true})
+				os.Exit(0)
+			}
+			idleTrim.Reset(20 * time.Second)
+			select {
+			case requests <- message:
+			default:
+				writeLine(response{ID: message.ID, OK: false, Error: "backend busy"})
+			}
 		}
-		var reply response
-		switch message.Method {
-		case "search":
-			reply = service.search(message.Query, message.Limit)
-		case "stats":
-			reply = response{OK: true, Stats: statsFor(service)}
-		case "trim":
-			reply = service.trim()
-		case "ping":
-			reply = response{OK: true}
-		case "shutdown":
-			return
-		default:
-			reply = response{OK: false, Error: "unknown method"}
-		}
-		reply.ID = message.ID
-		if err := encoder.Encode(reply); err != nil {
+		idleTrim.Stop()
+	}()
+
+	for {
+		select {
+		case message := <-requests:
+			var reply response
+			switch message.Method {
+			case "search":
+				reply = service.search(message.Query, message.Limit)
+			case "stats":
+				reply = response{OK: true, Stats: statsFor(service)}
+			case "trim":
+				reply = service.trim()
+			case "ping":
+				reply = response{OK: true}
+			default:
+				reply = response{OK: false, Error: "unknown method"}
+			}
+			reply.ID = message.ID
+			if !writeLine(reply) {
+				return
+			}
+		case <-idleTrim.C:
+			idleTrim.Stop()
+			runtime.GC()
+			debug.FreeOSMemory()
+		case <-done:
 			return
 		}
 	}
@@ -170,7 +200,11 @@ func statsFor(service *backend) *stats {
 	return &value
 }
 
-func writeLine(value response) {
+var outputMu sync.Mutex
+
+func writeLine(value response) bool {
+	outputMu.Lock()
+	defer outputMu.Unlock()
 	encoder := json.NewEncoder(os.Stdout)
-	_ = encoder.Encode(value)
+	return encoder.Encode(value) == nil
 }

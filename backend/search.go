@@ -56,7 +56,6 @@ type posting struct {
 }
 
 type SearchIndex struct {
-	videos    []Video
 	documents []Document
 	postings  map[string][]posting
 	terms     []string
@@ -64,7 +63,6 @@ type SearchIndex struct {
 
 func NewSearchIndex(videos []Video) *SearchIndex {
 	index := &SearchIndex{
-		videos:    videos,
 		documents: make([]Document, 0, len(videos)),
 		postings:  make(map[string][]posting, len(videos)*4),
 		terms:     make([]string, 0, len(videos)*4),
@@ -77,11 +75,19 @@ func NewSearchIndex(videos []Video) *SearchIndex {
 
 func (index *SearchIndex) add(position int, video Video) {
 	fields := searchFields(video)
+	rank := video.Score / 10
 	document := Document{
 		Index:   position,
+		ID:      video.ID,
 		Title:   strings.ToLower(strings.TrimSpace(video.Title)),
 		Channel: strings.TrimSpace(video.ChannelID),
+		Rank:    rank,
 		Fields:  make([]Field, 0, len(fields)),
+	}
+	if rank < 0 {
+		document.Rank = 0
+	} else if rank > 1 {
+		document.Rank = 1
 	}
 	if document.Channel == "" {
 		document.Channel = strings.TrimSpace(video.Channel)
@@ -354,13 +360,7 @@ func (index *SearchIndex) searchScored(query string, limit int) []scoredDocument
 	for position := range selected {
 		document := index.documents[selected[position].index]
 		coverage := float64(selected[position].matched) / float64(len(tokens))
-		rank := index.videos[selected[position].index].Score / 10
-		if rank < 0 {
-			rank = 0
-		} else if rank > 1 {
-			rank = 1
-		}
-		selected[position].score = (selected[position].score+phraseBonus(document, rawQuery))*(0.55+0.45*coverage) + rank*5
+		selected[position].score = (selected[position].score+phraseBonus(document, rawQuery))*(0.55+0.45*coverage) + document.Rank*5
 	}
 	sort.SliceStable(selected, func(left, right int) bool {
 		if selected[left].score == selected[right].score {

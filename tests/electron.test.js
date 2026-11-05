@@ -380,6 +380,9 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /ids: result\.ids \|\| \[\]/);
   assert.match(main, /additionalArguments: \[`--hackertube-packaged=\$\{app\.isPackaged\}`\]/);
   assert.match(main, /backend-bin/);
+  assert.match(main, /scheduleBackendIdleStop/);
+  assert.match(main, /}, 120000\)/);
+  assert.match(main, /backend\.pending\.size === 0/);
   assert.match(main, /before-quit[\s\S]*stopSearchBackend\(\)[\s\S]*startupTimers\.clear\(\)/);
   assert.match(main, /remove\(\)/);
   assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
