@@ -1,18 +1,42 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, net, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const { Readable } = require("node:stream");
 const { pipeline } = require("node:stream/promises");
 const update = require("./update");
 const installer = require("./installer");
 
-const APP_URL = (process.env.HACKERTUBE_URL || "https://pandurodev.github.io/HackerTube/").replace(/\/?$/, "/");
+// The desktop app loads the bundled site from disk instead of GitHub Pages.
+const LOCAL_ORIGIN = "app://hackertube";
+const APP_URL = (process.env.HACKERTUBE_URL || `${LOCAL_ORIGIN}/`).replace(/\/?$/, "/");
+const SITE_ROOT = app.isPackaged
+  ? path.join(process.resourcesPath, "public")
+  : path.join(__dirname, "..", "public");
 const APP_ID = "com.pandurodev.hackertube";
 let win = null;
 
 const installerLaunch = Boolean(process.env.PORTABLE_EXECUTABLE_FILE) || process.argv.includes("--installer");
 const uninstallLaunch = process.argv.includes("--uninstall");
 const standaloneInstaller = installerLaunch || uninstallLaunch;
+
+protocol.registerSchemesAsPrivileged([{
+  scheme: "app",
+  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true },
+}]);
+
+function serveLocalSite() {
+  if (!APP_URL.startsWith(`${LOCAL_ORIGIN}/`)) return;
+  const root = path.resolve(SITE_ROOT);
+  protocol.handle("app", (request) => {
+    const relative = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, "") || "index.html";
+    const file = path.resolve(root, relative);
+    if (!file.startsWith(root + path.sep) || !fs.existsSync(file)) {
+      return new Response("Not found", { status: 404 });
+    }
+    return net.fetch(pathToFileURL(file).toString());
+  });
+}
 
 function isTrusted(event) {
   return String(event.senderFrame?.url || "").startsWith(APP_URL);
@@ -92,6 +116,7 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: true,
       backgroundThrottling: false,
+      spellcheck: false,
     },
   });
 
@@ -220,6 +245,7 @@ if (standaloneInstaller) {
         },
         { role: "windowMenu" },
       ]));
+      serveLocalSite();
       createWindow();
       app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();

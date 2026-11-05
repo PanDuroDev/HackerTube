@@ -331,7 +331,7 @@ function renderRouteSkeleton() {
 
 async function init() {
   applyTheme(state.theme);
-  if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator && !window.electronWindow) {
     navigator.serviceWorker.register("sw.js").then((registration) => {
       setupWebUpdates(registration);
     }).catch(() => {

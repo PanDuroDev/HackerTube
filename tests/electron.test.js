@@ -113,6 +113,29 @@ test("the web app renders window controls and hides the PWA install row in Elect
   }
 });
 
+test("the desktop app serves the bundled site locally instead of the network", () => {
+  const main = read("electron/main.js");
+  assert.match(main, /protocol\.registerSchemesAsPrivileged/);
+  assert.match(main, /scheme: "app"/);
+  assert.match(main, /standard: true/, "the app scheme must be standard so hash routes and storage work");
+  assert.match(main, /secure: true/);
+  assert.match(main, /supportFetchAPI: true/, "the site fetches JSON, so the scheme must allow fetch");
+  assert.match(main, /protocol\.handle\("app"/);
+  assert.match(main, /path\.resolve\(root, relative\)/);
+  assert.match(main, /file\.startsWith\(root \+ path\.sep\)/, "path traversal must be rejected");
+  assert.match(main, /app\.isPackaged[\s\S]*?process\.resourcesPath/);
+
+  const pkg = JSON.parse(read("electron/package.json"));
+  const resources = pkg.build?.extraResources || [];
+  assert.ok(
+    resources.some((entry) => entry.from === "../public" && entry.to === "public"),
+    "the build should copy public/ into the app resources",
+  );
+
+  const app = read("public/app.js");
+  assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);
+});
+
 test("desktop updates compare versions, validate URLs and pick platform assets", () => {  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
   assert.equal(update.isNewerVersion("1.0.1", "v1.0.1"), false);
   assert.equal(update.isNewerVersion("1.2.0", "v1.1.9"), false);
