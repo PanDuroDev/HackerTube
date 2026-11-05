@@ -3160,7 +3160,7 @@ function renderSettings() {
       <div class="setting-row">
         <span class="row-ic">${icon("categories")}</span>
         <span class="setting-text"><b>${tr("settings.pageSize", "Page size")}</b><small>${tr("settings.pageSizeHint", "Videos shown before “Show more”.")}</small></span>
-        <div class="segmented" dir="ltr" role="group" aria-label="${tr("settings.pageSize", "Page size")}">
+        <div class="segmented pagesize" dir="ltr" role="group" aria-label="${tr("settings.pageSize", "Page size")}">
           ${[24, 36, 60].map((n) => `<button data-pagesize="${n}" class="${Number(s.pageSize) === n ? "active" : ""}" aria-pressed="${Number(s.pageSize) === n}">${n}</button>`).join("")}
         </div>
       </div>

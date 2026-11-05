@@ -68,7 +68,7 @@ test("the app registers the service worker and exposes an install action", () =>
   const sw = read("sw.js");
   assert.match(sw, /addEventListener\("install"/);
   assert.match(sw, /addEventListener\("fetch"/);
-  assert.match(sw, /const VERSION = "v3"/);
+  assert.match(sw, /const VERSION = "v4"/);
   assert.match(sw, /ht-shell-\$\{VERSION\}/);
   assert.match(sw, /networkFirst/);
   assert.match(sw, /searchParams\.has\("v"\)/);
