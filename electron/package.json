@@ -25,6 +25,12 @@
       "output": "dist",
       "buildResources": "build"
     },
+    "extraResources": [
+      {
+        "from": "../public",
+        "to": "public"
+      }
+    ],
     "files": [
       "main.js",
       "preload.js",
