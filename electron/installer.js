@@ -254,7 +254,7 @@ async function finishUninstall() {
       "  try {",
       "    Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction Stop",
       "  } catch {",
-      '    ("attempt $i: " + $_.Exception.Message) | Out-File -LiteralPath $log -Append',
+      '    ("attempt ${i}: " + $_.Exception.Message) | Out-File -LiteralPath $log -Append',
       "  }",
       "  if (-not (Test-Path -LiteralPath $target)) { break }",
       "  Start-Sleep -Milliseconds 500",
