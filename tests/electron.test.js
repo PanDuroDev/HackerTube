@@ -42,7 +42,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.10");
+  assert.equal(pkg.version, "1.1.0");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
