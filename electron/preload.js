@@ -19,6 +19,10 @@ if (window.top === window) {
     isCustomPlayerChromeApplied: () => ipcRenderer.invoke("app:custom-player-chrome-applied"),
     getYouTubeChapters: () => ipcRenderer.invoke("app:youtube-chapters"),
     setYouTubeQuality: (level) => ipcRenderer.invoke("app:youtube-quality", String(level)),
+    searchBackendStatus: () => ipcRenderer.invoke("app:search-backend-status"),
+    searchCatalog: (query, limit) => ipcRenderer.invoke("app:search-catalog", String(query), Number(limit) || 0),
+    searchBackendStats: () => ipcRenderer.invoke("app:search-backend-stats"),
+    trimSearchBackend: () => ipcRenderer.invoke("app:search-backend-trim"),
     onMaximizedChange: (callback) => {
       const listener = (_event, maximized) => callback(Boolean(maximized));
       ipcRenderer.on("window:maximized", listener);

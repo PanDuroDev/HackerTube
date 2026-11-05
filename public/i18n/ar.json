@@ -297,7 +297,16 @@
     "customPlayer": "أدوات تحكم مخصصة للمشغل",
     "customPlayerHint": "أخفِ أدوات يوتيوب واستخدم شريط التحكم الخاص بـ HackerTube.",
     "customPlayerNote": "تجريبية. تُخفى أدوات يوتيوب الأصلية أثناء تفعيلها.",
-    "customPlayerEnabled": "تم تفعيل التحكم المخصص"
+    "customPlayerEnabled": "تم تفعيل التحكم المخصص",
+    "performance": "الأداء",
+    "searchEngine": "محرك البحث",
+    "backendFallback": "محرك JavaScript الاحتياطي",
+    "backendGo": "Go · {count} فيديو",
+    "backendStarting": "Go · جارٍ البدء…",
+    "optimizeMemory": "تحسين الذاكرة",
+    "memoryFreed": "تم تحرير {mb} ميغابايت",
+    "memoryOptimized": "تم تحسين الذاكرة",
+    "memoryOptimizeFailed": "تعذّر تحسين الذاكرة."
   },
   "dialogs": {
     "clearTitle": "مسح {label}؟",
@@ -441,6 +450,9 @@
   "toasts": {
     "feedRefreshed": "تم تحديث التوصيات",
     "languageLoadFailed": "تعذّر تحميل هذه اللغة."
+  },
+  "search": {
+    "searching": "جارٍ البحث…"
   },
   "skeleton": {
     "loading": "جارٍ التحميل…"

@@ -1,5 +1,5 @@
 /* HackerTube service worker: app shell precache, runtime data cache, offline fallback. */
-const VERSION = "v5";
+const VERSION = "v6";
 const SHELL_CACHE = `ht-shell-${VERSION}`;
 const DATA_CACHE = `ht-data-${VERSION}`;
 const SCOPE = new URL("./", self.location.href).href;
@@ -12,6 +12,7 @@ const PRECACHE = [
   new URL("app.js", SCOPE).href,
   new URL("i18n.js", SCOPE).href,
   new URL("search.js", SCOPE).href,
+  new URL("search-fields.js", SCOPE).href,
   new URL("i18n/en.json", SCOPE).href,
   new URL("i18n/ar.json", SCOPE).href,
   new URL("manifest.webmanifest", SCOPE).href,

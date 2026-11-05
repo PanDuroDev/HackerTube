@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } = require("ele
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
+const readline = require("node:readline");
 const { spawn } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
 const { Readable, Transform } = require("node:stream");
@@ -25,6 +26,7 @@ let win = null;
 let updateInFlight = false;
 let localServer = null;
 let mainWindowStarted = false;
+let searchBackend = null;
 
 const installerLaunch = process.argv.includes("--installer")
   || (Boolean(process.env.PORTABLE_EXECUTABLE_FILE) && !installer.isInstalledCopy(process.env.PORTABLE_EXECUTABLE_FILE));
@@ -573,6 +575,186 @@ ipcMain.handle("app:youtube-quality", async (event, level) => {
   return null;
 });
 
+const BACKEND_BINARY = process.platform === "win32" ? "hackertube-backend.exe" : "hackertube-backend";
+
+function backendBinaryPath() {
+  const candidates = app.isPackaged
+    ? [path.join(process.resourcesPath, "backend", BACKEND_BINARY)]
+    : [
+      path.join(__dirname, "backend-bin", BACKEND_BINARY),
+      path.join(__dirname, "..", "backend-bin", BACKEND_BINARY),
+    ];
+  return candidates.find((file) => fs.existsSync(file)) || "";
+}
+
+function stopSearchBackend() {
+  const backend = searchBackend;
+  searchBackend = null;
+  if (!backend) return;
+  backend.stopped = true;
+  try {
+    backend.child.stdin.write(`${JSON.stringify({ id: 0, method: "shutdown" })}\n`);
+  } catch { /* already gone */ }
+  for (const request of backend.pending.values()) {
+    clearTimeout(request.timer);
+    request.reject(new Error("backend stopped"));
+  }
+  backend.pending.clear();
+  for (const waiter of backend.waiters.splice(0)) waiter.reject(new Error("backend stopped"));
+  try { backend.child.kill(); } catch { /* already exited */ }
+}
+
+function startSearchBackend() {
+  if (searchBackend) return searchBackend;
+  const binary = backendBinaryPath();
+  const dataFile = path.join(SITE_ROOT, "data", "videos.json");
+  if (!binary || !fs.existsSync(dataFile)) return null;
+
+  const child = spawn(binary, ["--data", dataFile], {
+    stdio: ["pipe", "pipe", "pipe"],
+    windowsHide: true,
+  });
+  const backend = {
+    child,
+    ready: false,
+    available: true,
+    info: null,
+    error: "",
+    nextId: 0,
+    pending: new Map(),
+    waiters: [],
+    stopped: false,
+  };
+  searchBackend = backend;
+
+  child.stdin.on("error", () => {
+    // The process may exit between a request check and the write; exit handling owns the error.
+  });
+  const lines = readline.createInterface({ input: child.stdout });
+  lines.on("line", (line) => {
+    let message;
+    try {
+      message = JSON.parse(line);
+    } catch {
+      return;
+    }
+    if (message.type === "ready") {
+      backend.ready = message.ok === true;
+      backend.available = message.ok === true;
+      backend.info = message;
+      if (!backend.ready) backend.error = String(message.error || "backend failed");
+      for (const waiter of backend.waiters.splice(0)) waiter.resolve(backend);
+      return;
+    }
+    const request = backend.pending.get(message.id);
+    if (!request) return;
+    backend.pending.delete(message.id);
+    clearTimeout(request.timer);
+    request.resolve(message);
+  });
+  child.stderr.on("data", (chunk) => {
+    console.error("Search backend:", String(chunk).trim());
+  });
+  child.once("error", (error) => {
+    backend.available = false;
+    backend.error = error.message;
+    for (const waiter of backend.waiters.splice(0)) waiter.reject(error);
+  });
+  child.once("exit", (code) => {
+    backend.available = false;
+    backend.error = backend.error || `exit-${code}`;
+    if (!backend.stopped) console.error("Search backend exited", code);
+    for (const request of backend.pending.values()) {
+      clearTimeout(request.timer);
+      request.reject(new Error(backend.error));
+    }
+    backend.pending.clear();
+    for (const waiter of backend.waiters.splice(0)) waiter.reject(new Error(backend.error));
+    if (searchBackend === backend) searchBackend = null;
+  });
+  return backend;
+}
+
+function waitForBackend(backend, timeout = 8000) {
+  if (!backend) return Promise.reject(new Error("backend unavailable"));
+  if (backend.ready) return Promise.resolve(backend);
+  if (!backend.available) return Promise.reject(new Error(backend.error || "backend failed"));
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("backend timeout")), timeout);
+    backend.waiters.push({
+      resolve: (value) => { clearTimeout(timer); resolve(value); },
+      reject: (error) => { clearTimeout(timer); reject(error); },
+    });
+  });
+}
+
+async function backendRequest(method, params = {}, timeout = 5000) {
+  const backend = searchBackend || startSearchBackend();
+  if (!backend) return null;
+  await waitForBackend(backend);
+  const id = ++backend.nextId;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      backend.pending.delete(id);
+      reject(new Error("backend timeout"));
+    }, timeout);
+    backend.pending.set(id, { resolve, reject, timer });
+    backend.child.stdin.write(`${JSON.stringify({ id, method, ...params })}\n`, (error) => {
+      if (!error) return;
+      clearTimeout(timer);
+      backend.pending.delete(id);
+      reject(error);
+    });
+  });
+}
+
+ipcMain.handle("app:search-backend-status", (event) => {
+  if (!isTrusted(event)) return { available: false };
+  const backend = searchBackend || startSearchBackend();
+  if (!backend) return { available: false };
+  return {
+    available: backend.available,
+    ready: backend.ready,
+    docs: backend.info?.stats?.docs || 0,
+    buildMs: backend.info?.build_ms || 0,
+    error: backend.error,
+  };
+});
+
+ipcMain.handle("app:search-catalog", async (event, query, limit) => {
+  if (!isTrusted(event)) return { ok: false };
+  const text = String(query || "").trim().slice(0, 200);
+  if (!text) return { ok: true, indices: [], total: 0 };
+  const count = Math.min(20000, Math.max(1, Number(limit) || 20000));
+  try {
+    const result = await backendRequest("search", { query: text, limit: count });
+    if (!result?.ok) return { ok: false };
+    return { ok: true, indices: result.indices || [], ids: result.ids || [], total: result.total || 0, tookMs: result.took_ms || 0 };
+  } catch {
+    return { ok: false };
+  }
+});
+
+ipcMain.handle("app:search-backend-stats", async (event) => {
+  if (!isTrusted(event)) return { ok: false };
+  try {
+    const result = await backendRequest("stats");
+    return { ok: Boolean(result?.ok), stats: result?.stats || null };
+  } catch {
+    return { ok: false };
+  }
+});
+
+ipcMain.handle("app:search-backend-trim", async (event) => {
+  if (!isTrusted(event)) return { ok: false };
+  try {
+    const result = await backendRequest("trim", {}, 10000);
+    return { ok: Boolean(result?.ok), stats: result?.stats || null, freedMb: result?.freed_mb || 0 };
+  } catch {
+    return { ok: false };
+  }
+});
+
 function createWindow() {
   win = new BrowserWindow({
     title: "HackerTube",
@@ -701,8 +883,11 @@ if (standaloneInstaller) {
       win.focus();
     });
 
+    app.on("before-quit", stopSearchBackend);
+
     app.whenReady().then(async () => {
       app.setAppUserModelId(APP_ID);
+      startSearchBackend();
       // The previous AppImage is replaced in place during an update; drop the leftover.
       if (process.env.APPIMAGE) {
         try { fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true }); } catch { /* retry on next start */ }
