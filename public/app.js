@@ -20,7 +20,8 @@ const state = {
   byId: new Map(),
   searchEngine: null,
   searchIndexPending: null,
-  backendEnabled: false,
+  backendMode: window.electronWindow?.searchCatalog ? "unknown" : "fallback",
+  backendProbe: null,
   backendStatus: null,
   backendSearchCache: new Map(),
   backendSearchPending: new Map(),
@@ -169,7 +170,7 @@ function ensureMainSearchIndex() {
 }
 
 function warmSearchIndex() {
-  if (state.backendEnabled || state.searchEngine || state.searchIndexPending || !state.videos.length) return;
+  if (isSearchBackendAvailable() || state.searchEngine || state.searchIndexPending || !state.videos.length) return;
   const SearchIndex = window.HackerTubeSearch?.SearchIndex;
   if (!SearchIndex
     || typeof SearchIndex.prototype?.addItem !== "function"
@@ -216,46 +217,64 @@ function backendApi() {
   return window.electronWindow || null;
 }
 
+function isSearchBackendAvailable() {
+  return state.backendMode !== "fallback";
+}
+
+function useJavaScriptSearchFallback() {
+  state.backendMode = "fallback";
+  state.backendProbe = null;
+  if (state.scope?.type === "search") render();
+  if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+}
+
 function initSearchBackend() {
+  if (state.backendMode === "ready") return state.backendProbe || Promise.resolve(true);
+  if (state.backendProbe) return state.backendProbe;
   const api = backendApi();
   if (!api || typeof api.searchCatalog !== "function") {
-    state.backendEnabled = false;
-    return;
+    state.backendMode = "fallback";
+    return Promise.resolve(false);
   }
-  state.backendEnabled = true;
-  let attempts = 0;
-  const check = () => {
-    api.searchBackendStatus?.()
-      .then((status) => {
-        state.backendStatus = status || null;
-        if (!status?.available) {
-          state.backendEnabled = false;
-          if (state.scope?.type === "search") render();
-          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
-          return;
-        }
-        if (status.ready) {
-          // The Go process owns the catalog index; release the JS copy if it was warmed first.
-          state.searchEngine = null;
-          state.searchIndexPending = null;
-          warmBackendStats();
-          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
-          return;
-        }
-        attempts += 1;
-        if (attempts < 20) {
-          setTimeout(check, 400);
-        } else {
-          state.backendEnabled = false;
-          if (state.scope?.type === "search") render();
-          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
-        }
-      })
-      .catch(() => {
-        state.backendEnabled = false;
-      });
-  };
-  check();
+  state.backendMode = "pending";
+  state.backendProbe = new Promise((resolve) => {
+    let attempts = 0;
+    const check = () => {
+      api.searchBackendStatus?.()
+        .then((status) => {
+          state.backendStatus = status || null;
+          if (!status?.available) {
+            useJavaScriptSearchFallback();
+            resolve(false);
+            return;
+          }
+          if (status.ready) {
+            // The Go process owns the catalog index; release the JS copy if it was warmed first.
+            state.searchEngine = null;
+            state.searchIndexPending = null;
+            state.backendMode = "ready";
+            warmBackendStats();
+            if (state.scope?.type === "search") render();
+            if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+            resolve(true);
+            return;
+          }
+          attempts += 1;
+          if (attempts < 20) {
+            setTimeout(check, 400);
+          } else {
+            useJavaScriptSearchFallback();
+            resolve(false);
+          }
+        })
+        .catch(() => {
+          useJavaScriptSearchFallback();
+          resolve(false);
+        });
+    };
+    check();
+  });
+  return state.backendProbe;
 }
 
 function warmBackendStats() {
@@ -299,14 +318,13 @@ function requestBackendSearch(query) {
     })
     .catch(() => {
       state.backendSearchPending.delete(query);
-      state.backendEnabled = false;
-      if (state.scope?.type === "search") render();
+      useJavaScriptSearchFallback();
     });
   state.backendSearchPending.set(query, request);
 }
 
 function backendSearchItems(query) {
-  if (!state.backendEnabled) return null;
+  if (state.backendMode !== "ready") return null;
   if (!state.catalogLoaded) {
     ensureCatalog()
       .then(() => {
@@ -618,7 +636,6 @@ async function init() {
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, tr(`topics.${t.id}`, TOPIC_LABELS[t.id] || t.label)]));
     renderSidebar();
-    initSearchBackend();
     addEventListener("hashchange", () => {
       setSidebar(false);
       view.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -1098,8 +1115,10 @@ function filtered(scope) {
   if (q) {
     const backendItems = backendSearchItems(q);
     if (backendItems) source = backendItems;
-    else if (state.backendEnabled) source = [];
-    else source = ensureMainSearchIndex().search(q).map((result) => result.item);
+    else if (isSearchBackendAvailable()) {
+      initSearchBackend();
+      source = [];
+    } else source = ensureMainSearchIndex().search(q).map((result) => result.item);
   }
   const results = source.filter((v) => {
     if (scope.minDuration && v.duration < scope.minDuration) return false;
@@ -1321,7 +1340,7 @@ function renderFeed(scope) {
   }
   const list = feedList(scope);
   const shown = list.slice(0, ui.limit);
-  const searching = Boolean(scope.q && state.backendEnabled && !state.backendSearchCache.has(scope.q));
+  const searching = Boolean(scope.q && isSearchBackendAvailable() && !state.backendSearchCache.has(scope.q));
   const title = scope.title || "";
   const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
   const description = title
@@ -4223,11 +4242,12 @@ function renderSettings() {
       <p class="settings-warning">${icon("warning")} <span>${tr("settings.customPlayerNote", "Experimental. YouTube’s native controls are hidden while this is on.")}</span></p>
     </div>` : "";
   const appGroup = window.electronWindow ? electronAppGroup : installGroup;
+  if (window.electronWindow) initSearchBackend();
   const backendSummary = !window.electronWindow
     ? ""
-    : !state.backendEnabled
+    : state.backendMode === "fallback"
       ? tr("settings.backendFallback", "JavaScript fallback")
-      : state.backendStatus?.ready
+      : state.backendMode === "ready"
         ? tr("settings.backendGo", "Go · {count} videos", { count: compact.format(Number(state.backendStats?.docs || state.backendStatus?.docs || 0)) })
           + (state.backendStats?.heap_mb ? ` · ${state.backendStats.heap_mb} MB` : "")
         : tr("settings.backendStarting", "Go · starting…");
@@ -4236,7 +4256,7 @@ function renderSettings() {
       <div class="setting-row">
         <span class="row-ic">${icon("database")}</span>
         <span class="setting-text"><b>${tr("settings.searchEngine", "Search engine")}</b><small data-backend-summary>${esc(backendSummary)}</small></span>
-        ${state.backendEnabled ? `<button class="btn" type="button" data-backend-trim aria-label="${esc(tr("settings.optimizeMemory", "Optimize memory"))}">${icon("refresh")} <span>${esc(tr("settings.optimizeMemory", "Optimize memory"))}</span></button>` : ""}
+        ${state.backendMode === "ready" ? `<button class="btn" type="button" data-backend-trim aria-label="${esc(tr("settings.optimizeMemory", "Optimize memory"))}">${icon("refresh")} <span>${esc(tr("settings.optimizeMemory", "Optimize memory"))}</span></button>` : ""}
       </div>
     </div>` : "";
   view.innerHTML = `<section class="settings">
