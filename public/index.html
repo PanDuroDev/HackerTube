@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" dir="ltr" data-theme="dark">
 <head>
 <meta charset="utf-8">
@@ -29,7 +29,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HackerTube">
-<link rel="stylesheet" href="styles.css?v=50">
+<link rel="stylesheet" href="styles.css?v=51">
 </head>
 <body>
 
@@ -99,7 +99,7 @@
 
   <div class="top-end">
     <button class="update-btn" id="updateBtn" type="button" hidden aria-label="Update" title="Update">
-      <svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg>
+      <span class="update-ring"><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg></span>
       <span data-update-label data-i18n="header.update">Update</span>
     </button>
     <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" data-i18n-attr="aria-label:header.toggleTheme">
@@ -131,7 +131,7 @@
 <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
   <div class="confirm-panel">
     <div class="confirm-heading">
-      <div class="confirm-icon" aria-hidden="true">
+      <div class="confirm-icon" id="confirmIcon" aria-hidden="true">
         <svg class="ic"><use href="#i-trash"></use></svg>
       </div>
       <h2 class="confirm-title" id="confirmTitle" data-i18n="confirm.title">Confirm action</h2>
@@ -151,6 +151,6 @@
 <noscript><p style="padding:24px" data-i18n="noscript">This site needs JavaScript to show and filter the index.</p></noscript>
 <script src="i18n.js?v=1"></script>
 <script src="search.js?v=3"></script>
-<script src="app.js?v=71"></script>
+<script src="app.js?v=72"></script>
 </body>
 </html>

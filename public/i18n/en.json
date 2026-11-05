@@ -279,8 +279,9 @@
     "checkingUpdates": "Checking for updates…",
     "upToDate": "You’re up to date.",
     "updateAvailable": "Version {version} is available.",
-    "updateInstalling": "Downloading the update. The installer will open when it is ready.",
+    "updateInstalling": "Downloading the update. The app closes, updates itself and opens again.",
     "updateManual": "The update was downloaded. Close the app and run the new file to finish.",
+    "updateMac": "The disk image was opened. Drag HackerTube to Applications, then reopen it.",
     "updateWebReady": "A new version is ready. Select Update to reload the app.",
     "updateFailed": "Could not update. Try again or download the latest release from GitHub.",
     "updateNote": "Updates keep your likes, history, playlists and settings."
@@ -399,5 +400,10 @@
   },
   "skeleton": {
     "loading": "Loading…"
+  },
+  "update": {
+    "title": "Update HackerTube?",
+    "message": "Version {version} installs on its own: the app closes, replaces the current copy and opens again.",
+    "install": "Update now"
   }
 }

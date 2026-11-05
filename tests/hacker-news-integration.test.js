@@ -42,7 +42,7 @@ function createHarness() {
         storage.delete(key);
       },
     },
-    location: { hash: "#/", origin: "https://example.test", pathname: "/", search: "" },
+    location: { hash: "#/", origin: "https://example.test", protocol: "https:", pathname: "/", search: "" },
     history: { replaceState() {} },
     setTimeout: () => 0,
     clearTimeout: () => {},
@@ -486,6 +486,18 @@ test("single-video HN playlists use YouTube controls and preserve autoplay", asy
 });
 
 
+
+test("YouTube embeds only pass an origin on real HTTP pages", () => {
+  const { api, location } = createHarness();
+
+  location.protocol = "app:";
+  const desktopMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  assert.ok(!desktopMarkup.includes("origin="), "custom app origins must not be sent to YouTube");
+
+  location.protocol = "https:";
+  const webMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  assert.ok(webMarkup.includes("origin=https%3A%2F%2Fexample.test"), "HTTP pages keep their valid origin");
+});
 
 test("YouTube embeds always use the original player controls", () => {
   const { api } = createHarness();

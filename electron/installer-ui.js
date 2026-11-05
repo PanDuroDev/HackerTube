@@ -12,7 +12,9 @@ const views = {
   error: $("#errorView"),
 };
 
-let mode = new URLSearchParams(location.search).get("mode") === "uninstall" ? "uninstall" : "install";
+const params = new URLSearchParams(location.search);
+let mode = params.get("mode") === "uninstall" ? "uninstall" : "install";
+const autoInstall = mode === "install" && params.get("auto") === "1";
 let installDir = "";
 let busy = false;
 let lastAction = "install";
@@ -62,6 +64,11 @@ async function startInstall() {
     installDir = result.dir || installDir;
     $("#successPath").textContent = installDir;
     setBusy(false);
+    // Started by an update: the app is already open again, so the setup gets out of the way.
+    if (autoInstall) {
+      api.close();
+      return;
+    }
     show("success");
   } catch (error) {
     showError(error?.message);
@@ -120,13 +127,21 @@ async function init() {
 
   api.onProgress((data) => setProgress(data));
 
+  // An update restarts the setup by itself: keep the app installed, reopen it, and skip the form.
+  if (autoInstall) {
+    $("#launchApp").checked = true;
+    setProgress({ percent: 0, label: "Preparing the installer…" });
+    show("progress");
+  }
+
   try {
     const defaults = await api.getDefaults();
     if (defaults.mode === "uninstall") mode = "uninstall";
     installDir = defaults.dir || "";
     $("#installDir").textContent = installDir;
     $("#version").textContent = defaults.version ? `v${defaults.version}` : "";
-    show(mode === "uninstall" ? "uninstall" : "install");
+    if (autoInstall) startInstall();
+    else show(mode === "uninstall" ? "uninstall" : "install");
   } catch (error) {
     showError(error?.message);
   }

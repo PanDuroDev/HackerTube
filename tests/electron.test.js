@@ -21,7 +21,9 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.match(main, /window:toggle-maximize/);
   assert.match(main, /setWindowOpenHandler/);
   assert.match(main, /ipcMain\.handle\("app:uninstall"/);
-  assert.match(main, /dialog\.showMessageBox/);
+  assert.doesNotMatch(main, /dialog\.showMessageBox/, "the app must install updates without a native confirmation");
+  assert.match(main, /spawnDetached\(file, \["--installer", "--auto"\]\)/, "the update setup must run unattended");
+  assert.match(main, /const autoInstall = process\.argv\.includes\("--auto"\)/);
   assert.match(main, /ipcMain\.handle\("app:version"/);
   assert.match(main, /ipcMain\.handle\("app:check-update"/);
   assert.match(main, /ipcMain\.handle\("app:install-update"/);
@@ -134,7 +136,16 @@ test("the desktop app serves the bundled site locally instead of the network", (
 
   const app = read("public/app.js");
   assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);
-  assert.match(app, /location\.protocol === "app:" \? SITE_URL \+ location\.hash/, "sharing must copy the public web URL, not app://");
+  assert.match(app, /Boolean\(window\.electronWindow\) \|\| location\.protocol === "app:"/, "sharing must copy the public web URL from the desktop app");
+  assert.match(main, /http\.createServer/, "the bundled site should be served over HTTP for YouTube");
+  assert.match(main, /127\.0\.0\.1/);
+  assert.match(main, /await startLocalSite\(\)/);
+  assert.match(main, /migrateLegacyStorage/);
+  assert.match(main, /__storage/);
+  assert.match(app, /if \(\/\^https\?:\$\/\.test\(location\.protocol\)\) params\.set\("origin", location\.origin\)/, "YouTube should only receive a valid HTTP origin");
+  assert.match(main, /return "manual"/, "macOS updates should be reported as manual");
+  assert.match(main, /manualType: process\.platform === "darwin" \? "macos" : "file"/);
+  assert.match(app, /settings\.updateMac/);
 });
 
 test("desktop updates resume, verify and replace the installed copy cleanly", () => {
@@ -178,7 +189,14 @@ test("desktop updates resume, verify and replace the installed copy cleanly", ()
 
   const app = read("public/app.js");
   assert.match(app, /api\.onUpdateProgress\?\.\(\(data\) => \{/);
-  assert.match(app, /tr\("header\.updating", "Updating[^"]*"\)\} \$\{percent\}%/);
+  assert.match(app, /setProperty\("--update-progress", String\(percent\)\)/, "the header ring shows download progress");
+  assert.match(app, /confirmAction\(\{[\s\S]*?icon: "download"/, "the update asks with the in-app dialog, not a native one");
+
+  const installerUi = read("electron/installer-ui.js");
+  assert.match(installerUi, /params\.get\("auto"\) === "1"/);
+  assert.match(installerUi, /if \(autoInstall\) startInstall\(\);/, "an update must install without a click");
+  assert.match(installerUi, /if \(autoInstall\) \{\s*api\.close\(\);/, "the update setup must close itself when it is done");
+  assert.match(read("electron/installer.js"), /query: auto \? \{ mode, auto: "1" \} : \{ mode \}/);
 });
 
 test("the staged install replaces the folder and rolls back when the swap fails", async () => {

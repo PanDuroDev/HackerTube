@@ -380,7 +380,7 @@ async function init() {
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
   });
-  $("#updateBtn")?.addEventListener("click", applyUpdate);
+  $("#updateBtn")?.addEventListener("click", confirmUpdate);
   $("#searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const q = $("#q").value.trim();
@@ -665,13 +665,19 @@ function toast(message, kind = "check") {
   toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
 }
 
-function confirmAction({ title, message, confirmLabel = "Delete" }) {
+function confirmAction({ title, message, confirmLabel = "Delete", icon = "trash", danger = true }) {
   const dialog = $("#confirmDialog");
   if (!dialog || typeof dialog.showModal !== "function") return Promise.resolve(false);
 
   $("#confirmTitle").textContent = title;
   $("#confirmMessage").textContent = message;
-  $("#confirmAccept").textContent = confirmLabel;
+  const accept = $("#confirmAccept");
+  accept.textContent = confirmLabel;
+  accept.classList.toggle("danger", danger);
+  accept.classList.toggle("primary", !danger);
+  dialog.classList.toggle("is-danger", danger);
+  const glyph = $("#confirmIcon use");
+  if (glyph) glyph.setAttribute("href", `#i-${icon}`);
   dialog.returnValue = "cancel";
 
   return new Promise((resolve) => {
@@ -1711,10 +1717,10 @@ function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
     enablejsapi: "1",
     fs: "1",
     iv_load_policy: "1",
-    origin: location.origin,
     rel: "0",
     playsinline: "1",
   });
+  if (/^https?:$/.test(location.protocol)) params.set("origin", location.origin);
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
 
@@ -2843,8 +2849,7 @@ function setupElectronWindow() {
   api.onUpdateProgress?.((data) => {
     if (!updateBusy) return;
     const percent = Math.max(0, Math.min(100, Math.round(Number(data?.percent) || 0)));
-    const text = $("#updateBtn")?.querySelector("[data-update-label]");
-    if (text) text.textContent = `${tr("header.updating", "Updating…")} ${percent}%`;
+    $("#updateBtn")?.style.setProperty("--update-progress", String(percent));
   });
   refreshUpdateChecks(true);
 }
@@ -2865,6 +2870,7 @@ function renderUpdateButton() {
   if (!button) return;
   button.hidden = !pendingUpdate;
   button.classList.toggle("is-busy", updateBusy);
+  if (!updateBusy) button.style.removeProperty("--update-progress");
   const label = updateBusy
     ? tr("header.updating", "Updating…")
     : pendingUpdate?.version
@@ -2945,6 +2951,22 @@ function applyWebUpdate() {
   }, 4000);
 }
 
+async function confirmUpdate() {
+  if (!pendingUpdate || updateBusy) return;
+  if (pendingUpdate.kind === "web") {
+    applyUpdate();
+    return;
+  }
+  const ok = await confirmAction({
+    title: tr("update.title", "Update HackerTube?"),
+    message: tr("update.message", "Version {version} installs on its own: the app closes, replaces the current copy and opens again.", { version: pendingUpdate.version }),
+    confirmLabel: tr("update.install", "Update now"),
+    icon: "download",
+    danger: false,
+  });
+  if (ok) applyUpdate();
+}
+
 async function applyUpdate() {
   if (!pendingUpdate || updateBusy) return;
   const update = pendingUpdate;
@@ -2965,10 +2987,15 @@ async function applyUpdate() {
   }
 
   try {
-    toast(tr("settings.updateInstalling", "Downloading the update. The installer will open when it is ready."), "refresh");
+    toast(tr("settings.updateInstalling", "Downloading the update. The app closes, updates itself and opens again."), "refresh");
     const result = await api.installUpdate();
     if (result?.manual) {
-      toast(tr("settings.updateManual", "The update was downloaded. Close the app and run the new file to finish."), "info");
+      toast(
+        result.manualType === "macos"
+          ? tr("settings.updateMac", "The disk image was opened. Drag HackerTube to Applications, then reopen it.")
+          : tr("settings.updateManual", "The update was downloaded. Close the app and run the new file to finish."),
+        "info",
+      );
     } else if (result?.ok === false && !result.canceled) {
       toast(tr("settings.updateFailed", "Could not update. Try again or download the latest release from GitHub."), "info");
     }
@@ -3502,7 +3529,8 @@ function closeWatchActionMenu(restoreFocus = false) {
 }
 
 async function shareCurrentPage() {
-  const url = location.protocol === "app:" ? SITE_URL + location.hash : location.href;
+  const localApp = Boolean(window.electronWindow) || location.protocol === "app:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  const url = localApp ? SITE_URL + location.hash : location.href;
   const title = document.title;
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
