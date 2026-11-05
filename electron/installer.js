@@ -363,10 +363,10 @@ function openWindow(mode = "install", parent = null) {
   installerMode = mode;
   const uninstallMode = mode === "uninstall";
   installerWindow = new BrowserWindow({
-    width: uninstallMode ? 560 : 660,
-    height: uninstallMode ? 390 : 440,
-    minWidth: 520,
-    minHeight: uninstallMode ? 360 : 410,
+    width: uninstallMode ? 460 : 560,
+    height: uninstallMode ? 320 : 400,
+    minWidth: 440,
+    minHeight: 300,
     resizable: false,
     maximizable: false,
     fullscreenable: false,

@@ -24,40 +24,35 @@
 
   <main class="stage">
     <section class="view" id="installView">
-      <div class="hero">
-        <img class="hero-icon" src="build/icon.png" alt="">
-        <div class="hero-copy"><h1>HackerTube</h1><p>Programming videos, in a focused desktop app.</p></div>
+      <div class="intro">
+        <h1>Install HackerTube</h1>
+        <p>Programming videos, in a focused desktop app.</p>
       </div>
 
       <div class="panel">
         <div class="row">
-          <svg class="ic row-ic"><use href="#i-folder-2"></use></svg>
+          <span class="row-ic"><svg class="ic"><use href="#i-folder-2"></use></svg></span>
           <div class="grow"><b>Install location</b><span class="path" id="installDir"></span></div>
           <button class="btn small" id="browseBtn" type="button">Browse</button>
         </div>
         <label class="row option">
-          <input type="checkbox" id="desktopShortcut" checked>
-          <span class="check-ui"></span>
           <span class="grow">Desktop shortcut</span>
-          <svg class="ic row-ic muted"><use href="#i-monitor"></use></svg>
+          <input class="switch" type="checkbox" id="desktopShortcut" checked>
         </label>
         <label class="row option">
-          <input type="checkbox" id="launchApp" checked>
-          <span class="check-ui"></span>
           <span class="grow">Launch after install</span>
-          <svg class="ic row-ic muted"><use href="#i-play"></use></svg>
+          <input class="switch" type="checkbox" id="launchApp" checked>
         </label>
+        <div class="panel-foot">
+          <span class="version" id="version">v—</span>
+          <button class="btn primary" id="installBtn" type="button"><svg class="ic"><use href="#i-download"></use></svg><span>Install</span></button>
+        </div>
       </div>
 
       <p class="note-line"><svg class="ic"><use href="#i-shield"></use></svg><span>Your data stays on this device. Likes, history and playlists are kept.</span></p>
-
-      <div class="actions">
-        <span class="version" id="version">v—</span>
-        <button class="btn primary" id="installBtn" type="button"><svg class="ic"><use href="#i-download"></use></svg><span>Install</span></button>
-      </div>
     </section>
 
-    <section class="view" id="progressView" hidden>
+    <section class="view middle" id="progressView" hidden>
       <div class="progress-top">
         <span class="spinner"><svg class="ic"><use href="#i-refresh"></use></svg></span>
         <div class="grow"><h1 id="progressTitle">Installing HackerTube</h1><p id="progressText">Preparing…</p></div>
@@ -68,7 +63,7 @@
     </section>
 
     <section class="view center" id="successView" hidden>
-      <div class="status-badge success"><svg class="ic"><use href="#i-check"></use></svg></div>
+      <div class="status-icon"><svg class="ic"><use href="#i-check"></use></svg></div>
       <h1>You're all set</h1>
       <p class="muted">HackerTube is installed and ready to use.</p>
       <div class="installed-path"><svg class="ic"><use href="#i-folder-2"></use></svg><span id="successPath"></span></div>
@@ -79,7 +74,7 @@
     </section>
 
     <section class="view center" id="uninstallView" hidden>
-      <div class="status-badge danger"><svg class="ic"><use href="#i-trash"></use></svg></div>
+      <div class="status-icon danger"><svg class="ic"><use href="#i-trash"></use></svg></div>
       <h1>Remove HackerTube?</h1>
       <p class="muted">The desktop app and its shortcuts will be removed.</p>
       <p class="note-line center-note"><svg class="ic"><use href="#i-shield"></use></svg><span>Your likes, history and playlists stay on this device.</span></p>
@@ -96,14 +91,14 @@
     </section>
 
     <section class="view center" id="uninstallDone" hidden>
-      <div class="status-badge success"><svg class="ic"><use href="#i-check"></use></svg></div>
+      <div class="status-icon"><svg class="ic"><use href="#i-check"></use></svg></div>
       <h1>HackerTube removed</h1>
       <p class="muted">The app and its shortcuts are gone. Your data remains on this device.</p>
       <div class="center-actions"><button class="btn primary" id="finishUninstall" type="button">Close</button></div>
     </section>
 
     <section class="view center" id="errorView" hidden>
-      <div class="status-badge danger"><svg class="ic"><use href="#i-close"></use></svg></div>
+      <div class="status-icon danger"><svg class="ic"><use href="#i-close"></use></svg></div>
       <h1>Something went wrong</h1>
       <p class="muted" id="errorText"></p>
       <div class="center-actions">
