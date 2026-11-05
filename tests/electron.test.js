@@ -155,6 +155,7 @@ test("the desktop app serves the bundled site locally instead of the network", (
   assert.match(main, /await startLocalSite\(\)/);
   assert.match(main, /scheduleLegacyStorageMigration/);
   assert.match(main, /hadStorageAtLaunch/);
+  assert.match(main, /reason: "fresh-install"/);
   assert.match(main, /localStorage\.getItem\(key\) === null/, "delayed migration must not overwrite data saved during startup");
   assert.doesNotMatch(main, /await migrateLegacyStorage\(\)/);
   assert.match(main, /migrateLegacyStorage/);
