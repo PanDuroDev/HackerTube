@@ -180,16 +180,21 @@ function replaceAppImage(file) {
   const current = process.env.APPIMAGE;
   if (!current || !fs.existsSync(current)) return false;
   const staged = `${current}.new`;
+  let movedCurrent = false;
   try {
     fs.copyFileSync(file, staged);
     fs.chmodSync(staged, 0o755);
     fs.renameSync(current, `${current}.old`);
+    movedCurrent = true;
     fs.renameSync(staged, current);
   } catch {
+    if (movedCurrent) {
+      try { fs.renameSync(`${current}.old`, current); } catch { /* keep the backup for manual recovery */ }
+    }
     fs.rmSync(staged, { force: true });
     return false;
   }
-  spawnDetached(current, []);
+  app.relaunch({ execPath: current, args: [] });
   return true;
 }
 
@@ -341,7 +346,9 @@ if (standaloneInstaller) {
     app.whenReady().then(() => {
       app.setAppUserModelId(APP_ID);
       // The previous AppImage is replaced in place during an update; drop the leftover.
-      if (process.env.APPIMAGE) fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true });
+      if (process.env.APPIMAGE) {
+        try { fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true }); } catch { /* retry on next start */ }
+      }
       Menu.setApplicationMenu(Menu.buildFromTemplate([
         ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
         {

@@ -292,3 +292,26 @@ test("the Windows build ships a custom Electron installer and uninstaller", () =
   assert.match(preload, /installer:uninstall/);
   assert.match(preload, /installer:finish-uninstall/);
 });
+
+test("install path containment handles same, nested, and case-variant folders", () => {
+  const { isSameOrNested } = require("../electron/install-fs");
+  const base = path.join(path.sep, "tmp", "hackertube-path-test");
+  assert.equal(isSameOrNested(base, base), true);
+  assert.equal(isSameOrNested(base, path.join(base, "sub")), true);
+  assert.equal(isSameOrNested(base, `${base}-other`), false);
+  assert.equal(isSameOrNested("", base), false);
+  if (process.platform === "win32") {
+    assert.equal(isSameOrNested("C:/Apps/HackerTube", "c:/apps/hackertube"), true);
+    assert.equal(isSameOrNested("C:/Apps/HackerTube", "c:/apps/hackertube/sub"), true);
+  }
+});
+
+test("the AppImage updater restores the backup and relaunches only after exit", () => {
+  const main = read("electron/main.js");
+  assert.match(main, /let movedCurrent = false/);
+  assert.match(main, /fs\.renameSync\(`\$\{current\}\.old`, current\)/);
+  assert.match(main, /app\.relaunch\(\{ execPath: current, args: \[\] \}\)/);
+  assert.match(main, /try \{ fs\.rmSync\(`\$\{process\.env\.APPIMAGE\}\.old`, \{ force: true \}\); \}/);
+  const installer = read("electron/installer.js");
+  assert.match(installer, /!isSameOrNested\(previous, dir\)/);
+});

@@ -47,4 +47,17 @@ async function swapIn(staging, target) {
   try { fs.rmSync(backup, { recursive: true, force: true }); } catch { /* cleaned next run */ }
 }
 
-module.exports = { renameWithRetry, cleanStaleDirs, swapIn };
+
+// Windows paths are case-insensitive; treat a target as "contained" in itself or a parent.
+function isSameOrNested(parent, child) {
+  if (!parent || !child) return false;
+  const normalize = (value) => {
+    const resolved = path.resolve(value).replace(/[\/]+$/, "");
+    return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  };
+  const base = normalize(parent);
+  const target = normalize(child);
+  return target === base || target.startsWith(`${base}${path.sep}`);
+}
+
+module.exports = { renameWithRetry, cleanStaleDirs, swapIn, isSameOrNested };

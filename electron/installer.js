@@ -6,7 +6,7 @@ const originalFs = require("original-fs");
 const path = require("node:path");
 const { execFile, execFileSync, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
-const { cleanStaleDirs, swapIn } = require("./install-fs");
+const { cleanStaleDirs, swapIn, isSameOrNested } = require("./install-fs");
 
 const execFileAsync = promisify(execFile);
 const ofsCopyFile = promisify(originalFs.copyFile);
@@ -272,7 +272,7 @@ async function install(options, window) {
     await registerUninstall(dir);
 
     // Only after the new copy is in place: drop the copy the registry pointed at before.
-    if (previous && path.resolve(previous) !== dir) {
+    if (previous && !isSameOrNested(previous, dir)) {
       try { fs.rmSync(previous, { recursive: true, force: true }); } catch { /* harmless leftover */ }
     }
 
