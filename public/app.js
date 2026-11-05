@@ -103,6 +103,7 @@ let customCaptionName = "";
 let customPlayerReady = false;
 let customPlayerFailed = false;
 let customPanelError = "";
+let customPanelSequence = 0;
 let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
@@ -1471,6 +1472,7 @@ function customControlsMarkup() {
   const speed = tr("player.tabSpeed", "Speed");
   const quality = tr("player.quality", "Quality");
   const captions = tr("player.captions", "Captions");
+  const panelId = `ht-panel-${++customPanelSequence}`;
   return `<div class="ht-controls" data-ht-controls>
     <div class="ht-seek-wrap">
       <input class="ht-seek" type="range" min="0" max="0" step="0.1" value="0" dir="ltr" aria-label="${esc(tr("player.seek", "Seek"))}" data-ht-seek>
@@ -1489,11 +1491,11 @@ function customControlsMarkup() {
         <button class="ht-btn ht-gear" type="button" data-ht-settings aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(settings)}" title="${esc(settings)}">${icon("settings")}</button>
         <div class="ht-panel" role="dialog" aria-label="${esc(settings)}" dir="auto">
           <div class="ht-tabs" role="tablist">
-            <button class="ht-tab is-active" type="button" role="tab" aria-selected="true" data-ht-tab="speed">${icon("dashboard-2")}<span>${esc(speed)}</span></button>
-            <button class="ht-tab" type="button" role="tab" aria-selected="false" data-ht-tab="quality">${icon("hd")}<span>${esc(quality)}</span></button>
-            <button class="ht-tab" type="button" role="tab" aria-selected="false" data-ht-tab="captions">${icon("captions")}<span>${esc(captions)}</span></button>
+            <button class="ht-tab is-active" type="button" role="tab" id="${panelId}-speed" aria-selected="true" aria-controls="${panelId}" tabindex="0" data-ht-tab="speed">${icon("dashboard-2")}<span>${esc(speed)}</span></button>
+            <button class="ht-tab" type="button" role="tab" id="${panelId}-quality" aria-selected="false" aria-controls="${panelId}" tabindex="-1" data-ht-tab="quality">${icon("hd")}<span>${esc(quality)}</span></button>
+            <button class="ht-tab" type="button" role="tab" id="${panelId}-captions" aria-selected="false" aria-controls="${panelId}" tabindex="-1" data-ht-tab="captions">${icon("captions")}<span>${esc(captions)}</span></button>
           </div>
-          <div class="ht-panel-body" data-ht-panel dir="auto"></div>
+          <div class="ht-panel-body" id="${panelId}" role="tabpanel" tabindex="0" aria-labelledby="${panelId}-speed" data-ht-panel dir="auto"></div>
         </div>
       </div>
       <button class="ht-btn" type="button" data-ht-action="fullscreen" aria-label="${esc(fullscreen)}" title="${esc(fullscreen)}" aria-pressed="false">${icon("fullscreen")}</button>
@@ -1652,15 +1654,16 @@ function customQualityLabel(level) {
 
 function customPanelHtml(tab, player) {
   const check = icon("check", "ht-option-check");
-  const item = (selected, value, label) => `<button class="ht-option${selected ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${selected}" data-ht-choice="${tab}" data-value="${esc(value)}" dir="auto"><span>${esc(label)}</span>${check}</button>`;
+  const item = (selected, value, label) => `<button class="ht-option${selected ? " is-selected" : ""}" type="button" role="radio" aria-checked="${selected}" data-ht-choice="${tab}" data-value="${esc(value)}" dir="auto"><span>${esc(label)}</span>${check}</button>`;
   const error = customPanelError ? `<span class="ht-panel-error">${esc(customPanelError)}</span>` : "";
   let items = "";
   let search = "";
+  let empty = "";
 
   if (tab === "speed") {
     let current = 1;
     try { current = Number(player.getPlaybackRate?.() || 1); } catch {}
-    return `${error}<div class="ht-speed-grid">${[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+    return `${error}<div class="ht-speed-grid" role="group" aria-label="${esc(tr("player.speed", "Playback speed"))}">${[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
       .map((rate) => {
         const selected = Math.abs(current - rate) < 0.01;
         return `<button class="ht-speed-option${selected ? " is-selected" : ""}" type="button" data-ht-choice="speed" data-value="${rate}" aria-pressed="${selected}">${rate}×</button>`;
@@ -1681,7 +1684,7 @@ function customPanelHtml(tab, player) {
       return item(selected, level, customQualityLabel(level));
     }).join("");
     const hint = levels.length ? "" : `<span class="ht-panel-empty">${esc(tr("player.qualityLoading", "Quality options appear once playback starts."))}</span>`;
-    return `${error}${html}${hint}`;
+    return `${error}<div role="radiogroup" aria-label="${esc(tr("player.quality", "Quality"))}">${html}</div>${hint}`;
   }
   if (tab === "captions") {
     const current = customCaptionCode;
@@ -1733,7 +1736,7 @@ function customPanelHtml(tab, player) {
         const searchLabel = tr("player.searchLanguages", "Search languages");
         search = `<input class="ht-panel-search" type="search" placeholder="${esc(searchLabel)}" aria-label="${esc(searchLabel)}" data-ht-caption-search><span class="ht-panel-empty" data-ht-no-results hidden>${esc(tr("player.noResults", "No languages match your search."))}</span>`;
       }
-      items += `<div class="ht-panel-label">${esc(tr("player.translateTo", "Translate to"))}</div>`;
+      items += `<div class="ht-panel-label" role="presentation">${esc(tr("player.translateTo", "Translate to"))}</div>`;
       items += translateTo
         .map((language) => {
           const value = `${source}|${language.languageCode}`;
@@ -1745,9 +1748,9 @@ function customPanelHtml(tab, player) {
       const message = moduleLoaded
         ? tr("player.noCaptions", "No captions available")
         : tr("player.captionsHint", "Play the video to load caption languages.");
-      items += `<span class="ht-panel-empty">${esc(message)}</span>`;
+      empty = `<span class="ht-panel-empty">${esc(message)}</span>`;
     }
-    return `${error}${search}${items}`;
+    return `${error}${search}<div role="radiogroup" aria-label="${esc(tr("player.captions", "Captions"))}">${items}</div>${empty}`;
   }
 
   return `${error}${items}`;
@@ -1790,8 +1793,9 @@ function renderCustomPanel() {
   for (const delay of [600, 1800]) {
     setTimeout(() => {
       if (!settings.isConnected || !settings.classList.contains("open") || !playlistPlayer) return;
+      if (settings.querySelector(".ht-tab.is-active")?.dataset.htTab !== "captions") return;
       const panel = settings.querySelector("[data-ht-panel]");
-      if (!panel || panel.querySelector("[data-ht-caption-search]")?.value) return;
+      if (!panel || panel.contains(document.activeElement) || panel.querySelector("[data-ht-caption-search]")?.value) return;
       panel.innerHTML = customPanelHtml("captions", playlistPlayer);
     }, delay);
   }
@@ -1823,7 +1827,9 @@ function selectCustomTab(button) {
     const active = tab === button;
     tab.classList.toggle("is-active", active);
     tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
   });
+  settings.querySelector('[role="tabpanel"]')?.setAttribute("aria-labelledby", button.id);
   renderCustomPanel();
 }
 
@@ -2071,10 +2077,28 @@ function setupCustomControls() {
       customPlayerAction(actionButton.dataset.htAction);
       return;
     }
-    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab, .ht-settings")) return;
+    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab, .ht-controls")) return;
+    if (closeCustomSettings()) return;
     customPlayerAction("toggle");
   });
 
+  playerEl.addEventListener("keydown", (event) => {
+    const tab = event.target.closest("[data-ht-tab]");
+    if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...(tab.closest(".ht-tabs")?.querySelectorAll("[data-ht-tab]") || [])];
+    if (!tabs.length) return;
+    let next;
+    if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = tabs.length - 1;
+    else {
+      const rtl = getComputedStyle(tabs[0]).direction === "rtl";
+      const step = event.key === "ArrowRight" ? (rtl ? -1 : 1) : (rtl ? 1 : -1);
+      next = (tabs.indexOf(tab) + step + tabs.length) % tabs.length;
+    }
+    tabs[next].focus();
+    selectCustomTab(tabs[next]);
+  });
   playerEl.addEventListener("pointermove", () => showCustomControls());
   playerEl.addEventListener("pointerdown", () => showCustomControls());
   playerEl.addEventListener("pointerleave", () => {
@@ -2469,40 +2493,39 @@ function loadYouTubeIframeApi() {
   return youtubeApiPromise;
 }
 
-function fallbackToNative(videoId, queue, routeHash, autoplay) {
-  if (customPlayerFailed || location.hash !== routeHash) return;
+function fallbackToNative(videoId, queue, autoplay, playerHost) {
+  if (customPlayerFailed || !playerHost?.isConnected) return;
   customPlayerFailed = true;
   toast(tr("player.nativeFallback", "Custom controls aren't available for this video. Using YouTube controls."), "info");
-  restoreNativePlayer(videoId, queue, routeHash, autoplay);
+  restoreNativePlayer(videoId, queue, autoplay, playerHost);
 }
 
-function verifyCustomPlayerChrome(videoId, queue, routeHash, autoplay) {
+function verifyCustomPlayerChrome(videoId, queue, autoplay, playerHost) {
   clearTimeout(customChromeCheck);
+  if (!playerHost?.isConnected) return;
   if (typeof window.electronWindow?.isCustomPlayerChromeApplied !== "function") return;
   customChromeCheck = setTimeout(async () => {
     customChromeCheck = null;
-    if (location.hash !== routeHash || !customPlayerActive() || customPlayerFailed) return;
+    if (!playerHost.isConnected || !customPlayerActive() || customPlayerFailed) return;
     let applied = true;
     try {
       applied = await window.electronWindow.isCustomPlayerChromeApplied();
     } catch {
       return;
     }
-    if (applied === false && location.hash === routeHash && customPlayerActive() && !customPlayerFailed) {
-      fallbackToNative(videoId, queue, routeHash, autoplay);
+    if (applied === false && playerHost.isConnected && customPlayerActive() && !customPlayerFailed) {
+      fallbackToNative(videoId, queue, autoplay, playerHost);
     }
   }, 5000);
 }
 
-function restoreNativePlayer(videoId, queue, routeHash, autoplay) {
-  if (location.hash !== routeHash) return;
+function restoreNativePlayer(videoId, queue, autoplay, playerHost) {
+  if (!playerHost?.isConnected) return;
   setCustomPlayerChrome(false);
   stopCustomControls();
-  const host = document.querySelector(".player.ht-player");
-  if (!host) return;
-  const title = host.querySelector("iframe")?.title || "";
-  host.classList.remove("ht-player", "is-paused", "is-playing", "is-buffering", "ht-hide", "grab-idle");
-  host.querySelectorAll(".ht-controls, .ht-center").forEach((node) => node.remove());
+  const title = playerHost.querySelector("iframe")?.title || "";
+  playerHost.classList.remove("ht-player", "is-paused", "is-playing", "is-buffering", "ht-hide", "grab-idle");
+  playerHost.querySelectorAll(".ht-controls, .ht-center").forEach((node) => node.remove());
   saveCurrentProgress();
   try {
     playlistPlayer?.destroy?.();
@@ -2510,36 +2533,40 @@ function restoreNativePlayer(videoId, queue, routeHash, autoplay) {
     // A partially created API player may not be destroyable.
   }
   playlistPlayer = null;
-  const frame = host.querySelector("iframe");
+  const frame = playerHost.querySelector("iframe");
   if (frame) {
     frame.outerHTML = youtubeIframeMarkup(videoId, title, queue, autoplay, true);
   } else {
     // YT.Player.destroy() removes its iframe, so the player container can be empty here.
-    host.insertAdjacentHTML("afterbegin", youtubeIframeMarkup(videoId, title, queue, autoplay, true));
+    playerHost.insertAdjacentHTML("afterbegin", youtubeIframeMarkup(videoId, title, queue, autoplay, true));
   }
 }
 
 async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
-  const custom = Boolean(playerFrame.closest?.(".player.ht-player"));
+  const playerHost = playerFrame.closest?.(".player.ht-player") || null;
+  const custom = Boolean(playerHost);
+  const lifecycleMatches = () => (custom
+    ? Boolean(playerHost?.isConnected) && (location.hash === routeHash || Boolean(miniState))
+    : Boolean(playerFrame.isConnected) && location.hash === routeHash);
   if (custom) {
     syncCustomPlayerChrome();
     setupCustomControls();
     clearTimeout(customReadyTimer);
     customReadyTimer = setTimeout(() => {
       customReadyTimer = null;
-      if (!customPlayerReady && location.hash === routeHash) fallbackToNative(videoId, queue, routeHash, autoplay);
+      if (!customPlayerReady && playerHost.isConnected) fallbackToNative(videoId, queue, autoplay, playerHost);
     }, 20000);
-    verifyCustomPlayerChrome(videoId, queue, routeHash, autoplay);
+    verifyCustomPlayerChrome(videoId, queue, autoplay, playerHost);
   }
   try {
     const YT = await loadYouTubeIframeApi();
-    if (location.hash !== routeHash || !playerFrame.isConnected) return;
+    if (!lifecycleMatches()) return;
     playlistPlayer = new YT.Player(playerFrame, {
       events: {
         onReady(event) {
-          if (location.hash !== routeHash || customPlayerFailed) return;
+          if (customPlayerFailed || !lifecycleMatches()) return;
           if (custom) {
             customPlayerReady = true;
             clearTimeout(customReadyTimer);
@@ -2558,11 +2585,14 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           else if (autoplay) event.target.playVideo();
           if (event.target.getPlayerState?.() === YT.PlayerState.PLAYING) clearGrabIdle();
           else scheduleGrabIdle();
-          applyCustomVolume();
-          syncCustomPlayerUi();
+          if (custom) {
+            applyCustomVolume();
+            syncCustomPlayerUi();
+          }
         },
         onStateChange(event) {
           if (customPlayerFailed) return;
+          if (custom && !playerHost?.isConnected) return;
           if (event.data === YT.PlayerState.PLAYING) clearGrabIdle();
           else if ([
             YT.PlayerState.PAUSED,
@@ -2590,14 +2620,14 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           }
         },
         onError() {
-          if (!custom || location.hash !== routeHash) return;
-          setTimeout(() => fallbackToNative(videoId, queue, routeHash, autoplay), 0);
+          if (!custom || !playerHost?.isConnected) return;
+          setTimeout(() => fallbackToNative(videoId, queue, autoplay, playerHost), 0);
         },
       },
     });
   } catch {
     // Without the API the custom bar cannot control the iframe, so bring the native controls back.
-    if (custom) fallbackToNative(videoId, queue, routeHash, autoplay);
+    if (custom) fallbackToNative(videoId, queue, autoplay, playerHost);
   }
 }
 

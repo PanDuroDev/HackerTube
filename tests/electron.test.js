@@ -369,6 +369,9 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(app, /onError\(/);
   assert.match(app, /customPlayerFailed/);
   assert.match(app, /insertAdjacentHTML\("afterbegin"/);
+  assert.match(app, /fallbackToNative\(videoId, queue, autoplay, playerHost\)/);
+  assert.match(app, /role="tabpanel"/);
+  assert.match(app, /event\.key === "ArrowRight"/);
 });
 
 test("the AppImage updater restores the backup and relaunches only after exit", () => {

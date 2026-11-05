@@ -584,6 +584,9 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(wrapper, /data-ht-tab="quality"/);
   assert.match(wrapper, /data-ht-tab="captions"/);
   assert.match(wrapper, /ht-panel/);
+  assert.match(wrapper, /role="tabpanel"/);
+  assert.match(wrapper, /aria-controls="ht-panel-/);
+  assert.match(wrapper, /tabindex="-1"/);
   assert.doesNotMatch(wrapper, /data-ht-menu/);
   assert.match(wrapper, /ht-center/);
   assert.match(wrapper, /id="youtube-player"/);
@@ -600,6 +603,7 @@ test("custom player panel lists speed, quality, and caption choices", () => {
 
   const speed = api.customPanelHtml("speed", { getPlaybackRate: () => 1.5 });
   assert.match(speed, /ht-speed-grid/);
+  assert.match(speed, /role="group"/);
   assert.match(speed, /1\.5×/);
   assert.equal((speed.match(/is-selected/g) || []).length, 1);
 
@@ -607,6 +611,8 @@ test("custom player panel lists speed, quality, and caption choices", () => {
     getPlaybackQuality: () => "hd1080",
     getAvailableQualityLevels: () => ["hd1080", "hd720", "large"],
   });
+  assert.match(quality, /role="radiogroup"/);
+  assert.doesNotMatch(quality, /menuitemradio/);
   assert.match(quality, /Auto/);
   assert.match(quality, /1080p/);
   assert.match(quality, /720p/);
@@ -623,6 +629,8 @@ test("custom player panel lists speed, quality, and caption choices", () => {
       ? [{ languageCode: "en", displayName: "English" }, { languageCode: "ar", displayName: "Arabic" }]
       : null,
   });
+  assert.match(captions, /role="radiogroup"/);
+  assert.doesNotMatch(captions, /menuitemradio/);
   assert.match(captions, /Off/);
   assert.match(captions, /English/);
   assert.match(captions, /Arabic/);
@@ -688,6 +696,11 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /enableCustomPlayer/);
   assert.match(APP_SOURCE, /customPlayerTitle/);
   assert.match(APP_SOURCE, /customPlayerMessage/);
+  assert.match(APP_SOURCE, /if \(closeCustomSettings\(\)\) return;/);
+  assert.match(APP_SOURCE, /event\.key === "ArrowRight"/);
+  assert.match(APP_SOURCE, /dataset\.htTab !== "captions"/);
+  assert.match(APP_SOURCE, /if \(custom\) \{\s*applyCustomVolume\(\);/);
+  assert.match(APP_SOURCE, /fallbackToNative\(videoId, queue, autoplay, playerHost\)/);
 });
 
 
