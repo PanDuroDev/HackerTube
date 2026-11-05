@@ -69,7 +69,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customPanelHtml, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -520,14 +520,174 @@ test("YouTube embeds always use the original player controls", () => {
 });
 
 
-test("Settings no longer expose Playback or Stream API options", () => {
+test("Web settings do not expose the desktop-only Playback options", () => {
   const { api, view } = createHarness();
   api.renderSettings();
 
-  for (const label of ["Playback", "Custom YouTube controls", "Direct video playback", "Stream API URL", "trycloudflare.com"]) {
+  for (const label of ["Playback", "Custom player controls", "Direct video playback", "Stream API URL", "trycloudflare.com"]) {
     assert.ok(!view.innerHTML.includes(label), `settings should not contain ${label}`);
   }
   assert.ok(view.innerHTML.includes("Browsing"));
+});
+
+test("custom playback controls are off by default and never activate on the web", () => {
+  const harness = createHarness();
+  const { api } = harness;
+  assert.equal(api.state.settings.customPlayer, false);
+
+  api.state.settings.customPlayer = true;
+  const webMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  const webParams = new URL(webMarkup.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(webParams.get("controls"), "1");
+  assert.equal(webParams.get("disablekb"), "0");
+  assert.equal(webParams.get("fs"), "1");
+  assert.doesNotMatch(api.playerContainerMarkup(webMarkup), /ht-player|data-ht-controls|data-ht-seek/);
+});
+
+test("the desktop app hides YouTube controls when custom playback is enabled", () => {
+  const harness = createHarness();
+  harness.context.window.electronWindow = {
+    setCustomPlayerChrome() {},
+    isCustomPlayerChromeApplied: async () => true,
+  };
+  const { api, view } = harness;
+  api.state.settings.customPlayer = true;
+
+  const markup = api.youtubeIframeMarkup("video123", "Test video");
+  const params = new URL(markup.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(params.get("controls"), "0");
+  assert.equal(params.get("disablekb"), "1");
+  assert.equal(params.get("fs"), "0");
+  assert.equal(params.get("iv_load_policy"), "3");
+  assert.equal(params.get("modestbranding"), "1");
+
+  const fallback = api.youtubeIframeMarkup("video123", "Test video", null, false, true);
+  const fallbackParams = new URL(fallback.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(fallbackParams.get("controls"), "1");
+  assert.equal(fallbackParams.get("disablekb"), "0");
+  assert.equal(fallbackParams.get("fs"), "1");
+  assert.equal(fallbackParams.get("modestbranding"), null);
+
+  const wrapper = api.playerContainerMarkup(markup);
+  assert.match(wrapper, /class="player ht-player"/);
+  assert.match(wrapper, /data-ht-controls/);
+  assert.match(wrapper, /data-ht-seek/);
+  assert.match(wrapper, /data-ht-volume/);
+  assert.match(wrapper, /data-ht-action="toggle"/);
+  assert.match(wrapper, /data-ht-action="back10"/);
+  assert.match(wrapper, /data-ht-action="forward10"/);
+  assert.match(wrapper, /data-ht-action="mute"/);
+  assert.match(wrapper, /data-ht-action="fullscreen"/);
+  assert.match(wrapper, /ht-volume-wrap/);
+  assert.match(wrapper, /data-ht-settings/);
+  assert.match(wrapper, /data-ht-tab="speed"/);
+  assert.match(wrapper, /data-ht-tab="quality"/);
+  assert.match(wrapper, /data-ht-tab="captions"/);
+  assert.match(wrapper, /ht-panel/);
+  assert.doesNotMatch(wrapper, /data-ht-menu/);
+  assert.match(wrapper, /ht-center/);
+  assert.match(wrapper, /id="youtube-player"/);
+
+  api.renderSettings();
+  assert.match(view.innerHTML, /Playback/);
+  assert.match(view.innerHTML, /Custom player controls/);
+  assert.match(view.innerHTML, /data-setting="customPlayer"/);
+  assert.match(view.innerHTML, /class="settings-warning"/);
+});
+
+test("custom player panel lists speed, quality, and caption choices", () => {
+  const { api } = createHarness();
+
+  const speed = api.customPanelHtml("speed", { getPlaybackRate: () => 1.5 });
+  assert.match(speed, /ht-speed-grid/);
+  assert.match(speed, /1\.5×/);
+  assert.equal((speed.match(/is-selected/g) || []).length, 1);
+
+  const quality = api.customPanelHtml("quality", {
+    getPlaybackQuality: () => "hd1080",
+    getAvailableQualityLevels: () => ["hd1080", "hd720", "large"],
+  });
+  assert.match(quality, /Auto/);
+  assert.match(quality, /1080p/);
+  assert.match(quality, /720p/);
+  assert.match(quality, /480p/);
+
+  const pendingQuality = api.customPanelHtml("quality", {
+    getPlaybackQuality: () => "",
+    getAvailableQualityLevels: () => [],
+  });
+  assert.match(pendingQuality, /Quality options appear once playback starts/);
+
+  const captions = api.customPanelHtml("captions", {
+    getOption: (module, key) => key === "tracklist"
+      ? [{ languageCode: "en", displayName: "English" }, { languageCode: "ar", displayName: "Arabic" }]
+      : null,
+  });
+  assert.match(captions, /Off/);
+  assert.match(captions, /English/);
+  assert.match(captions, /Arabic/);
+
+  const singleTrack = api.customPanelHtml("captions", {
+    getOption: (module, key) => key === "tracklist"
+      ? []
+      : { languageCode: "en", displayName: "English (auto-generated)" },
+  });
+  assert.match(singleTrack, /English \(auto-generated\)/);
+
+  const translations = api.customPanelHtml("captions", {
+    getOptions: () => ["captions"],
+    getOption: (module, key) => {
+      if (key === "tracklist" || key === "track") return [];
+      if (key === "translationLanguages") {
+        return [
+          { languageCode: "en", languageName: "English" },
+          { languageCode: "ar", languageName: "Arabic" },
+          { languageCode: "es", languageName: "Spanish" },
+        ];
+      }
+      return null;
+    },
+  });
+  assert.match(translations, /Translate to/);
+  assert.match(translations, /data-value="en\|ar"/);
+  assert.match(translations, /Arabic/);
+  assert.match(translations, /Spanish/);
+
+  const manyTranslations = api.customPanelHtml("captions", {
+    getOptions: () => ["captions"],
+    getOption: (module, key) => key === "translationLanguages"
+      ? Array.from({ length: 14 }, (_, index) => ({ languageCode: `l${index}`, languageName: `Language ${index}` }))
+      : [],
+  });
+  assert.match(manyTranslations, /data-ht-caption-search/);
+  assert.match(manyTranslations, /data-ht-no-results/);
+});
+
+test("custom playback assets use the MingCute sprite and require the disclaimer", () => {
+  const root = path.join(__dirname, "..", "public");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  for (const id of ["pause", "volume", "volume-mute", "fullscreen", "fullscreen-exit", "rewind-back-10", "rewind-forward-10", "warning", "hd", "captions", "dashboard-2"]) {
+    assert.match(html, new RegExp(`<symbol id="i-${id}"`), `missing icon ${id}`);
+  }
+  assert.match(css, /\.player\.ht-player iframe \{ pointer-events: none; \}/);
+  assert.match(css, /\.ht-controls/);
+  assert.match(css, /\.ht-center/);
+  assert.match(css, /\.player\.ht-player\.ht-hide \.ht-controls/);
+  assert.match(css, /\.ht-volume-wrap:hover \.ht-volume/);
+  assert.match(css, /\.ht-controls[\s\S]*?linear-gradient\(to top, rgba\(0, 0, 0, \.55\)/);
+  assert.doesNotMatch(css, /rgba\(0, 0, 0, \.97\)/);
+  assert.match(css, /\.ht-settings\.open \.ht-panel/);
+  assert.match(css, /\.ht-tabs/);
+  assert.match(css, /\.ht-speed-grid/);
+  assert.match(css, /\.ht-option\[hidden\]/);
+  assert.match(css, /\.ht-panel-error/);
+  assert.match(css, /\.ht-btn:disabled/);
+  assert.match(css, /\.settings-warning/);
+  assert.match(APP_SOURCE, /enableCustomPlayer/);
+  assert.match(APP_SOURCE, /customPlayerTitle/);
+  assert.match(APP_SOURCE, /customPlayerMessage/);
 });
 
 

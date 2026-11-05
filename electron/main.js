@@ -366,6 +366,144 @@ async function launchInstaller(file) {
   return false;
 }
 
+const YOUTUBE_FRAME_RE = /^https:\/\/(?:www\.)?(?:youtube\.com|youtube-nocookie\.com)\/embed\//i;
+const CUSTOM_CHROME_STYLE_ID = "hackertube-custom-player-chrome";
+const CUSTOM_CHROME_CSS = `
+ytm-cued-overlay,
+.ytmCuedOverlayHost,
+embedded-player-video-details,
+.ytmVideoInfoHost,
+player-top-controls,
+.ytwPlayerTopControlsHost,
+player-middle-controls,
+.ytwPlayerMiddleControlsHost,
+player-bottom-controls,
+.ytwPlayerBottomControlsHost,
+yt-progress-bar,
+.ytPlayerProgressBarHost,
+player-fullscreen-controls,
+.ytwPlayerFullscreenControlsHost,
+player-fullscreen-action-menu,
+.fullscreen-action-menu,
+.fullscreen-controls,
+.ytFullscreenVideoRecommendationsHost,
+.fullscreen-watch-next-entrypoint-wrapper,
+.ytmFullscreenRelatedVideosEntryPointViewModelHost,
+yt-player-seek-overlay,
+.ytwPlayerSeekOverlayHost,
+.player-controls-background,
+.player-controls-background-container,
+.watch-on-youtube-button-wrapper,
+.watch-on-youtube-button,
+.ytp-chrome-top,
+.ytp-chrome-controls,
+.ytp-progress-bar-container,
+.ytp-gradient-top,
+.ytp-gradient-bottom,
+.ytp-cued-thumbnail-overlay,
+.ytp-large-play-button,
+.ytp-watermark,
+.ytp-pause-overlay,
+.ytp-endscreen-content,
+.ytp-ce-element,
+.ytp-title,
+yt-bigboard,
+.ytp-bezel,
+.ytp-bezel-text-wrapper,
+.ytp-popup,
+.ytp-settings-menu,
+.ytp-contextmenu,
+.ytp-tooltip {
+  display: none !important;
+}
+`;
+const customChromeWindows = new WeakMap();
+
+function customChromeScript(enabled) {
+  if (!enabled) {
+    return `document.getElementById(${JSON.stringify(CUSTOM_CHROME_STYLE_ID)})?.remove(); true;`;
+  }
+  return `(() => {
+    const id = ${JSON.stringify(CUSTOM_CHROME_STYLE_ID)};
+    let style = document.getElementById(id);
+    if (!style) {
+      style = document.createElement("style");
+      style.id = id;
+      (document.head || document.documentElement).append(style);
+    }
+    style.textContent = ${JSON.stringify(CUSTOM_CHROME_CSS)};
+    return true;
+  })()`;
+}
+
+function youtubeFrames(webContents) {
+  if (!webContents || webContents.isDestroyed?.()) return [];
+  const root = webContents.mainFrame;
+  if (!root) return [];
+  let frames = [];
+  try {
+    frames = [...(root.framesInSubtree || root.frames || [])];
+  } catch {
+    return [];
+  }
+  return frames.filter((frame) => {
+    try {
+      return YOUTUBE_FRAME_RE.test(frame.url || "");
+    } catch {
+      return false;
+    }
+  });
+}
+
+function applyCustomPlayerChrome(webContents) {
+  if (!webContents || webContents.isDestroyed?.()) return;
+  const enabled = customChromeWindows.get(webContents) === true;
+  for (const frame of youtubeFrames(webContents)) {
+    try {
+      frame.executeJavaScript(customChromeScript(enabled)).catch(() => {});
+    } catch {
+      // The frame can be detached between discovery and execution.
+    }
+  }
+}
+
+function scheduleCustomPlayerChrome(webContents) {
+  // The embed attaches its frame after the navigation events, so retry briefly.
+  for (const delay of [0, 250, 750, 1800, 3500]) {
+    const timer = setTimeout(() => applyCustomPlayerChrome(webContents), delay);
+    timer.unref?.();
+  }
+}
+
+function trackCustomPlayerChrome(webContents) {
+  webContents.on("did-frame-finish-load", () => scheduleCustomPlayerChrome(webContents));
+  webContents.on("did-frame-navigate", () => scheduleCustomPlayerChrome(webContents));
+  webContents.on("did-finish-load", () => scheduleCustomPlayerChrome(webContents));
+}
+
+ipcMain.handle("app:custom-player-chrome", (event, enabled) => {
+  if (!isTrusted(event)) return { ok: false };
+  customChromeWindows.set(event.sender, enabled === true);
+  scheduleCustomPlayerChrome(event.sender);
+  return { ok: true };
+});
+
+ipcMain.handle("app:custom-player-chrome-applied", async (event) => {
+  if (!isTrusted(event)) return false;
+  const frames = youtubeFrames(event.sender);
+  if (!frames.length) return false;
+  const results = await Promise.all(frames.map(async (frame) => {
+    try {
+      return await frame
+        .executeJavaScript(`!!document.getElementById(${JSON.stringify(CUSTOM_CHROME_STYLE_ID)})`)
+        .catch(() => false);
+    } catch {
+      return false;
+    }
+  }));
+  return results.some(Boolean);
+});
+
 function createWindow() {
   win = new BrowserWindow({
     title: "HackerTube",
@@ -390,6 +528,7 @@ function createWindow() {
   });
 
   win.setMenuBarVisibility(false);
+  trackCustomPlayerChrome(win.webContents);
   win.once("ready-to-show", () => win?.show());
 
   win.webContents.setWindowOpenHandler(({ url }) => {
