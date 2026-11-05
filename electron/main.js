@@ -536,6 +536,43 @@ ipcMain.handle("app:youtube-chapters", async (event) => {
   return [];
 });
 
+const YOUTUBE_QUALITY_LEVELS = new Set([
+  "auto", "default", "tiny", "small", "medium", "large",
+  "hd720", "hd1080", "hd1440", "hd2160", "highres",
+]);
+
+function youtubeQualityScript(level) {
+  const normalized = level === "default" || level === "auto" ? "auto" : level;
+  return `(() => new Promise((resolve) => {
+    const player = document.querySelector("#movie_player");
+    if (!player) {
+      resolve(null);
+      return;
+    }
+    const level = ${JSON.stringify(normalized)};
+    if (typeof player.setPlaybackQualityRange === "function") player.setPlaybackQualityRange(level);
+    if (typeof player.setPlaybackQuality === "function") player.setPlaybackQuality(level);
+    setTimeout(() => {
+      resolve(typeof player.getPlaybackQuality === "function" ? player.getPlaybackQuality() : null);
+    }, 350);
+  }))()`;
+}
+
+ipcMain.handle("app:youtube-quality", async (event, level) => {
+  if (!isTrusted(event)) return null;
+  const requested = String(level || "");
+  if (!YOUTUBE_QUALITY_LEVELS.has(requested)) return null;
+  for (const frame of youtubeFrames(event.sender)) {
+    try {
+      const actual = await frame.executeJavaScript(youtubeQualityScript(requested));
+      if (actual) return actual;
+    } catch {
+      // The iframe may be replacing its internal player.
+    }
+  }
+  return null;
+});
+
 function createWindow() {
   win = new BrowserWindow({
     title: "HackerTube",

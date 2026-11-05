@@ -18,6 +18,7 @@ if (window.top === window) {
     setCustomPlayerChrome: (enabled) => ipcRenderer.invoke("app:custom-player-chrome", Boolean(enabled)),
     isCustomPlayerChromeApplied: () => ipcRenderer.invoke("app:custom-player-chrome-applied"),
     getYouTubeChapters: () => ipcRenderer.invoke("app:youtube-chapters"),
+    setYouTubeQuality: (level) => ipcRenderer.invoke("app:youtube-quality", String(level)),
     onMaximizedChange: (callback) => {
       const listener = (_event, maximized) => callback(Boolean(maximized));
       ipcRenderer.on("window:maximized", listener);

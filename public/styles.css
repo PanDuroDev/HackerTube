@@ -867,17 +867,13 @@ a.card-sub:hover { color: var(--text); }
 }
 
 .ht-seek {
-  --ht-buffered: 0%;
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   width: 100%;
   height: 18px;
-  background:
-    linear-gradient(to right, var(--accent) var(--ht-progress), transparent var(--ht-progress)) center / 100% 4px no-repeat,
-    linear-gradient(to right, rgba(255, 255, 255, .36) var(--ht-buffered), rgba(255, 255, 255, .18) var(--ht-buffered)) center / 100% 4px no-repeat;
-  transition: background-size .15s ease;
+  background: transparent;
 }
-.ht-seek:hover,
-.ht-seek:focus-visible { background-size: 100% 6px, 100% 6px; }
 .ht-volume { flex: 0 0 0; width: 0; height: 16px; margin: 0; opacity: 0; pointer-events: none; background: linear-gradient(to right, var(--accent) var(--ht-progress), rgba(255, 255, 255, .3) var(--ht-progress)) center / 100% 3px no-repeat; background-size: 100% 3px; transition: width .18s ease, flex-basis .18s ease, opacity .18s ease, margin .18s ease; }
 .ht-volume-wrap { display: flex; align-items: center; flex: 0 0 auto; }
 .ht-volume-wrap:hover .ht-volume,
@@ -887,16 +883,20 @@ a.card-sub:hover { color: var(--text); }
   position: absolute;
   inset-inline: 2px;
   top: 50%;
-  height: 6px;
+  height: 4px;
   transform: translateY(-50%);
   pointer-events: none;
+  transition: height .15s ease;
 }
+.ht-seek-wrap:hover .ht-chapters,
+.ht-seek-wrap:focus-within .ht-chapters { height: 6px; }
 .ht-chapters i {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1px;
-  background: rgba(255, 255, 255, .34);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .18);
+  overflow: hidden;
 }
 
 .ht-seek::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: transparent; }
