@@ -1045,7 +1045,7 @@ test("Page size options stay in ascending order inside right-to-left layouts", (
   const { api, view } = createHarness();
   api.renderSettings();
 
-  const group = view.innerHTML.match(/<div class="segmented" dir="ltr"[^>]*aria-label="Page size">[\s\S]*?<\/div>/);
+  const group = view.innerHTML.match(/<div class="segmented pagesize" dir="ltr"[^>]*aria-label="Page size">[\s\S]*?<\/div>/);
   assert.ok(group, "the Page size control should be a left-to-right group");
   const markup = group[0];
   assert.ok(
@@ -1053,6 +1053,9 @@ test("Page size options stay in ascending order inside right-to-left layouts", (
       && markup.indexOf('data-pagesize="36"') < markup.indexOf('data-pagesize="60"'),
     "Page size buttons should read 24, 36, 60 from left to right",
   );
+
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  assert.match(css, /\.setting-row \.segmented\.pagesize \{ width: 142px; \}/, "the segmented track must contain all three buttons");
 });
 
 test("the Electron Settings group shows the installed version and an update action", () => {
