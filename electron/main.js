@@ -799,6 +799,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      additionalArguments: [`--hackertube-packaged=${app.isPackaged}`],
       backgroundThrottling: false,
       spellcheck: false,
     },

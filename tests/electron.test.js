@@ -378,6 +378,7 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /app:search-backend-stats/);
   assert.match(main, /app:search-backend-trim/);
   assert.match(main, /ids: result\.ids \|\| \[\]/);
+  assert.match(main, /additionalArguments: \[`--hackertube-packaged=\$\{app\.isPackaged\}`\]/);
   assert.match(main, /backend-bin/);
   assert.match(main, /before-quit[\s\S]*stopSearchBackend\(\)[\s\S]*startupTimers\.clear\(\)/);
   assert.match(main, /remove\(\)/);
@@ -387,6 +388,8 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(preload, /setCustomPlayerChrome/);
   assert.match(preload, /isCustomPlayerChromeApplied/);
   assert.match(preload, /isPackaged/);
+  assert.match(preload, /process\.argv\.includes\("--hackertube-packaged=true"\)/);
+  assert.doesNotMatch(preload, /require\("electron"\).*\bapp\b/);
   assert.match(preload, /getYouTubeChapters/);
   assert.match(preload, /setYouTubeQuality/);
   assert.match(preload, /searchCatalog/);
