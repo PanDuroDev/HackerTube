@@ -69,7 +69,7 @@ function createHarness() {
   const source = APP_SOURCE.replace(/\ninit\(\);\s*\n/, "\n");
   assert.notEqual(source, APP_SOURCE, "the app init call should be isolated");
   vm.runInNewContext(
-    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customMenuHtml, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
+    source + "\nglobalThis.__testApi = { state, ui, render, renderCategories, feedHashFromState, applyHNFilterParams, hnHashFromState, langAttrs, field, progressFor, saveProgress, card, videoWatchHref, playlistPlaybackHref, youtubeIframeMarkup, playerContainerMarkup, customPanelHtml, desktopDownloadHref, loadYouTubeIframeApi, startYouTubePlayer, watchActionsHTML, watchActionMenuOpensUp, renderSettings, renderRouteSkeleton, renderSidebar, applyBrandLocale, renderFeed, buildHomeOrder, markSeen, diverseCreatorPlaylists, renderHackerNews, renderHNWatch, renderWatch, renderCollection, renderPlaylists, renderPlaylist, playlistCard, toggleAct, addToPlaylist, syncWatchVideo, loadHNMentions, setFetchJson(fn) { fetchJson = fn; } };",
     context,
     { filename: "public/app.js" },
   );
@@ -576,9 +576,12 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(wrapper, /data-ht-action="mute"/);
   assert.match(wrapper, /data-ht-action="fullscreen"/);
   assert.match(wrapper, /ht-volume-wrap/);
-  assert.match(wrapper, /data-ht-menu="speed"/);
-  assert.match(wrapper, /data-ht-menu="quality"/);
-  assert.match(wrapper, /data-ht-menu="captions"/);
+  assert.match(wrapper, /data-ht-settings/);
+  assert.match(wrapper, /data-ht-tab="speed"/);
+  assert.match(wrapper, /data-ht-tab="quality"/);
+  assert.match(wrapper, /data-ht-tab="captions"/);
+  assert.match(wrapper, /ht-panel/);
+  assert.doesNotMatch(wrapper, /data-ht-menu/);
   assert.match(wrapper, /ht-center/);
   assert.match(wrapper, /id="youtube-player"/);
 
@@ -589,15 +592,15 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(view.innerHTML, /class="settings-warning"/);
 });
 
-test("custom player menus list speed, quality, and caption choices", () => {
+test("custom player panel lists speed, quality, and caption choices", () => {
   const { api } = createHarness();
 
-  const speed = api.customMenuHtml("speed", { getPlaybackRate: () => 1.5 });
-  assert.match(speed, /Playback speed/);
+  const speed = api.customPanelHtml("speed", { getPlaybackRate: () => 1.5 });
+  assert.match(speed, /ht-speed-grid/);
   assert.match(speed, /1\.5×/);
   assert.equal((speed.match(/is-selected/g) || []).length, 1);
 
-  const quality = api.customMenuHtml("quality", {
+  const quality = api.customPanelHtml("quality", {
     getPlaybackQuality: () => "hd1080",
     getAvailableQualityLevels: () => ["hd1080", "hd720", "large"],
   });
@@ -606,7 +609,7 @@ test("custom player menus list speed, quality, and caption choices", () => {
   assert.match(quality, /720p/);
   assert.match(quality, /480p/);
 
-  const captions = api.customMenuHtml("captions", {
+  const captions = api.customPanelHtml("captions", {
     getOption: (module, key) => key === "tracklist"
       ? [{ languageCode: "en", displayName: "English" }, { languageCode: "ar", displayName: "Arabic" }]
       : null,
@@ -615,14 +618,14 @@ test("custom player menus list speed, quality, and caption choices", () => {
   assert.match(captions, /English/);
   assert.match(captions, /Arabic/);
 
-  const singleTrack = api.customMenuHtml("captions", {
+  const singleTrack = api.customPanelHtml("captions", {
     getOption: (module, key) => key === "tracklist"
       ? []
       : { languageCode: "en", displayName: "English (auto-generated)" },
   });
   assert.match(singleTrack, /English \(auto-generated\)/);
 
-  const translations = api.customMenuHtml("captions", {
+  const translations = api.customPanelHtml("captions", {
     getOptions: () => ["captions"],
     getOption: (module, key) => {
       if (key === "tracklist" || key === "track") return [];
@@ -641,7 +644,7 @@ test("custom player menus list speed, quality, and caption choices", () => {
   assert.match(translations, /Arabic/);
   assert.match(translations, /Spanish/);
 
-  const manyTranslations = api.customMenuHtml("captions", {
+  const manyTranslations = api.customPanelHtml("captions", {
     getOptions: () => ["captions"],
     getOption: (module, key) => key === "translationLanguages"
       ? Array.from({ length: 14 }, (_, index) => ({ languageCode: `l${index}`, languageName: `Language ${index}` }))
@@ -663,8 +666,12 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(css, /\.ht-center/);
   assert.match(css, /\.player\.ht-player\.ht-hide \.ht-controls/);
   assert.match(css, /\.ht-volume-wrap:hover \.ht-volume/);
-  assert.match(css, /\.ht-pop\.open \.ht-menu/);
-  assert.match(css, /\.ht-menu-item\[hidden\]/);
+  assert.match(css, /\.ht-controls[\s\S]*?linear-gradient\(to top, rgba\(0, 0, 0, \.55\)/);
+  assert.doesNotMatch(css, /rgba\(0, 0, 0, \.97\)/);
+  assert.match(css, /\.ht-settings\.open \.ht-panel/);
+  assert.match(css, /\.ht-tabs/);
+  assert.match(css, /\.ht-speed-grid/);
+  assert.match(css, /\.ht-option\[hidden\]/);
   assert.match(css, /\.settings-warning/);
   assert.match(APP_SOURCE, /enableCustomPlayer/);
   assert.match(APP_SOURCE, /customPlayerTitle/);

@@ -380,6 +380,8 @@
     "seek": "Seek",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
+    "settings": "Player settings",
+    "tabSpeed": "Speed",
     "speed": "Playback speed",
     "quality": "Quality",
     "captions": "Captions",

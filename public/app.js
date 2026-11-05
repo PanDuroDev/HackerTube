@@ -401,9 +401,9 @@ async function init() {
   document.addEventListener("fullscreenchange", syncCustomFullscreenUi);
   document.addEventListener("keydown", onCustomPlayerKeydown);
   document.addEventListener("click", (event) => {
-    if (!event.target.closest?.(".ht-pop")) closeCustomMenus();
+    if (!event.target.closest?.(".ht-settings")) closeCustomSettings();
   });
-  addEventListener("resize", closeCustomMenus);
+  addEventListener("resize", closeCustomSettings);
   document.addEventListener("keydown", (e) => {
     if ($("#confirmDialog")?.open) return;
 
@@ -1460,7 +1460,8 @@ function customControlsMarkup() {
   const forward10 = tr("player.forward10", "Forward 10 seconds");
   const mute = tr("player.mute", "Mute");
   const fullscreen = tr("player.fullscreen", "Fullscreen");
-  const speed = tr("player.speed", "Playback speed");
+  const settings = tr("player.settings", "Player settings");
+  const speed = tr("player.tabSpeed", "Speed");
   const quality = tr("player.quality", "Quality");
   const captions = tr("player.captions", "Captions");
   return `<div class="ht-controls" data-ht-controls>
@@ -1477,17 +1478,16 @@ function customControlsMarkup() {
       </div>
       <span class="ht-time" data-ht-time dir="ltr">0:00 / 0:00</span>
       <span class="ht-spacer"></span>
-      <div class="ht-pop">
-        <button class="ht-btn" type="button" data-ht-menu="speed" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(speed)}" title="${esc(speed)}">${icon("dashboard-2")}</button>
-        <div class="ht-menu" role="menu" aria-label="${esc(speed)}" dir="auto"></div>
-      </div>
-      <div class="ht-pop">
-        <button class="ht-btn" type="button" data-ht-menu="quality" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(quality)}" title="${esc(quality)}">${icon("hd")}</button>
-        <div class="ht-menu" role="menu" aria-label="${esc(quality)}" dir="auto"></div>
-      </div>
-      <div class="ht-pop">
-        <button class="ht-btn" type="button" data-ht-menu="captions" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(captions)}" title="${esc(captions)}">${icon("captions")}</button>
-        <div class="ht-menu" role="menu" aria-label="${esc(captions)}" dir="auto"></div>
+      <div class="ht-settings" data-ht-settings-root>
+        <button class="ht-btn ht-gear" type="button" data-ht-settings aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(settings)}" title="${esc(settings)}">${icon("settings")}</button>
+        <div class="ht-panel" role="dialog" aria-label="${esc(settings)}" dir="auto">
+          <div class="ht-tabs" role="tablist">
+            <button class="ht-tab is-active" type="button" role="tab" aria-selected="true" data-ht-tab="speed">${icon("dashboard-2")}<span>${esc(speed)}</span></button>
+            <button class="ht-tab" type="button" role="tab" aria-selected="false" data-ht-tab="quality">${icon("hd")}<span>${esc(quality)}</span></button>
+            <button class="ht-tab" type="button" role="tab" aria-selected="false" data-ht-tab="captions">${icon("captions")}<span>${esc(captions)}</span></button>
+          </div>
+          <div class="ht-panel-body" data-ht-panel dir="auto"></div>
+        </div>
       </div>
       <button class="ht-btn" type="button" data-ht-action="fullscreen" aria-label="${esc(fullscreen)}" title="${esc(fullscreen)}" aria-pressed="false">${icon("fullscreen")}</button>
     </div>
@@ -1541,7 +1541,7 @@ function showCustomControls(sticky = false) {
 function scheduleCustomHide() {
   clearTimeout(customHideTimer);
   customHideTimer = null;
-  if (!playerIsPlaying() || document.querySelector(".ht-pop.open")) return;
+  if (!playerIsPlaying() || document.querySelector(".ht-settings.open")) return;
   customHideTimer = setTimeout(() => {
     const player = activeCustomPlayerEl();
     if (!player || player.contains(document.activeElement) || !playerIsPlaying()) return;
@@ -1643,22 +1643,23 @@ function customQualityLabel(level) {
   }[level] || level;
 }
 
-function customMenuHtml(kind, player) {
-  const check = icon("check", "ht-menu-check");
-  const item = (selected, value, label) => `<button class="ht-menu-item${selected ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${selected}" data-ht-choice="${kind}" data-value="${esc(value)}" dir="auto"><span>${esc(label)}</span>${check}</button>`;
-  let title = "";
+function customPanelHtml(tab, player) {
+  const check = icon("check", "ht-option-check");
+  const item = (selected, value, label) => `<button class="ht-option${selected ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${selected}" data-ht-choice="${tab}" data-value="${esc(value)}" dir="auto"><span>${esc(label)}</span>${check}</button>`;
   let items = "";
   let search = "";
 
-  if (kind === "speed") {
-    title = tr("player.speed", "Playback speed");
+  if (tab === "speed") {
     let current = 1;
     try { current = Number(player.getPlaybackRate?.() || 1); } catch {}
-    items = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
-      .map((rate) => item(Math.abs(current - rate) < 0.01, String(rate), `${rate}×`))
-      .join("");
-  } else if (kind === "quality") {
-    title = tr("player.quality", "Quality");
+    return `<div class="ht-speed-grid">${[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+      .map((rate) => {
+        const selected = Math.abs(current - rate) < 0.01;
+        return `<button class="ht-speed-option${selected ? " is-selected" : ""}" type="button" data-ht-choice="speed" data-value="${rate}" aria-pressed="${selected}">${rate}×</button>`;
+      })
+      .join("")}</div>`;
+  }
+  if (tab === "quality") {
     let current = "";
     let levels = [];
     try {
@@ -1667,12 +1668,12 @@ function customMenuHtml(kind, player) {
     } catch {}
     const auto = !current || ["auto", "default", "unknown"].includes(current);
     const options = ["default", ...levels.filter((level) => level !== "default" && level !== "auto")];
-    items = options.map((level) => {
+    return options.map((level) => {
       const selected = level === "default" ? auto : level === current;
       return item(selected, level, customQualityLabel(level));
     }).join("");
-  } else if (kind === "captions") {
-    title = tr("player.captions", "Captions");
+  }
+  if (tab === "captions") {
     const current = customCaptionCode;
     let tracks = [];
     let translations = [];
@@ -1720,9 +1721,9 @@ function customMenuHtml(kind, player) {
     if (translateTo.length) {
       if (translateTo.length > 12) {
         const searchLabel = tr("player.searchLanguages", "Search languages");
-        search = `<input class="ht-menu-search" type="search" placeholder="${esc(searchLabel)}" aria-label="${esc(searchLabel)}" data-ht-caption-search>`;
+        search = `<input class="ht-panel-search" type="search" placeholder="${esc(searchLabel)}" aria-label="${esc(searchLabel)}" data-ht-caption-search>`;
       }
-      items += `<div class="ht-menu-title ht-menu-subtitle">${esc(tr("player.translateTo", "Translate to"))}</div>`;
+      items += `<div class="ht-panel-label">${esc(tr("player.translateTo", "Translate to"))}</div>`;
       items += translateTo
         .map((language) => {
           const value = `${source}|${language.languageCode}`;
@@ -1734,54 +1735,87 @@ function customMenuHtml(kind, player) {
       const message = moduleLoaded
         ? tr("player.noCaptions", "No captions available")
         : tr("player.captionsHint", "Play the video to load caption languages.");
-      items += `<span class="ht-menu-empty">${esc(message)}</span>`;
+      items += `<span class="ht-panel-empty">${esc(message)}</span>`;
     }
+    return `${search}${items}`;
   }
 
-  return `<div class="ht-menu-title">${esc(title)}</div>${search}${items}`;
+  return items;
 }
 
-function closeCustomMenus() {
+function markCustomChoice(kind, value) {
+  const panel = document.querySelector(".ht-settings.open [data-ht-panel]");
+  if (!panel) return;
+  panel.querySelectorAll(`[data-ht-choice="${kind}"]`).forEach((button) => {
+    const selected = button.dataset.value === value;
+    button.classList.toggle("is-selected", selected);
+    if (button.hasAttribute("aria-checked")) button.setAttribute("aria-checked", String(selected));
+    if (button.hasAttribute("aria-pressed")) button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function closeCustomSettings() {
   let closed = false;
-  document.querySelectorAll(".ht-pop.open").forEach((pop) => {
-    pop.classList.remove("open");
-    pop.querySelector("[data-ht-menu]")?.setAttribute("aria-expanded", "false");
+  document.querySelectorAll(".ht-settings.open").forEach((settings) => {
+    settings.classList.remove("open");
+    settings.querySelector("[data-ht-settings]")?.setAttribute("aria-expanded", "false");
     closed = true;
   });
+  if (closed && playerIsPlaying()) scheduleCustomHide();
   return closed;
 }
 
-function toggleCustomMenu(kind, button) {
-  const pop = button.closest(".ht-pop");
-  const wasOpen = pop?.classList.contains("open");
-  closeCustomMenus();
-  if (!pop || wasOpen || !playlistPlayer) {
-    if (playlistPlayer) scheduleCustomHide();
-    return;
+function renderCustomPanel() {
+  const settings = document.querySelector(".ht-settings.open");
+  if (!settings || !playlistPlayer) return;
+  const tab = settings.querySelector(".ht-tab.is-active")?.dataset.htTab || "speed";
+  const body = settings.querySelector("[data-ht-panel]");
+  if (!body) return;
+  body.innerHTML = customPanelHtml(tab, playlistPlayer);
+  if (tab !== "captions") return;
+
+  if (playerIsPlaying()) {
+    try { playlistPlayer.loadModule?.("captions"); } catch {}
   }
-  const menu = pop.querySelector(".ht-menu");
-  if (!menu) return;
-  const playerHeight = button.closest(".player")?.clientHeight || 320;
-  menu.style.maxHeight = `${Math.min(300, Math.max(140, playerHeight - 94))}px`;
-  menu.innerHTML = customMenuHtml(kind, playlistPlayer);
-  pop.classList.add("open");
-  button.setAttribute("aria-expanded", "true");
-  showCustomControls(true);
-  if (kind === "captions") {
-    if (playerIsPlaying()) {
-      try { playlistPlayer.loadModule?.("captions"); } catch {}
-    }
-    for (const delay of [600, 1800]) {
-      setTimeout(() => {
-        if (!pop.classList.contains("open") || !playlistPlayer) return;
-        if (menu.querySelector("[data-ht-caption-search]")?.value) return;
-        menu.innerHTML = customMenuHtml(kind, playlistPlayer);
-      }, delay);
-    }
+  for (const delay of [600, 1800]) {
+    setTimeout(() => {
+      if (!settings.isConnected || !settings.classList.contains("open") || !playlistPlayer) return;
+      const panel = settings.querySelector("[data-ht-panel]");
+      if (!panel || panel.querySelector("[data-ht-caption-search]")?.value) return;
+      panel.innerHTML = customPanelHtml("captions", playlistPlayer);
+    }, delay);
   }
 }
 
-function applyCustomMenuChoice(kind, value, label = "") {
+function toggleCustomSettings(button) {
+  const settings = button.closest(".ht-settings");
+  const wasOpen = settings?.classList.contains("open");
+  closeCustomSettings();
+  if (!settings || wasOpen || !playlistPlayer) {
+    if (playlistPlayer) scheduleCustomHide();
+    return;
+  }
+  const panel = settings.querySelector(".ht-panel");
+  const playerHeight = settings.closest(".player")?.clientHeight || 320;
+  if (panel) panel.style.maxHeight = `${Math.min(420, Math.max(150, playerHeight - 72))}px`;
+  settings.classList.add("open");
+  button.setAttribute("aria-expanded", "true");
+  renderCustomPanel();
+  showCustomControls(true);
+}
+
+function selectCustomTab(button) {
+  const settings = button.closest(".ht-settings");
+  if (!settings) return;
+  settings.querySelectorAll(".ht-tab").forEach((tab) => {
+    const active = tab === button;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+  renderCustomPanel();
+}
+
+function applyCustomChoice(kind, value, label = "") {
   const player = playlistPlayer;
   if (!player) return;
   try {
@@ -1803,11 +1837,11 @@ function applyCustomMenuChoice(kind, value, label = "") {
       }
     }
   } catch {
-    // Some embeds restrict the captions module; keep the menu usable.
+    // Some embeds restrict the captions module; keep the panel usable.
   }
-  closeCustomMenus();
+  markCustomChoice(kind, value);
   syncCustomPlayerUi();
-  showCustomControls();
+  showCustomControls(true);
 }
 
 function syncCustomPlayerUi() {
@@ -1874,36 +1908,21 @@ function syncCustomPlayerUi() {
   }
 
   let rate = 1;
-  let quality = "";
   try {
     rate = Number(player.getPlaybackRate?.() || 1);
-    quality = player.getPlaybackQuality?.() || "";
   } catch {
-    // Quality and rate are only available after the player is ready.
+    // The playback rate is only available after the player is ready.
   }
-  const speedButton = playerEl.querySelector('[data-ht-menu="speed"]');
-  if (speedButton) {
-    const label = `${tr("player.speed", "Playback speed")}: ${rate}×`;
-    if (speedButton.title !== label) {
-      speedButton.title = label;
-      speedButton.setAttribute("aria-label", label);
-    }
-  }
-  const qualityButton = playerEl.querySelector('[data-ht-menu="quality"]');
-  if (qualityButton) {
-    const label = `${tr("player.quality", "Quality")}: ${quality ? customQualityLabel(quality) : tr("player.auto", "Auto")}`;
-    if (qualityButton.title !== label) {
-      qualityButton.title = label;
-      qualityButton.setAttribute("aria-label", label);
-    }
-  }
-  const captionsButton = playerEl.querySelector('[data-ht-menu="captions"]');
-  if (captionsButton) {
-    captionsButton.classList.toggle("is-on", Boolean(customCaptionCode));
-    const label = `${tr("player.captions", "Captions")}${customCaptionCode ? `: ${customCaptionName || customCaptionCode}` : ""}`;
-    if (captionsButton.title !== label) {
-      captionsButton.title = label;
-      captionsButton.setAttribute("aria-label", label);
+  const settingsButton = playerEl.querySelector("[data-ht-settings]");
+  if (settingsButton) {
+    const active = [];
+    if (Math.abs(rate - 1) > 0.01) active.push(`${rate}×`);
+    if (customCaptionCode) active.push(customCaptionName || customCaptionCode);
+    const label = `${tr("player.settings", "Player settings")}${active.length ? `: ${active.join(" · ")}` : ""}`;
+    settingsButton.classList.toggle("has-active", active.length > 0);
+    if (settingsButton.title !== label) {
+      settingsButton.title = label;
+      settingsButton.setAttribute("aria-label", label);
     }
   }
 
@@ -1970,18 +1989,25 @@ function setupCustomControls() {
   if (Number.isFinite(savedVolume)) customVolume = Math.min(100, Math.max(0, savedVolume));
 
   playerEl.addEventListener("click", (event) => {
-    const menuButton = event.target.closest("[data-ht-menu]");
-    if (menuButton) {
+    const settingsButton = event.target.closest("[data-ht-settings]");
+    if (settingsButton) {
       event.preventDefault();
       event.stopPropagation();
-      toggleCustomMenu(menuButton.dataset.htMenu, menuButton);
+      toggleCustomSettings(settingsButton);
+      return;
+    }
+    const tabButton = event.target.closest("[data-ht-tab]");
+    if (tabButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectCustomTab(tabButton);
       return;
     }
     const choice = event.target.closest("[data-ht-choice]");
     if (choice) {
       event.preventDefault();
       event.stopPropagation();
-      applyCustomMenuChoice(choice.dataset.htChoice, choice.dataset.value, choice.textContent.trim());
+      applyCustomChoice(choice.dataset.htChoice, choice.dataset.value, choice.textContent.trim());
       return;
     }
     const actionButton = event.target.closest("[data-ht-action]");
@@ -1991,7 +2017,7 @@ function setupCustomControls() {
       customPlayerAction(actionButton.dataset.htAction);
       return;
     }
-    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab, .ht-pop")) return;
+    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab, .ht-settings")) return;
     customPlayerAction("toggle");
   });
 
@@ -2004,7 +2030,7 @@ function setupCustomControls() {
     const search = event.target.closest("[data-ht-caption-search]");
     if (!search) return;
     const needle = search.value.trim().toLowerCase();
-    search.closest(".ht-pop")?.querySelectorAll('[data-ht-choice="captions"]').forEach((button) => {
+    search.closest(".ht-settings")?.querySelectorAll('[data-ht-choice="captions"]').forEach((button) => {
       button.hidden = Boolean(needle) && Boolean(button.dataset.value)
         && !button.textContent.toLowerCase().includes(needle);
     });
@@ -2054,7 +2080,7 @@ function setupCustomControls() {
 
 function onCustomPlayerKeydown(event) {
   if (!customPlayerActive() || event.defaultPrevented) return;
-  if (event.key === "Escape" && closeCustomMenus()) {
+  if (event.key === "Escape" && closeCustomSettings()) {
     event.preventDefault();
     return;
   }
