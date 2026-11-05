@@ -2,35 +2,9 @@
 
 const KIND_LABELS = { course: "Course", tutorial: "Tutorial", project: "Project", talk: "Talk", short: "Short" };
 const LEVEL_LABELS = { beginner: "Beginner", advanced: "Advanced", any: "General", unknown: "Unspecified" };
-const TOPIC_LABELS = {
-  python: "Python", javascript: "JavaScript", web: "Web Development", php: "PHP",
-  java: "Java", cpp: "C++", rust: "Rust", csharp: "C#", mobile: "Mobile", database: "Databases",
-  linux: "Linux", devops: "DevOps & Cloud", git: "Git", security: "Security",
-  ai: "AI", data: "Data Analysis", algorithms: "Algorithms", cs: "Computer Science",
-  testing: "Testing", networking: "Networking", tools: "Dev Tools",
-};
-const TOPIC_SEARCH_ALIASES = {
-  python: "py بايثون",
-  javascript: "js جافاسكربت جافا سكريبت nodejs",
-  web: "frontend front end تطوير الويب",
-  php: "لارافيل",
-  java: "جافا",
-  cpp: "c++ cplusplus c plus plus سي بلس بلس",
-  csharp: "c# c sharp dotnet .net سي شارب",
-  mobile: "android ios flutter kotlin اندرويد كوتلن",
-  database: "sql mysql postgres mongodb داتا بيز قواعد البيانات",
-  linux: "لينكس اوبونتو",
-  devops: "cloud kubernetes docker ديفوبس",
-  git: "github جيت",
-  security: "cyber hacking cybersecurity امن سيبراني",
-  ai: "machine learning deep learning artificial intelligence ml ذكاء اصطناعي تعلم الاله",
-  data: "data science data analysis تحليل البيانات علم البيانات",
-  algorithms: "data structures هياكل البيانات داتا ستركتشر",
-  cs: "computer science علوم الحاسوب علوم الحاسب",
-  testing: "qa tests اختبار",
-  networking: "شبكات",
-  tools: "ide editors ادوات المطور",
-};
+const SEARCH_FIELDS = window.HackerTubeSearchFields;
+const TOPIC_LABELS = SEARCH_FIELDS.TOPIC_LABELS;
+const TOPIC_SEARCH_ALIASES = SEARCH_FIELDS.TOPIC_SEARCH_ALIASES;
 const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false, customPlayer: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const SITE_URL = "https://pandurodev.github.io/HackerTube/";
@@ -46,6 +20,11 @@ const state = {
   byId: new Map(),
   searchEngine: null,
   searchIndexPending: null,
+  backendEnabled: false,
+  backendStatus: null,
+  backendSearchCache: new Map(),
+  backendSearchPending: new Map(),
+  backendStats: null,
   hnVideos: null,
   hnVideosPromise: null,
   hnPreview: null,
@@ -168,32 +147,7 @@ const compact = {
 
 init();
 
-function searchDedupeKey(item) {
-  const channel = item.channel_id || item.channel || "";
-  return `${String(channel).trim().toLowerCase()}|${String(item.title || "").trim().toLowerCase()}`;
-}
-
-function mainSearchFields(video) {
-  return {
-    title: video.title,
-    channel: video.channel,
-    topics: (video.topics || []).map((topic) => [
-      topic,
-      TOPIC_LABELS[topic] || topic,
-      TOPIC_SEARCH_ALIASES[topic] || "",
-    ].join(" ")).join(" "),
-  };
-}
-
-function mainSearchOptions() {
-  return {
-    getRank: (video) => Math.min(1, Math.max(0, Number(video.score) || 0) / 10),
-    getGroup: (video) => video.channel_id || video.channel,
-    getDedupeKey: searchDedupeKey,
-    groupLimit: 2,
-    diversityLimit: 36,
-  };
-}
+const { searchDedupeKey, mainSearchFields, mainSearchOptions } = SEARCH_FIELDS;
 
 function ensureMainSearchIndex() {
   if (state.searchEngine) return state.searchEngine;
@@ -215,7 +169,7 @@ function ensureMainSearchIndex() {
 }
 
 function warmSearchIndex() {
-  if (state.searchEngine || state.searchIndexPending || !state.videos.length) return;
+  if (state.backendEnabled || state.searchEngine || state.searchIndexPending || !state.videos.length) return;
   const SearchIndex = window.HackerTubeSearch?.SearchIndex;
   if (!SearchIndex
     || typeof SearchIndex.prototype?.addItem !== "function"
@@ -254,6 +208,108 @@ function warmSearchIndex() {
     }
   };
   schedule(build);
+}
+
+const BACKEND_SEARCH_CACHE_LIMIT = 24;
+
+function backendApi() {
+  return window.electronWindow || null;
+}
+
+function initSearchBackend() {
+  const api = backendApi();
+  if (!api || typeof api.searchCatalog !== "function") {
+    state.backendEnabled = false;
+    return;
+  }
+  state.backendEnabled = true;
+  let attempts = 0;
+  const check = () => {
+    api.searchBackendStatus?.()
+      .then((status) => {
+        state.backendStatus = status || null;
+        if (!status?.available) {
+          state.backendEnabled = false;
+          if (state.scope?.type === "search") render();
+          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+          return;
+        }
+        if (status.ready) {
+          // The Go process owns the catalog index; release the JS copy if it was warmed first.
+          state.searchEngine = null;
+          state.searchIndexPending = null;
+          warmBackendStats();
+          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+          return;
+        }
+        attempts += 1;
+        if (attempts < 20) {
+          setTimeout(check, 400);
+        } else {
+          state.backendEnabled = false;
+          if (state.scope?.type === "search") render();
+          if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+        }
+      })
+      .catch(() => {
+        state.backendEnabled = false;
+      });
+  };
+  check();
+}
+
+function warmBackendStats() {
+  const api = backendApi();
+  if (!api?.searchBackendStats) return;
+  api.searchBackendStats()
+    .then((result) => {
+      if (!result?.ok) return;
+      state.backendStats = result.stats || null;
+      if (state.meta && (location.hash || "").startsWith("#/settings")) renderSettings();
+    })
+    .catch(() => {});
+}
+
+function requestBackendSearch(query) {
+  const api = backendApi();
+  if (!api?.searchCatalog || state.backendSearchPending.has(query)) return;
+  const request = api.searchCatalog(query, 20000)
+    .then((result) => {
+      state.backendSearchPending.delete(query);
+      if (!result?.ok || !Array.isArray(result.indices) || !state.catalogLoaded) {
+        throw new Error("search backend unavailable");
+      }
+      const items = result.indices.map((index) => state.videos[index]).filter(Boolean);
+      if (items.length !== result.indices.length) throw new Error("search result mismatch");
+      state.backendSearchCache.set(query, items);
+      while (state.backendSearchCache.size > BACKEND_SEARCH_CACHE_LIMIT) {
+        state.backendSearchCache.delete(state.backendSearchCache.keys().next().value);
+      }
+      state.backendStatus = Object.assign({}, state.backendStatus, { lastTookMs: Number(result.tookMs) || 0 });
+      if (state.scope?.type === "search" && state.scope.q === query && (location.hash || "#/").startsWith("#/search/")) render();
+    })
+    .catch(() => {
+      state.backendSearchPending.delete(query);
+      state.backendEnabled = false;
+      if (state.scope?.type === "search") render();
+    });
+  state.backendSearchPending.set(query, request);
+}
+
+function backendSearchItems(query) {
+  if (!state.backendEnabled) return null;
+  if (!state.catalogLoaded) {
+    ensureCatalog()
+      .then(() => {
+        if (state.scope?.type === "search" && state.scope.q === query) render();
+      })
+      .catch(showCatalogError);
+    return null;
+  }
+  const cached = state.backendSearchCache.get(query);
+  if (cached) return cached;
+  requestBackendSearch(query);
+  return null;
 }
 
 function initialLocale() {
@@ -553,6 +609,7 @@ async function init() {
     state.channels = new Map(meta.channels.map((c) => [c.id, c]));
     state.topicLabels = Object.fromEntries(meta.topics.map((t) => [t.id, tr(`topics.${t.id}`, TOPIC_LABELS[t.id] || t.label)]));
     renderSidebar();
+    initSearchBackend();
     addEventListener("hashchange", () => {
       setSidebar(false);
       view.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -584,6 +641,7 @@ function ensureCatalog() {
         state.homeStale = true;
         state.searchEngine = null;
         state.searchIndexPending = null;
+        state.backendSearchCache.clear();
         state.byId = new Map(videos.map((v) => [v.id, v]));
         warmSearchIndex();
         return videos;
@@ -1024,10 +1082,14 @@ function syncFeedUrl() {
 
 function filtered(scope) {
   const q = String(scope.q || "").trim();
-  // SearchIndex covers the complete catalog; pagination happens only when rendering.
-  const source = q
-    ? ensureMainSearchIndex().search(q).map((result) => result.item)
-    : state.videos;
+  // The Go sidecar searches the complete catalog when available; the JS index is the web fallback.
+  let source = state.videos;
+  if (q) {
+    const backendItems = backendSearchItems(q);
+    if (backendItems) source = backendItems;
+    else if (state.backendEnabled) source = [];
+    else source = ensureMainSearchIndex().search(q).map((result) => result.item);
+  }
   const results = source.filter((v) => {
     if (scope.minDuration && v.duration < scope.minDuration) return false;
     if (scope.channel && v.channel_id !== scope.channel) return false;
@@ -1248,6 +1310,7 @@ function renderFeed(scope) {
   }
   const list = feedList(scope);
   const shown = list.slice(0, ui.limit);
+  const searching = Boolean(scope.q && state.backendEnabled && !state.backendSearchCache.has(scope.q));
   const title = scope.title || "";
   const pageTitle = title ? `${title} — HackerTube` : tr("app.title", "HackerTube");
   const description = title
@@ -1264,8 +1327,10 @@ function renderFeed(scope) {
       </button>
     </div>
     ${ui.open ? filtersPanel() : ""}
-    ${shown.length ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>` : emptyState()}
-    ${list.length > ui.limit || (!state.catalogLoaded && scope.type === "all" && !hasFilters() && !scope.q)
+    ${shown.length
+      ? `<div class="grid">${shown.map((v) => card(v)).join("")}</div>`
+      : searching ? `<div class="empty"><strong>${tr("search.searching", "Searching…")}</strong></div>` : emptyState()}
+    ${!searching && (list.length > ui.limit || (!state.catalogLoaded && scope.type === "all" && !hasFilters() && !scope.q))
       ? `<div class="more"><button class="btn" data-more>${tr("filters.showMore", "Show more")}${list.length > ui.limit ? ` (${list.length - ui.limit})` : ""}</button></div>`
       : ""}
   </section>`;
@@ -4147,6 +4212,22 @@ function renderSettings() {
       <p class="settings-warning">${icon("warning")} <span>${tr("settings.customPlayerNote", "Experimental. YouTube’s native controls are hidden while this is on.")}</span></p>
     </div>` : "";
   const appGroup = window.electronWindow ? electronAppGroup : installGroup;
+  const backendSummary = !window.electronWindow
+    ? ""
+    : !state.backendEnabled
+      ? tr("settings.backendFallback", "JavaScript fallback")
+      : state.backendStatus?.ready
+        ? tr("settings.backendGo", "Go · {count} videos", { count: compact.format(Number(state.backendStats?.docs || state.backendStatus?.docs || 0)) })
+          + (state.backendStats?.heap_mb ? ` · ${state.backendStats.heap_mb} MB` : "")
+        : tr("settings.backendStarting", "Go · starting…");
+  const performanceGroup = window.electronWindow ? `<div class="settings-group">
+      <h2>${icon("database")} ${tr("settings.performance", "Performance")}</h2>
+      <div class="setting-row">
+        <span class="row-ic">${icon("database")}</span>
+        <span class="setting-text"><b>${tr("settings.searchEngine", "Search engine")}</b><small data-backend-summary>${esc(backendSummary)}</small></span>
+        ${state.backendEnabled ? `<button class="btn" type="button" data-backend-trim aria-label="${esc(tr("settings.optimizeMemory", "Optimize memory"))}">${icon("refresh")} <span>${esc(tr("settings.optimizeMemory", "Optimize memory"))}</span></button>` : ""}
+      </div>
+    </div>` : "";
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
     <div class="settings-group">
@@ -4158,6 +4239,7 @@ function renderSettings() {
       <div class="segmented" role="group" aria-label="${tr("settings.language", "Language")}">${localeSeg}</div>
     </div>
     ${playbackGroup}
+    ${performanceGroup}
     ${appGroup}
     <div class="settings-group">
       <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
@@ -4387,6 +4469,34 @@ function onViewClick(e) {
   if (e.target.closest("[data-check-updates]")) {
     e.preventDefault();
     checkDesktopUpdate(true);
+    return;
+  }
+
+  const trimBackend = e.target.closest("[data-backend-trim]");
+  if (trimBackend) {
+    e.preventDefault();
+    if (trimBackend.disabled) return;
+    trimBackend.disabled = true;
+    const request = window.electronWindow?.trimSearchBackend?.();
+    if (!request) {
+      trimBackend.disabled = false;
+      return;
+    }
+    request
+      .then((result) => {
+        if (!result?.ok) {
+          toast(tr("settings.memoryOptimizeFailed", "Could not optimize memory."), "info");
+          return;
+        }
+        state.backendStats = result.stats || state.backendStats;
+        const freed = Number(result.freedMb) || 0;
+        toast(freed > 0
+          ? tr("settings.memoryFreed", "Freed {mb} MB", { mb: freed })
+          : tr("settings.memoryOptimized", "Memory optimized"));
+        renderSettings();
+      })
+      .catch(() => toast(tr("settings.memoryOptimizeFailed", "Could not optimize memory."), "info"))
+      .finally(() => { trimBackend.disabled = false; });
     return;
   }
 

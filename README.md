@@ -100,13 +100,29 @@ That archive is not committed to this repository or deployed to GitHub Pages. Pr
 
 ## Tests
 
-The CI workflow runs the Python tests, JavaScript syntax checks, and search-engine tests. Run them locally with:
+The CI workflow runs the Python tests, Go backend tests, JavaScript syntax checks, search-engine tests, and search performance budgets. Run them locally with:
 
 ~~~bash
 pytest -q
+cd backend && go test ./... && cd ..
 node --check public/search.js
 node --check public/app.js
 node --test tests/*.test.js
+~~~
+
+The desktop app ships a Go search sidecar. Build it before running Electron from source:
+
+~~~bash
+cd electron
+npm run build:backend
+npm start
+~~~
+
+Search benchmarks compare the Go backend with the JavaScript fallback and enforce latency/memory budgets:
+
+~~~bash
+node benchmarks/search-parity.js
+node benchmarks/search-bench.js --assert
 ~~~
 
 ## Project structure
@@ -114,6 +130,8 @@ node --test tests/*.test.js
 ~~~text
 pipeline/             Video fetching, classification, and data generation
 pipeline/ytjs/        Optional YouTube.js fallback
+backend/              Go search sidecar for the desktop app
+benchmarks/           Go/JavaScript parity and performance benchmarks
 public/               Static website (HTML, CSS, and JavaScript)
 public/data/           Generated video catalog and Hacker News data
 public/i18n/           English and Arabic interface translations

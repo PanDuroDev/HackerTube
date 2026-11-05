@@ -289,7 +289,16 @@
     "customPlayer": "Custom player controls",
     "customPlayerHint": "Hide YouTube’s controls and use HackerTube’s own player bar.",
     "customPlayerNote": "Experimental. YouTube’s native controls are hidden while this is on.",
-    "customPlayerEnabled": "Custom controls enabled"
+    "customPlayerEnabled": "Custom controls enabled",
+    "performance": "Performance",
+    "searchEngine": "Search engine",
+    "backendFallback": "JavaScript fallback",
+    "backendGo": "Go · {count} videos",
+    "backendStarting": "Go · starting…",
+    "optimizeMemory": "Optimize memory",
+    "memoryFreed": "Freed {mb} MB",
+    "memoryOptimized": "Memory optimized",
+    "memoryOptimizeFailed": "Could not optimize memory."
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",
@@ -433,6 +442,9 @@
   "toasts": {
     "feedRefreshed": "Recommendations refreshed",
     "languageLoadFailed": "Could not load that language."
+  },
+  "search": {
+    "searching": "Searching…"
   },
   "skeleton": {
     "loading": "Loading…"

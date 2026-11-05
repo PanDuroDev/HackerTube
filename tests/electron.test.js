@@ -136,6 +136,11 @@ test("the desktop app serves the bundled site locally instead of the network", (
     resources.some((entry) => entry.from === "../public" && entry.to === "public"),
     "the build should copy public/ into the app resources",
   );
+  assert.ok(
+    resources.some((entry) => entry.from === "backend-bin" && entry.to === "backend"),
+    "the build should ship the Go search backend",
+  );
+  assert.match(pkg.scripts?.["build:backend"] || "", /build-backend/);
 
   const app = read("public/app.js");
   assert.match(app, /if \("serviceWorker" in navigator && !window\.electronWindow\)/);
@@ -356,6 +361,13 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /ytChapteredProgressBarChapteredPlayerBarChapter/);
   assert.match(main, /app:youtube-quality/);
   assert.match(main, /setPlaybackQualityRange/);
+  assert.match(main, /startSearchBackend/);
+  assert.match(main, /app:search-catalog/);
+  assert.match(main, /app:search-backend-status/);
+  assert.match(main, /app:search-backend-stats/);
+  assert.match(main, /app:search-backend-trim/);
+  assert.match(main, /backend-bin/);
+  assert.match(main, /before-quit", stopSearchBackend/);
   assert.match(main, /remove\(\)/);
   assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
 
@@ -364,6 +376,9 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(preload, /isCustomPlayerChromeApplied/);
   assert.match(preload, /getYouTubeChapters/);
   assert.match(preload, /setYouTubeQuality/);
+  assert.match(preload, /searchCatalog/);
+  assert.match(preload, /searchBackendStatus/);
+  assert.match(preload, /trimSearchBackend/);
   assert.match(preload, /app:custom-player-chrome/);
 
   const installerCss = read("electron/installer.css");

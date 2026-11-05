@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const SearchFields = require("../public/search-fields.js");
 
 const APP_SOURCE = fs.readFileSync(
   path.join(__dirname, "..", "public", "app.js"),
@@ -60,6 +61,7 @@ function createHarness() {
           }
         },
       },
+      HackerTubeSearchFields: SearchFields,
     },
     fetch: async () => {
       throw new Error("Unexpected network request in test");
@@ -722,6 +724,11 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /loadCustomChapters/);
   assert.match(APP_SOURCE, /updateCustomProgressFill/);
   assert.match(APP_SOURCE, /setYouTubeQuality/);
+  assert.match(APP_SOURCE, /initSearchBackend/);
+  assert.match(APP_SOURCE, /backendSearchItems/);
+  assert.match(APP_SOURCE, /requestBackendSearch/);
+  assert.match(APP_SOURCE, /trimSearchBackend/);
+  assert.match(APP_SOURCE, /search\.searching/);
   assert.match(APP_SOURCE, /:focus-visible/);
   assert.match(APP_SOURCE, /\}, 3000\);/);
 });
@@ -1206,6 +1213,8 @@ test("main watch pages render a description when the catalog provides one", asyn
 test("the document loads the i18n runtime and a language picker", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.ok(html.indexOf('i18n.js?v=1') < html.indexOf('app.js?v='));
+  assert.ok(html.indexOf('search.js?v=') < html.indexOf('search-fields.js?v='));
+  assert.ok(html.indexOf('search-fields.js?v=') < html.indexOf('app.js?v='));
   assert.doesNotMatch(html, /id="localeSelect"/);
   assert.match(html, /id="i-language"/);
   assert.match(html, /data-i18n="app.title"/);
@@ -1221,6 +1230,19 @@ test("language selection lives in Settings and uses site-styled buttons", () => 
   assert.doesNotMatch(view.innerHTML, /localeSelect/);
   assert.match(view.innerHTML, /data-install-app/);
   assert.match(view.innerHTML, /Install HackerTube/);
+});
+
+test("desktop settings expose the Go search backend and a memory action", () => {
+  const harness = createHarness();
+  harness.context.window.electronWindow = {
+    trimSearchBackend: async () => ({ ok: true, freedMb: 2, stats: { heap_mb: 20 } }),
+  };
+  harness.api.state.backendEnabled = true;
+  harness.api.state.backendStatus = { ready: true, docs: 18140 };
+  harness.api.renderSettings();
+  assert.match(harness.view.innerHTML, /data-backend-trim/);
+  assert.match(harness.view.innerHTML, /Search engine/);
+  assert.match(harness.view.innerHTML, /Go ·/);
 });
 
 test("icon-and-label buttons collapse to their icon on mobile", () => {

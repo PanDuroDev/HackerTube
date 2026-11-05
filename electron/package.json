@@ -8,11 +8,12 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win portable",
-    "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux",
-    "dir:win": "electron-builder --win --dir"
+    "build:backend": "node scripts/build-backend.js",
+    "dist": "npm run build:backend && electron-builder",
+    "dist:win": "npm run build:backend && electron-builder --win portable",
+    "dist:mac": "npm run build:backend && electron-builder --mac",
+    "dist:linux": "npm run build:backend && electron-builder --linux",
+    "dir:win": "npm run build:backend && electron-builder --win --dir"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -29,6 +30,10 @@
       {
         "from": "../public",
         "to": "public"
+      },
+      {
+        "from": "backend-bin",
+        "to": "backend"
       }
     ],
     "files": [
