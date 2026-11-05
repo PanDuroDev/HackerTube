@@ -546,7 +546,10 @@ test("custom playback controls are off by default and never activate on the web"
 
 test("the desktop app hides YouTube controls when custom playback is enabled", () => {
   const harness = createHarness();
-  harness.context.window.electronWindow = {};
+  harness.context.window.electronWindow = {
+    setCustomPlayerChrome() {},
+    isCustomPlayerChromeApplied: async () => true,
+  };
   const { api, view } = harness;
   api.state.settings.customPlayer = true;
 
@@ -609,6 +612,12 @@ test("custom player panel lists speed, quality, and caption choices", () => {
   assert.match(quality, /720p/);
   assert.match(quality, /480p/);
 
+  const pendingQuality = api.customPanelHtml("quality", {
+    getPlaybackQuality: () => "",
+    getAvailableQualityLevels: () => [],
+  });
+  assert.match(pendingQuality, /Quality options appear once playback starts/);
+
   const captions = api.customPanelHtml("captions", {
     getOption: (module, key) => key === "tracklist"
       ? [{ languageCode: "en", displayName: "English" }, { languageCode: "ar", displayName: "Arabic" }]
@@ -651,6 +660,7 @@ test("custom player panel lists speed, quality, and caption choices", () => {
       : [],
   });
   assert.match(manyTranslations, /data-ht-caption-search/);
+  assert.match(manyTranslations, /data-ht-no-results/);
 });
 
 test("custom playback assets use the MingCute sprite and require the disclaimer", () => {
@@ -672,6 +682,8 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(css, /\.ht-tabs/);
   assert.match(css, /\.ht-speed-grid/);
   assert.match(css, /\.ht-option\[hidden\]/);
+  assert.match(css, /\.ht-panel-error/);
+  assert.match(css, /\.ht-btn:disabled/);
   assert.match(css, /\.settings-warning/);
   assert.match(APP_SOURCE, /enableCustomPlayer/);
   assert.match(APP_SOURCE, /customPlayerTitle/);

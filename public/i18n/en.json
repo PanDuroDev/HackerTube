@@ -390,6 +390,10 @@
     "original": "Original",
     "translateTo": "Translate to",
     "searchLanguages": "Search languages",
+    "nativeFallback": "Custom controls aren’t available for this video. Using YouTube controls.",
+    "optionUnavailable": "This option isn’t available for this video.",
+    "noResults": "No languages match your search.",
+    "qualityLoading": "Quality options appear once playback starts.",
     "captionsHint": "Play the video to load caption languages.",
     "noCaptions": "No captions available"
   },

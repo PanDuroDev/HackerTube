@@ -488,6 +488,22 @@ ipcMain.handle("app:custom-player-chrome", (event, enabled) => {
   return { ok: true };
 });
 
+ipcMain.handle("app:custom-player-chrome-applied", async (event) => {
+  if (!isTrusted(event)) return false;
+  const frames = youtubeFrames(event.sender);
+  if (!frames.length) return false;
+  const results = await Promise.all(frames.map(async (frame) => {
+    try {
+      return await frame
+        .executeJavaScript(`!!document.getElementById(${JSON.stringify(CUSTOM_CHROME_STYLE_ID)})`)
+        .catch(() => false);
+    } catch {
+      return false;
+    }
+  }));
+  return results.some(Boolean);
+});
+
 function createWindow() {
   win = new BrowserWindow({
     title: "HackerTube",

@@ -905,6 +905,11 @@ a.card-sub:hover { color: var(--text); }
 .ht-btn:hover,
 .ht-btn:focus-visible { background: rgba(255, 255, 255, .14); }
 .ht-btn:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.ht-btn:disabled,
+.ht-center:disabled { opacity: .45; cursor: default; }
+.ht-btn:disabled:hover { background: transparent; }
+.ht-seek:disabled,
+.ht-volume:disabled { opacity: .45; cursor: default; }
 .ht-btn.is-on { color: var(--accent); }
 .ht-btn .ic { width: 20px; height: 20px; }
 .ht-time {
@@ -1007,6 +1012,17 @@ a.card-sub:hover { color: var(--text); }
 .ht-option-check { flex: 0 0 15px; width: 15px; height: 15px; margin-inline-start: auto; color: var(--accent); opacity: 0; }
 .ht-option.is-selected .ht-option-check { opacity: 1; }
 .ht-panel-empty { display: block; padding: 8px 10px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.ht-panel-empty[hidden] { display: none; }
+.ht-panel-error {
+  display: block;
+  margin: 0 2px 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  color: var(--danger);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 .ht-panel-search {
   position: sticky;
   top: -8px;
@@ -1048,6 +1064,7 @@ a.card-sub:hover { color: var(--text); }
 }
 .ht-center:hover,
 .ht-center:focus-visible { opacity: .88; transform: translate(-50%, -50%) scale(1); }
+.ht-center:disabled:hover { opacity: .45; transform: translate(-50%, -50%) scale(.96); }
 .ht-center:focus-visible { outline: 2px solid var(--strong); outline-offset: 3px; }
 .ht-center .ic { width: 26px; height: 26px; margin-inline-start: 2px; }
 .player.ht-player.is-playing .ht-center,

@@ -27,7 +27,7 @@ test("Arabic and English dictionaries share the required keys", () => {
     "settings.playback", "settings.customPlayer", "settings.customPlayerNote",
     "dialogs.customPlayerTitle", "dialogs.customPlayerMessage", "dialogs.customPlayerEnable",
     "player.play", "player.pause", "player.back10", "player.forward10", "player.fullscreen",
-    "player.settings", "player.tabSpeed", "player.speed", "player.quality", "player.captions", "player.off", "player.auto", "player.original", "player.translateTo", "player.searchLanguages", "player.captionsHint", "player.noCaptions",
+    "player.settings", "player.tabSpeed", "player.speed", "player.quality", "player.captions", "player.off", "player.auto", "player.original", "player.translateTo", "player.searchLanguages", "player.nativeFallback", "player.optionUnavailable", "player.noResults", "player.qualityLoading", "player.captionsHint", "player.noCaptions",
     "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
     "watch.continueWatching", "collections.likedEmpty", "collections.historyHint", "collections.browseVideos",
     "playlists.create", "playlists.fromCreators", "playlists.emptyHint", "playlists.playAll", "playlists.delete",
