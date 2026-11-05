@@ -42,7 +42,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.7");
+  assert.equal(pkg.version, "1.0.8");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
@@ -100,6 +100,9 @@ test("the web app renders window controls and hides the PWA install row in Elect
   assert.doesNotMatch(html.slice(updateAt, themeAt), /#i-refresh/);
   assert.match(css, /\.update-btn \{/);
   assert.match(css, /\.update-btn\[hidden\] \{ display: none; \}/);
+  assert.match(css, /\.update-btn\.is-busy \.update-ring::before \{/);
+  assert.match(css, /mask: radial-gradient\(farthest-side, transparent calc\(100% - 2\.5px\)/);
+  assert.match(css, /\.update-ring \.ic \{[\s\S]*?display: block;[\s\S]*?\}/);
 
   for (const file of ["public/i18n/en.json", "public/i18n/ar.json"]) {
     const dict = JSON.parse(read(file));

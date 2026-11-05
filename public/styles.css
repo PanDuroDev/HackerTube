@@ -213,25 +213,36 @@ html.electron-app .window-controls { -webkit-app-region: no-drag; }
   position: relative;
   display: grid;
   place-items: center;
+  align-content: center;
+  justify-content: center;
   flex: 0 0 22px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
+  direction: ltr;
 }
-.update-ring .ic { position: relative; z-index: 1; width: 18px; height: 18px; }
+.update-ring .ic {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin: 0;
+  line-height: 0;
+}
 .update-btn.is-busy { pointer-events: none; }
-.update-btn.is-busy .update-ring {
-  background: conic-gradient(#fff calc(var(--update-progress, 0) * 1%), rgba(255, 255, 255, .32) 0);
-  transition: background .2s linear;
-}
+.update-btn.is-busy .update-ring .ic { width: 14px; height: 14px; }
 .update-btn.is-busy .update-ring::before {
   content: "";
   position: absolute;
-  inset: 2.5px;
+  inset: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: conic-gradient(from 0deg, #fff calc(var(--update-progress, 0) * 1%), rgba(255, 255, 255, .22) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  pointer-events: none;
+  transition: background .2s linear;
 }
-.update-btn.is-busy .update-ring .ic { width: 12px; height: 12px; }
 
 .search {
   display: flex;
