@@ -1,7 +1,8 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { app, contextBridge, ipcRenderer } = require("electron");
 
 if (window.top === window) {
   contextBridge.exposeInMainWorld("electronWindow", {
+    isPackaged: app.isPackaged,
     minimize: () => ipcRenderer.send("window:minimize"),
     toggleMaximize: () => ipcRenderer.send("window:toggle-maximize"),
     close: () => ipcRenderer.send("window:close"),

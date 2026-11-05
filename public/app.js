@@ -634,7 +634,9 @@ async function init() {
 
 function fetchJson(url) {
   const local = !location.hostname || ["localhost", "127.0.0.1"].includes(location.hostname) || location.protocol === "file:";
-  return fetch(url, local ? { cache: "no-cache" } : undefined).then((r) => {
+  // A packaged desktop app loads from a read-only bundle, so its preloaded assets can be reused.
+  const options = local && !window.electronWindow?.isPackaged ? { cache: "no-cache" } : undefined;
+  return fetch(url, options).then((r) => {
     if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
     return r.json();
   });
