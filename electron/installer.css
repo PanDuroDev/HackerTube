@@ -159,6 +159,18 @@ h1 { margin: 0; font-size: 20px; line-height: 1.2; letter-spacing: -.3px; font-w
 .switch:checked::after { transform: translateX(18px); background: #fff; }
 .switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+@media (forced-colors: active) {
+  .switch {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+  }
+  .switch::after { background: ButtonText; }
+  .switch:checked { background: Highlight; }
+  .switch:checked::after { background: HighlightText; }
+  .switch:focus-visible { outline-color: Highlight; }
+}
+
 .panel-foot {
   display: flex;
   align-items: center;
@@ -200,7 +212,7 @@ h1 { margin: 0; font-size: 20px; line-height: 1.2; letter-spacing: -.3px; font-w
 .btn.primary { border-color: var(--strong); background: var(--strong); color: var(--on-strong); }
 .btn.primary:hover { background: var(--strong); opacity: .88; }
 .btn.danger { border-color: var(--danger); background: transparent; color: var(--danger); }
-.btn.danger:hover { background: var(--danger); color: #fff; }
+.btn.danger:hover { background: var(--danger); color: #1a0505; }
 
 .note-line {
   display: flex;
