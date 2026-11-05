@@ -1223,6 +1223,17 @@ test("the document loads the i18n runtime and a language picker", () => {
   assert.match(html, /data-i18n-attr="placeholder:header.searchPlaceholder,aria-label:header.search"/);
 });
 
+test("the initial document hints and renders startup content before scripts run", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(html, /<link rel="preload" href="data\/home\.json"/);
+  assert.match(html, /<link rel="preload" href="data\/meta\.json"/);
+  assert.match(html, /<link rel="preload" href="i18n\/en\.json"/);
+  assert.match(html, /<script defer src="i18n\.js/);
+  assert.match(html, /<script defer src="search\.js/);
+  assert.match(html, /<script defer src="app\.js/);
+  assert.match(html, /<main id="view" tabindex="-1" aria-busy="true">[\s\S]*class="skeleton-card-grid"/);
+});
+
 test("language selection lives in Settings and uses site-styled buttons", () => {
   const { api, view } = createHarness();
   api.renderSettings();

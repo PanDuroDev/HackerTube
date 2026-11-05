@@ -151,7 +151,13 @@ test("the desktop app serves the bundled site locally instead of the network", (
   assert.match(app, /Boolean\(window\.electronWindow\) \|\| location\.protocol === "app:"/, "sharing must copy the public web URL from the desktop app");
   assert.match(main, /http\.createServer/, "the bundled site should be served over HTTP for YouTube");
   assert.match(main, /127\.0\.0\.1/);
+  assert.match(main, /public, max-age=31536000, immutable/);
   assert.match(main, /await startLocalSite\(\)/);
+  assert.match(main, /scheduleLegacyStorageMigration/);
+  assert.match(main, /hadStorageAtLaunch/);
+  assert.match(main, /reason: "fresh-install"/);
+  assert.match(main, /localStorage\.getItem\(key\) === null/, "delayed migration must not overwrite data saved during startup");
+  assert.doesNotMatch(main, /await migrateLegacyStorage\(\)/);
   assert.match(main, /migrateLegacyStorage/);
   assert.match(main, /__storage/);
   assert.match(main, /mainWindowStarted/, "startup must survive hidden migration windows");
@@ -366,19 +372,24 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /app:youtube-quality/);
   assert.match(main, /setPlaybackQualityRange/);
   assert.match(main, /startSearchBackend/);
+  assert.doesNotMatch(main, /app\.setAppUserModelId\(APP_ID\);\s*startSearchBackend/);
   assert.match(main, /app:search-catalog/);
   assert.match(main, /app:search-backend-status/);
   assert.match(main, /app:search-backend-stats/);
   assert.match(main, /app:search-backend-trim/);
   assert.match(main, /ids: result\.ids \|\| \[\]/);
+  assert.match(main, /additionalArguments: \[`--hackertube-packaged=\$\{app\.isPackaged\}`\]/);
   assert.match(main, /backend-bin/);
-  assert.match(main, /before-quit", stopSearchBackend/);
+  assert.match(main, /before-quit[\s\S]*stopSearchBackend\(\)[\s\S]*startupTimers\.clear\(\)/);
   assert.match(main, /remove\(\)/);
   assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
 
   const preload = read("electron/preload.js");
   assert.match(preload, /setCustomPlayerChrome/);
   assert.match(preload, /isCustomPlayerChromeApplied/);
+  assert.match(preload, /isPackaged/);
+  assert.match(preload, /process\.argv\.includes\("--hackertube-packaged=true"\)/);
+  assert.doesNotMatch(preload, /require\("electron"\).*\bapp\b/);
   assert.match(preload, /getYouTubeChapters/);
   assert.match(preload, /setYouTubeQuality/);
   assert.match(preload, /searchCatalog/);
@@ -400,6 +411,7 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(app, /customPlayerFailed/);
   assert.match(app, /insertAdjacentHTML\("afterbegin"/);
   assert.match(app, /fallbackToNative\(videoId, queue, autoplay, playerHost\)/);
+  assert.match(app, /window\.electronWindow\?\.isPackaged/);
   assert.match(app, /role="tabpanel"/);
   assert.match(app, /event\.key === "ArrowRight"/);
 });

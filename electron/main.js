@@ -27,6 +27,7 @@ let updateInFlight = false;
 let localServer = null;
 let mainWindowStarted = false;
 let searchBackend = null;
+const startupTimers = new Set();
 
 const installerLaunch = process.argv.includes("--installer")
   || (Boolean(process.env.PORTABLE_EXECUTABLE_FILE) && !installer.isInstalledCopy(process.env.PORTABLE_EXECUTABLE_FILE));
@@ -96,7 +97,7 @@ function startLocalSite() {
       }
       response.writeHead(200, {
         "Content-Type": MIME_TYPES[path.extname(file).toLowerCase()] || "application/octet-stream",
-        "Cache-Control": "no-cache",
+        "Cache-Control": app.isPackaged ? "public, max-age=31536000, immutable" : "no-cache",
         "Referrer-Policy": "strict-origin-when-cross-origin",
       });
       if (request.method === "HEAD") {
@@ -160,10 +161,26 @@ async function readStorage(url) {
   }
 }
 
-async function migrateLegacyStorage() {
-  const forcedMigration = !app.isPackaged && process.env.HACKERTUBE_FORCE_MIGRATION === "1";
-  if ((!app.isPackaged && !forcedMigration) || !APP_URL.startsWith("http://127.0.0.1:")) return;
-  const marker = path.join(app.getPath("userData"), "http-storage-migrated-v1.json");
+function migrationMarkerPath() {
+  return path.join(app.getPath("userData"), "http-storage-migrated-v1.json");
+}
+
+function hasPersistentStorageAtLaunch() {
+  return fs.existsSync(path.join(app.getPath("userData"), "Local Storage", "leveldb"));
+}
+
+function markMigrationHandled(data) {
+  try {
+    fs.writeFileSync(migrationMarkerPath(), JSON.stringify(data));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function migrateLegacyStorage(hadStorageAtLaunch, forcedMigration) {
+  if ((!app.isPackaged && !forcedMigration) || !hadStorageAtLaunch || !APP_URL.startsWith("http://127.0.0.1:")) return;
+  const marker = migrationMarkerPath();
   if (fs.existsSync(marker)) return;
 
   let legacy = {};
@@ -174,7 +191,7 @@ async function migrateLegacyStorage() {
   }
   const keys = Object.keys(legacy).filter((key) => key.startsWith("ht_"));
   if (!keys.length) {
-    try { fs.writeFileSync(marker, "{}"); } catch { /* retry next launch */ }
+    markMigrationHandled({ handledAt: new Date().toISOString(), legacyKeys: 0 });
     return;
   }
 
@@ -185,14 +202,23 @@ async function migrateLegacyStorage() {
   try {
     await withTimeout(shadow.loadURL(storageUrl(APP_URL)), 5000);
     await withTimeout(shadow.webContents.executeJavaScript(
-      `(() => { const data = ${JSON.stringify(legacy)}; for (const [key, value] of Object.entries(data)) localStorage.setItem(key, value); })()`,
+      `(() => { const data = ${JSON.stringify(legacy)}; let copied = 0; for (const [key, value] of Object.entries(data)) { if (key.startsWith("ht_") && localStorage.getItem(key) === null) { localStorage.setItem(key, value); copied++; } } return copied; })()`,
     ), 5000);
-    fs.writeFileSync(marker, JSON.stringify({ migratedAt: new Date().toISOString(), keys }));
+    markMigrationHandled({ migratedAt: new Date().toISOString(), keys });
   } catch {
     // Leave the marker absent so the next launch retries.
   } finally {
     shadow.destroy();
   }
+}
+
+function scheduleLegacyStorageMigration(hadStorageAtLaunch, forcedMigration) {
+  const timer = setTimeout(() => {
+    startupTimers.delete(timer);
+    migrateLegacyStorage(hadStorageAtLaunch, forcedMigration).catch(() => {});
+  }, 2500);
+  timer.unref?.();
+  startupTimers.add(timer);
 }
 
 function isTrusted(event) {
@@ -773,6 +799,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      additionalArguments: [`--hackertube-packaged=${app.isPackaged}`],
       backgroundThrottling: false,
       spellcheck: false,
     },
@@ -883,11 +910,14 @@ if (standaloneInstaller) {
       win.focus();
     });
 
-    app.on("before-quit", stopSearchBackend);
+    app.on("before-quit", () => {
+      stopSearchBackend();
+      for (const timer of startupTimers) clearTimeout(timer);
+      startupTimers.clear();
+    });
 
     app.whenReady().then(async () => {
       app.setAppUserModelId(APP_ID);
-      startSearchBackend();
       // The previous AppImage is replaced in place during an update; drop the leftover.
       if (process.env.APPIMAGE) {
         try { fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true }); } catch { /* retry on next start */ }
@@ -915,9 +945,14 @@ if (standaloneInstaller) {
         console.error("Local site server failed", error);
         APP_URL = "https://pandurodev.github.io/HackerTube/";
       }
-      await migrateLegacyStorage();
+      const forcedMigration = !app.isPackaged && process.env.HACKERTUBE_FORCE_MIGRATION === "1";
+      const hadStorageAtLaunch = hasPersistentStorageAtLaunch();
+      if (app.isPackaged && !hadStorageAtLaunch && !fs.existsSync(migrationMarkerPath())) {
+        markMigrationHandled({ handledAt: new Date().toISOString(), reason: "fresh-install" });
+      }
       mainWindowStarted = true;
       createWindow();
+      scheduleLegacyStorageMigration(hadStorageAtLaunch || forcedMigration, forcedMigration);
       app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
       });

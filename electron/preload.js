@@ -1,7 +1,9 @@
 const { contextBridge, ipcRenderer } = require("electron");
+const isPackaged = process.argv.includes("--hackertube-packaged=true");
 
 if (window.top === window) {
   contextBridge.exposeInMainWorld("electronWindow", {
+    isPackaged,
     minimize: () => ipcRenderer.send("window:minimize"),
     toggleMaximize: () => ipcRenderer.send("window:toggle-maximize"),
     close: () => ipcRenderer.send("window:close"),

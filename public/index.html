@@ -30,6 +30,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HackerTube">
 <link rel="stylesheet" href="styles.css?v=62">
+<link rel="preload" href="data/home.json" as="fetch" fetchpriority="high">
+<link rel="preload" href="data/meta.json" as="fetch">
+<link rel="preload" href="i18n/en.json" as="fetch">
 </head>
 <body>
 
@@ -134,7 +137,19 @@
 
 <div class="layout">
   <aside class="side" id="sidebar" aria-label="Navigation" data-i18n-attr="aria-label:sidebar.navigation"></aside>
-  <main id="view" tabindex="-1"></main>
+  <main id="view" tabindex="-1" aria-busy="true">
+    <section class="feed">
+      <div class="feed-head"><span class="count" data-i18n="skeleton.loading">Loading…</span></div>
+      <div class="skeleton-card-grid" aria-hidden="true">
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+        <div class="skeleton-card"><div class="sk sk-thumb"></div><div class="sk sk-line w-90"></div><div class="sk sk-line w-55"></div><div class="sk sk-line sk-line-sm w-35"></div></div>
+      </div>
+    </section>
+  </main>
 </div>
 
 <div id="mini-host" hidden></div>
@@ -160,9 +175,9 @@
   <span class="toast-msg"></span>
 </div>
 <noscript><p style="padding:24px" data-i18n="noscript">This site needs JavaScript to show and filter the index.</p></noscript>
-<script src="i18n.js?v=1"></script>
-<script src="search.js?v=4"></script>
-<script src="search-fields.js?v=1"></script>
-<script src="app.js?v=91"></script>
+<script defer src="i18n.js?v=1"></script>
+<script defer src="search.js?v=4"></script>
+<script defer src="search-fields.js?v=1"></script>
+<script defer src="app.js?v=91"></script>
 </body>
 </html>
