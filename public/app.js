@@ -1445,8 +1445,13 @@ function customPlayerActive() {
   return Boolean(window.electronWindow) && state.settings.customPlayer === true;
 }
 
+function setCustomPlayerChrome(enabled) {
+  const result = window.electronWindow?.setCustomPlayerChrome?.(Boolean(enabled));
+  result?.catch?.(() => {});
+}
+
 function syncCustomPlayerChrome() {
-  window.electronWindow?.setCustomPlayerChrome?.(customPlayerActive());
+  setCustomPlayerChrome(customPlayerActive());
 }
 
 function customControlsMarkup() {
@@ -2380,7 +2385,7 @@ function loadYouTubeIframeApi() {
 
 function restoreNativePlayer(videoId, queue, routeHash, autoplay) {
   if (location.hash !== routeHash) return;
-  window.electronWindow?.setCustomPlayerChrome?.(false);
+  setCustomPlayerChrome(false);
   stopCustomControls();
   try {
     playlistPlayer?.destroy?.();
