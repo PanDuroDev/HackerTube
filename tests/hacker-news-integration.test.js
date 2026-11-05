@@ -587,6 +587,7 @@ test("the desktop app hides YouTube controls when custom playback is enabled", (
   assert.match(wrapper, /role="tabpanel"/);
   assert.match(wrapper, /aria-controls="ht-panel-/);
   assert.match(wrapper, /tabindex="-1"/);
+  assert.match(wrapper, /data-ht-chapters/);
   assert.doesNotMatch(wrapper, /data-ht-menu/);
   assert.match(wrapper, /ht-center/);
   assert.match(wrapper, /id="youtube-player"/);
@@ -700,6 +701,10 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(css, /\.ht-option\[hidden\]/);
   assert.match(css, /\.ht-panel-error/);
   assert.match(css, /\.ht-btn:disabled/);
+  assert.match(css, /\.ht-chapters/);
+  assert.match(css, /--ht-buffered/);
+  assert.match(css, /::-webkit-scrollbar-button \{ display: none/);
+  assert.match(css, /::-webkit-scrollbar \{ width: 7px/);
   assert.match(css, /\.settings-warning/);
   assert.match(APP_SOURCE, /enableCustomPlayer/);
   assert.match(APP_SOURCE, /customPlayerTitle/);
@@ -712,6 +717,10 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /insertAdjacentHTML\("beforeend"/);
   assert.match(APP_SOURCE, /defer: true/);
   assert.match(APP_SOURCE, /requestIdleCallback\(callback/);
+  assert.match(APP_SOURCE, /getYouTubeChapters/);
+  assert.match(APP_SOURCE, /loadCustomChapters/);
+  assert.match(APP_SOURCE, /:focus-visible/);
+  assert.match(APP_SOURCE, /\}, 3000\);/);
 });
 
 

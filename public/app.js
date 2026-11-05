@@ -105,6 +105,9 @@ let customPlayerReady = false;
 let customPlayerFailed = false;
 let customPanelError = "";
 let customPanelSequence = 0;
+let customChapters = [];
+let customChaptersTimer = null;
+let customChaptersRequest = 0;
 let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
@@ -1553,8 +1556,9 @@ function customControlsMarkup() {
   const captions = tr("player.captions", "Captions");
   const panelId = `ht-panel-${++customPanelSequence}`;
   return `<div class="ht-controls" data-ht-controls>
-    <div class="ht-seek-wrap">
+    <div class="ht-seek-wrap" dir="ltr">
       <input class="ht-seek" type="range" min="0" max="0" step="0.1" value="0" dir="ltr" aria-label="${esc(tr("player.seek", "Seek"))}" data-ht-seek>
+      <div class="ht-chapters" data-ht-chapters aria-hidden="true"></div>
     </div>
     <div class="ht-row" dir="ltr">
       <button class="ht-btn" type="button" data-ht-action="toggle" aria-label="${esc(play)}" title="${esc(play)}">${icon("play")}</button>
@@ -1617,6 +1621,51 @@ function setRangeProgress(range, percent) {
   range.style.setProperty("--ht-progress", `${Math.min(100, Math.max(0, percent))}%`);
 }
 
+function renderCustomChapters() {
+  const host = activeCustomPlayerEl()?.querySelector("[data-ht-chapters]");
+  if (!host) return;
+  host.innerHTML = customChapters
+    .map((percent) => `<i style="inset-inline-start:${percent}%"></i>`)
+    .join("");
+}
+
+function loadCustomChapters(playerHost) {
+  clearTimeout(customChaptersTimer);
+  customChaptersTimer = null;
+  const request = ++customChaptersRequest;
+  customChapters = [];
+  renderCustomChapters();
+  if (!customPlayerActive() || typeof window.electronWindow?.getYouTubeChapters !== "function") return;
+  let attempts = 0;
+  const fetchChapters = async () => {
+    if (request !== customChaptersRequest) return;
+    customChaptersTimer = null;
+    if (!playerHost?.isConnected || !customPlayerReady || customChapters.length) return;
+    attempts += 1;
+    try {
+      const marks = await window.electronWindow.getYouTubeChapters();
+      if (request !== customChaptersRequest || !playerHost.isConnected || !customPlayerReady || customChapters.length) return;
+      if (Array.isArray(marks)) {
+        customChapters = marks
+          .map((value) => Number(value))
+          .filter((value) => Number.isFinite(value) && value > 0.5 && value < 99.5)
+          .sort((a, b) => a - b)
+          .filter((value, index, all) => index === 0 || value - all[index - 1] >= 0.4)
+          .slice(0, 80);
+        if (customChapters.length) renderCustomChapters();
+      }
+    } catch {
+      // Chapters are optional; the progress bar keeps working without them.
+    }
+    if (!customChapters.length && attempts < 8 && playerHost?.isConnected && customPlayerReady) {
+      customChaptersTimer = setTimeout(fetchChapters, 1200);
+    } else {
+      customChaptersTimer = null;
+    }
+  };
+  customChaptersTimer = setTimeout(fetchChapters, 800);
+}
+
 function showCustomControls(sticky = false) {
   const player = activeCustomPlayerEl();
   if (!player) return;
@@ -1632,9 +1681,15 @@ function scheduleCustomHide() {
   if (!playerIsPlaying() || document.querySelector(".ht-settings.open")) return;
   customHideTimer = setTimeout(() => {
     const player = activeCustomPlayerEl();
-    if (!player || player.contains(document.activeElement) || !playerIsPlaying()) return;
+    if (!player || !playerIsPlaying()) return;
+    if (document.querySelector(".ht-settings.open") || customSeeking) return;
+    const active = document.activeElement;
+    if (active && player.contains(active)) {
+      if (active.matches?.(":focus-visible") || active.matches?.(":active")) return;
+      active.blur?.();
+    }
     player.classList.add("ht-hide");
-  }, 2600);
+  }, 3000);
 }
 
 function applyCustomVolume() {
@@ -1966,10 +2021,12 @@ function syncCustomPlayerUi() {
   let status;
   let time;
   let duration;
+  let buffered = 0;
   try {
     status = player.getPlayerState();
     time = Math.max(0, Number(player.getCurrentTime()) || 0);
     duration = Math.max(0, Number(player.getDuration()) || 0);
+    buffered = Math.max(0, Math.min(1, Number(player.getVideoLoadedFraction?.()) || 0));
   } catch {
     return;
   }
@@ -2042,13 +2099,16 @@ function syncCustomPlayerUi() {
   }
 
   const seek = playerEl.querySelector("[data-ht-seek]");
-  if (seek && !customSeeking) {
-    if (duration > 0) seek.max = String(duration);
-    const position = duration > 0 ? Math.min(time, duration) : time;
-    seek.value = String(position);
-    setRangeProgress(seek, duration > 0 ? (position / duration) * 100 : 0);
-    const timeLabel = playerEl.querySelector("[data-ht-time]");
-    if (timeLabel) timeLabel.textContent = `${fmtDuration(position)} / ${fmtDuration(duration)}`;
+  if (seek) {
+    seek.style.setProperty("--ht-buffered", `${(buffered * 100).toFixed(2)}%`);
+    if (!customSeeking) {
+      if (duration > 0) seek.max = String(duration);
+      const position = duration > 0 ? Math.min(time, duration) : time;
+      seek.value = String(position);
+      setRangeProgress(seek, duration > 0 ? (position / duration) * 100 : 0);
+      const timeLabel = playerEl.querySelector("[data-ht-time]");
+      if (timeLabel) timeLabel.textContent = `${fmtDuration(position)} / ${fmtDuration(duration)}`;
+    }
   }
 }
 
@@ -2097,6 +2157,10 @@ function stopCustomControls() {
   customPanelError = "";
   customCaptionCode = "";
   customCaptionName = "";
+  customChapters = [];
+  customChaptersRequest += 1;
+  clearTimeout(customChaptersTimer);
+  customChaptersTimer = null;
   closeCustomSettings();
   clearTimeout(customHideTimer);
   customHideTimer = null;
@@ -2197,7 +2261,9 @@ function setupCustomControls() {
     const noResults = settings?.querySelector("[data-ht-no-results]");
     if (noResults) noResults.hidden = !needle || hasMatch;
   });
-  playerEl.addEventListener("focusin", () => showCustomControls(true));
+  playerEl.addEventListener("focusin", (event) => {
+    showCustomControls(Boolean(event.target.matches?.(":focus-visible")));
+  });
   playerEl.addEventListener("focusout", () => {
     setTimeout(() => {
       if (!playerEl.contains(document.activeElement) && playerIsPlaying()) scheduleCustomHide();
@@ -2217,6 +2283,7 @@ function setupCustomControls() {
     } catch {
       // The player may not be ready yet.
     }
+    showCustomControls();
   });
   seek?.addEventListener("blur", () => { customSeeking = false; });
 
@@ -2651,6 +2718,7 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
             clearTimeout(customReadyTimer);
             customReadyTimer = null;
             setCustomControlsEnabled(true);
+            loadCustomChapters(playerHost);
           }
           stopProgressPoll();
           progressPoll = setInterval(saveCurrentProgress, 5000);
@@ -2672,6 +2740,9 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
         onStateChange(event) {
           if (customPlayerFailed) return;
           if (custom && !playerHost?.isConnected) return;
+          if (custom && event.data === YT.PlayerState.PLAYING && !customChapters.length && !customChaptersTimer) {
+            loadCustomChapters(playerHost);
+          }
           if (event.data === YT.PlayerState.PLAYING) clearGrabIdle();
           else if ([
             YT.PlayerState.PAUSED,

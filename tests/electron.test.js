@@ -352,13 +352,20 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /did-frame-finish-load/);
   assert.match(main, /scheduleCustomPlayerChrome/);
   assert.match(main, /app:custom-player-chrome-applied/);
+  assert.match(main, /app:youtube-chapters/);
+  assert.match(main, /ytChapteredProgressBarChapteredPlayerBarChapter/);
   assert.match(main, /remove\(\)/);
   assert.doesNotMatch(main, /caption-window/, "captions must stay visible");
 
   const preload = read("electron/preload.js");
   assert.match(preload, /setCustomPlayerChrome/);
   assert.match(preload, /isCustomPlayerChromeApplied/);
+  assert.match(preload, /getYouTubeChapters/);
   assert.match(preload, /app:custom-player-chrome/);
+
+  const installerCss = read("electron/installer.css");
+  assert.match(installerCss, /::-webkit-scrollbar-button \{ display: none/);
+  assert.match(installerCss, /::-webkit-scrollbar \{ width: 7px/);
 
   const app = read("public/app.js");
   assert.match(app, /syncCustomPlayerChrome/);

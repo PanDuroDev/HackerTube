@@ -16,6 +16,21 @@
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border: 0;
+  border-radius: 999px;
+  background: var(--border);
+  background: color-mix(in srgb, var(--muted) 42%, transparent);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background: color-mix(in srgb, var(--muted) 70%, transparent);
+}
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-corner { background: transparent; }
 body {
   margin: 0;
   background: var(--bg);
