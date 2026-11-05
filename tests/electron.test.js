@@ -42,7 +42,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.5");
+  assert.equal(pkg.version, "1.0.6");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
@@ -142,6 +142,9 @@ test("the desktop app serves the bundled site locally instead of the network", (
   assert.match(main, /await startLocalSite\(\)/);
   assert.match(main, /migrateLegacyStorage/);
   assert.match(main, /__storage/);
+  assert.match(main, /mainWindowStarted/, "startup must survive hidden migration windows");
+  assert.match(main, /if \(!mainWindowStarted\) return/);
+  assert.match(main, /withTimeout\(hidden\.loadURL/, "legacy storage reads must be bounded");
   assert.match(app, /if \(\/\^https\?:\$\/\.test\(location\.protocol\)\) params\.set\("origin", location\.origin\)/, "YouTube should only receive a valid HTTP origin");
   assert.match(main, /return "manual"/, "macOS updates should be reported as manual");
   assert.match(main, /manualType: process\.platform === "darwin" \? "macos" : "file"/);
