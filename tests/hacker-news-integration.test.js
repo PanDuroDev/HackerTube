@@ -520,14 +520,87 @@ test("YouTube embeds always use the original player controls", () => {
 });
 
 
-test("Settings no longer expose Playback or Stream API options", () => {
+test("Web settings do not expose the desktop-only Playback options", () => {
   const { api, view } = createHarness();
   api.renderSettings();
 
-  for (const label of ["Playback", "Custom YouTube controls", "Direct video playback", "Stream API URL", "trycloudflare.com"]) {
+  for (const label of ["Playback", "Custom player controls", "Direct video playback", "Stream API URL", "trycloudflare.com"]) {
     assert.ok(!view.innerHTML.includes(label), `settings should not contain ${label}`);
   }
   assert.ok(view.innerHTML.includes("Browsing"));
+});
+
+test("custom playback controls are off by default and never activate on the web", () => {
+  const harness = createHarness();
+  const { api } = harness;
+  assert.equal(api.state.settings.customPlayer, false);
+
+  api.state.settings.customPlayer = true;
+  const webMarkup = api.youtubeIframeMarkup("video123", "Test video");
+  const webParams = new URL(webMarkup.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(webParams.get("controls"), "1");
+  assert.equal(webParams.get("disablekb"), "0");
+  assert.equal(webParams.get("fs"), "1");
+  assert.doesNotMatch(api.playerContainerMarkup(webMarkup), /ht-player|data-ht-controls|data-ht-seek/);
+});
+
+test("the desktop app hides YouTube controls when custom playback is enabled", () => {
+  const harness = createHarness();
+  harness.context.window.electronWindow = {};
+  const { api, view } = harness;
+  api.state.settings.customPlayer = true;
+
+  const markup = api.youtubeIframeMarkup("video123", "Test video");
+  const params = new URL(markup.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(params.get("controls"), "0");
+  assert.equal(params.get("disablekb"), "1");
+  assert.equal(params.get("fs"), "0");
+  assert.equal(params.get("iv_load_policy"), "3");
+  assert.equal(params.get("modestbranding"), "1");
+
+  const fallback = api.youtubeIframeMarkup("video123", "Test video", null, false, true);
+  const fallbackParams = new URL(fallback.match(/src="([^"]+)"/)[1]).searchParams;
+  assert.equal(fallbackParams.get("controls"), "1");
+  assert.equal(fallbackParams.get("disablekb"), "0");
+  assert.equal(fallbackParams.get("fs"), "1");
+  assert.equal(fallbackParams.get("modestbranding"), null);
+
+  const wrapper = api.playerContainerMarkup(markup);
+  assert.match(wrapper, /class="player ht-player"/);
+  assert.match(wrapper, /data-ht-controls/);
+  assert.match(wrapper, /data-ht-seek/);
+  assert.match(wrapper, /data-ht-volume/);
+  assert.match(wrapper, /data-ht-action="toggle"/);
+  assert.match(wrapper, /data-ht-action="back10"/);
+  assert.match(wrapper, /data-ht-action="forward10"/);
+  assert.match(wrapper, /data-ht-action="mute"/);
+  assert.match(wrapper, /data-ht-action="fullscreen"/);
+  assert.match(wrapper, /ht-center/);
+  assert.match(wrapper, /id="youtube-player"/);
+
+  api.renderSettings();
+  assert.match(view.innerHTML, /Playback/);
+  assert.match(view.innerHTML, /Custom player controls/);
+  assert.match(view.innerHTML, /data-setting="customPlayer"/);
+  assert.match(view.innerHTML, /class="settings-warning"/);
+});
+
+test("custom playback assets use the MingCute sprite and require the disclaimer", () => {
+  const root = path.join(__dirname, "..", "public");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  for (const id of ["pause", "volume", "volume-mute", "fullscreen", "fullscreen-exit", "rewind-back-10", "rewind-forward-10", "warning"]) {
+    assert.match(html, new RegExp(`<symbol id="i-${id}"`), `missing icon ${id}`);
+  }
+  assert.match(css, /\.player\.ht-player iframe \{ pointer-events: none; \}/);
+  assert.match(css, /\.ht-controls/);
+  assert.match(css, /\.ht-center/);
+  assert.match(css, /\.player\.ht-player\.ht-hide \.ht-controls/);
+  assert.match(css, /\.settings-warning/);
+  assert.match(APP_SOURCE, /enableCustomPlayer/);
+  assert.match(APP_SOURCE, /customPlayerTitle/);
+  assert.match(APP_SOURCE, /customPlayerMessage/);
 });
 
 

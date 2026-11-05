@@ -31,7 +31,7 @@ const TOPIC_SEARCH_ALIASES = {
   networking: "شبكات",
   tools: "ide editors ادوات المطور",
 };
-const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false };
+const DEFAULTS = { pageSize: 36, hideSeen: false, autoplayNext: false, customPlayer: false };
 const HN_DEFAULTS = { scope: "programming", recommendation: "", contentType: "", level: "", shelfLife: "", area: "", sort: "best" };
 const SITE_URL = "https://pandurodev.github.io/HackerTube/";
 const DESKTOP_RELEASES_URL = "https://github.com/PanDuroDev/HackerTube/releases/latest";
@@ -92,6 +92,10 @@ let playlistPlayer = null;
 let progressPoll = null;
 let miniState = null;
 let grabIdleTimer = null;
+let customUiPoll = null;
+let customHideTimer = null;
+let customVolume = 100;
+let customSeeking = false;
 let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
@@ -392,6 +396,8 @@ async function init() {
     if (location.hash === next) render();
     else location.hash = next;
   });
+  document.addEventListener("fullscreenchange", syncCustomFullscreenUi);
+  document.addEventListener("keydown", onCustomPlayerKeydown);
   document.addEventListener("keydown", (e) => {
     if ($("#confirmDialog")?.open) return;
 
@@ -1429,14 +1435,44 @@ function emptyState() {
 
 /* ---------- Watch ---------- */
 
+function customPlayerActive() {
+  return Boolean(window.electronWindow) && state.settings.customPlayer === true;
+}
+
+function customControlsMarkup() {
+  const play = tr("player.play", "Play");
+  const back10 = tr("player.back10", "Back 10 seconds");
+  const forward10 = tr("player.forward10", "Forward 10 seconds");
+  const mute = tr("player.mute", "Mute");
+  const fullscreen = tr("player.fullscreen", "Fullscreen");
+  return `<div class="ht-controls" data-ht-controls>
+    <div class="ht-seek-wrap">
+      <input class="ht-seek" type="range" min="0" max="0" step="0.1" value="0" dir="ltr" aria-label="${esc(tr("player.seek", "Seek"))}" data-ht-seek>
+    </div>
+    <div class="ht-row" dir="ltr">
+      <button class="ht-btn" type="button" data-ht-action="toggle" aria-label="${esc(play)}" title="${esc(play)}">${icon("play")}</button>
+      <button class="ht-btn" type="button" data-ht-action="back10" aria-label="${esc(back10)}" title="${esc(back10)}">${icon("rewind-back-10")}</button>
+      <button class="ht-btn" type="button" data-ht-action="forward10" aria-label="${esc(forward10)}" title="${esc(forward10)}">${icon("rewind-forward-10")}</button>
+      <button class="ht-btn" type="button" data-ht-action="mute" aria-label="${esc(mute)}" title="${esc(mute)}" aria-pressed="false">${icon("volume")}</button>
+      <input class="ht-volume" type="range" min="0" max="100" step="1" value="100" dir="ltr" aria-label="${esc(tr("player.volume", "Volume"))}" data-ht-volume>
+      <span class="ht-time" data-ht-time dir="ltr">0:00 / 0:00</span>
+      <span class="ht-spacer"></span>
+      <button class="ht-btn" type="button" data-ht-action="fullscreen" aria-label="${esc(fullscreen)}" title="${esc(fullscreen)}" aria-pressed="false">${icon("fullscreen")}</button>
+    </div>
+  </div>
+  <button class="ht-center" type="button" data-ht-action="toggle" aria-label="${esc(play)}" title="${esc(play)}">${icon("play")}</button>`;
+}
+
 function playerContainerMarkup(markup) {
+  const custom = customPlayerActive();
   return `<div class="mini-frame" data-mini-frame>
     <div class="mini-bar" data-mini-bar role="toolbar" aria-label="${tr("watch.playerWindow", "Player window")}">
       <button class="mini-bar-btn mini-back" type="button" data-mini-back aria-label="${tr("watch.backToVideo", "Back to video")}" title="${tr("watch.backToVideo", "Back to video")}">${icon("chevron")}</button>
       <button class="mini-bar-btn" type="button" data-mini-size aria-label="${tr("watch.enlarge", "Enlarge window")}" title="${tr("watch.enlarge", "Enlarge window")}">${icon("expand-player")}</button>
       <button class="mini-bar-btn" type="button" data-mini-close aria-label="${tr("watch.closePlayer", "Close player")}" title="${tr("watch.closePlayer", "Close player")}">${icon("close")}</button>
     </div>
-    <div class="player">${markup}
+    <div class="player${custom ? " ht-player" : ""}">${markup}
+      ${custom ? customControlsMarkup() : ""}
       <button class="player-grab" type="button" data-player-grab aria-label="${tr("watch.minimize", "Minimize player")}" title="${tr("watch.minimize", "Minimize player")}">${icon("chevron")}</button>
     </div>
   </div>`;
@@ -1450,6 +1486,317 @@ function playerIsPlaying() {
   return Boolean(playlistPlayer
     && typeof playlistPlayer.getPlayerState === "function"
     && [1, 3].includes(playlistPlayer.getPlayerState()));
+}
+
+function activeCustomPlayerEl() {
+  return document.querySelector(".watch-main .player.ht-player") || document.querySelector("#mini-host .player.ht-player");
+}
+
+function setRangeProgress(range, percent) {
+  if (!range) return;
+  range.style.setProperty("--ht-progress", `${Math.min(100, Math.max(0, percent))}%`);
+}
+
+function showCustomControls(sticky = false) {
+  const player = activeCustomPlayerEl();
+  if (!player) return;
+  player.classList.remove("ht-hide");
+  clearTimeout(customHideTimer);
+  customHideTimer = null;
+  if (!sticky) scheduleCustomHide();
+}
+
+function scheduleCustomHide() {
+  clearTimeout(customHideTimer);
+  customHideTimer = null;
+  if (!playerIsPlaying()) return;
+  customHideTimer = setTimeout(() => {
+    const player = activeCustomPlayerEl();
+    if (!player || player.contains(document.activeElement) || !playerIsPlaying()) return;
+    player.classList.add("ht-hide");
+  }, 2600);
+}
+
+function applyCustomVolume() {
+  const player = playlistPlayer;
+  if (!player || typeof player.setVolume !== "function") return;
+  try {
+    player.setVolume(customVolume);
+    const input = activeCustomPlayerEl()?.querySelector("[data-ht-volume]");
+    if (input) {
+      input.value = String(customVolume);
+      setRangeProgress(input, customVolume);
+    }
+  } catch {
+    // The embedded player may still be starting.
+  }
+}
+
+function seekBy(seconds) {
+  const player = playlistPlayer;
+  if (!player || typeof player.seekTo !== "function") return;
+  try {
+    const current = Number(player.getCurrentTime()) || 0;
+    const duration = Number(player.getDuration()) || 0;
+    const next = Math.max(0, duration > 0 ? Math.min(duration, current + seconds) : current + seconds);
+    player.seekTo(next, true);
+  } catch {
+    // The player can be replaced while a playlist advances.
+  }
+}
+
+function changeCustomVolume(delta) {
+  const player = playlistPlayer;
+  const next = Math.min(100, Math.max(0, customVolume + delta));
+  customVolume = next;
+  storeSet("ht_player_volume", next);
+  if (player) {
+    try {
+      player.setVolume(next);
+      if (next > 0 && player.isMuted?.()) player.unMute();
+    } catch {
+      // The player may not be ready yet.
+    }
+  }
+  const input = activeCustomPlayerEl()?.querySelector("[data-ht-volume]");
+  if (input) {
+    input.value = String(next);
+    setRangeProgress(input, next);
+  }
+  showCustomControls();
+  syncCustomPlayerUi();
+}
+
+function toggleCustomFullscreen() {
+  const player = activeCustomPlayerEl();
+  if (!player) return;
+  if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(() => {});
+  } else {
+    player.requestFullscreen?.().catch(() => {});
+  }
+}
+
+function syncCustomFullscreenUi() {
+  const fullscreen = Boolean(document.fullscreenElement);
+  document.querySelectorAll('[data-ht-action="fullscreen"]').forEach((button) => {
+    const label = fullscreen ? tr("player.exitFullscreen", "Exit fullscreen") : tr("player.fullscreen", "Fullscreen");
+    button.innerHTML = icon(fullscreen ? "fullscreen-exit" : "fullscreen");
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.setAttribute("aria-pressed", String(fullscreen));
+  });
+}
+
+function previewCustomSeek(seek) {
+  const duration = Number(seek.max) || 0;
+  const time = Number(seek.value) || 0;
+  setRangeProgress(seek, duration > 0 ? (time / duration) * 100 : 0);
+  const timeLabel = seek.closest(".ht-player")?.querySelector("[data-ht-time]");
+  if (timeLabel) timeLabel.textContent = `${fmtDuration(time)} / ${fmtDuration(duration)}`;
+}
+
+function syncCustomPlayerUi() {
+  const playerEl = activeCustomPlayerEl();
+  const player = playlistPlayer;
+  if (!playerEl || !player || typeof player.getPlayerState !== "function") return;
+  let status;
+  let time;
+  let duration;
+  try {
+    status = player.getPlayerState();
+    time = Math.max(0, Number(player.getCurrentTime()) || 0);
+    duration = Math.max(0, Number(player.getDuration()) || 0);
+  } catch {
+    return;
+  }
+
+  const buffering = status === 3;
+  const playing = status === 1 || buffering;
+  playerEl.classList.toggle("is-playing", playing);
+  playerEl.classList.toggle("is-buffering", buffering);
+  playerEl.classList.toggle("is-paused", !playing);
+
+  const stateKey = String(status);
+  if (playerEl.dataset.htState !== stateKey) {
+    playerEl.dataset.htState = stateKey;
+    if (playing) scheduleCustomHide();
+    else showCustomControls(true);
+  }
+
+  if (playerEl.dataset.htPlaying !== String(playing)) {
+    playerEl.dataset.htPlaying = String(playing);
+    const label = playing ? tr("player.pause", "Pause") : tr("player.play", "Play");
+    playerEl.querySelectorAll('[data-ht-action="toggle"]').forEach((button) => {
+      button.innerHTML = icon(playing ? "pause" : "play");
+      button.setAttribute("aria-label", label);
+      button.title = label;
+    });
+  }
+
+  const volumeInput = playerEl.querySelector("[data-ht-volume]");
+  const volume = volumeInput ? Number(volumeInput.value) : customVolume;
+  let muted = false;
+  try {
+    muted = Boolean(player.isMuted?.());
+  } catch {
+    // Keep the last known visual state.
+  }
+  const silent = muted || volume === 0;
+  if (playerEl.dataset.htMuted !== String(silent)) {
+    playerEl.dataset.htMuted = String(silent);
+    const label = silent ? tr("player.unmute", "Unmute") : tr("player.mute", "Mute");
+    const muteButton = playerEl.querySelector('[data-ht-action="mute"]');
+    if (muteButton) {
+      muteButton.innerHTML = icon(silent ? "volume-mute" : "volume");
+      muteButton.setAttribute("aria-label", label);
+      muteButton.title = label;
+      muteButton.setAttribute("aria-pressed", String(silent));
+    }
+  }
+  if (volumeInput && document.activeElement !== volumeInput) {
+    volumeInput.value = String(volume);
+    setRangeProgress(volumeInput, silent ? 0 : volume);
+  }
+
+  const seek = playerEl.querySelector("[data-ht-seek]");
+  if (seek && !customSeeking) {
+    if (duration > 0) seek.max = String(duration);
+    const position = duration > 0 ? Math.min(time, duration) : time;
+    seek.value = String(position);
+    setRangeProgress(seek, duration > 0 ? (position / duration) * 100 : 0);
+    const timeLabel = playerEl.querySelector("[data-ht-time]");
+    if (timeLabel) timeLabel.textContent = `${fmtDuration(position)} / ${fmtDuration(duration)}`;
+  }
+}
+
+function customPlayerAction(action) {
+  const player = playlistPlayer;
+  if (!player) return;
+  try {
+    if (action === "toggle") {
+      const state = player.getPlayerState();
+      if (state === 1 || state === 3) player.pauseVideo();
+      else {
+        if (state === 0) player.seekTo(0, true);
+        player.playVideo();
+      }
+    } else if (action === "back10") seekBy(-10);
+    else if (action === "forward10") seekBy(10);
+    else if (action === "mute") {
+      const volume = Number(activeCustomPlayerEl()?.querySelector("[data-ht-volume]")?.value ?? customVolume);
+      if (player.isMuted?.() || volume === 0) {
+        player.unMute?.();
+        if (volume === 0) changeCustomVolume(50 - customVolume);
+      } else {
+        player.mute?.();
+      }
+    } else if (action === "fullscreen") {
+      toggleCustomFullscreen();
+    }
+  } catch {
+    // The API player can be torn down while a route changes.
+  }
+  showCustomControls();
+  syncCustomPlayerUi();
+}
+
+function stopCustomControls() {
+  if (typeof clearInterval === "function") clearInterval(customUiPoll);
+  customUiPoll = null;
+  clearTimeout(customHideTimer);
+  customHideTimer = null;
+  customSeeking = false;
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+}
+
+function setupCustomControls() {
+  const playerEl = activeCustomPlayerEl();
+  if (!playerEl || playerEl.dataset.htReady === "1") return;
+  playerEl.dataset.htReady = "1";
+  playerEl.classList.add("is-paused");
+
+  const savedVolume = Number(storeGet("ht_player_volume", 100));
+  if (Number.isFinite(savedVolume)) customVolume = Math.min(100, Math.max(0, savedVolume));
+
+  playerEl.addEventListener("click", (event) => {
+    const actionButton = event.target.closest("[data-ht-action]");
+    if (actionButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      customPlayerAction(actionButton.dataset.htAction);
+      return;
+    }
+    if (event.target.closest("[data-ht-seek], [data-ht-volume], .player-grab")) return;
+    customPlayerAction("toggle");
+  });
+
+  playerEl.addEventListener("pointermove", () => showCustomControls());
+  playerEl.addEventListener("pointerdown", () => showCustomControls());
+  playerEl.addEventListener("pointerleave", () => {
+    if (playerIsPlaying()) scheduleCustomHide();
+  });
+  playerEl.addEventListener("focusin", () => showCustomControls(true));
+  playerEl.addEventListener("focusout", () => {
+    setTimeout(() => {
+      if (!playerEl.contains(document.activeElement) && playerIsPlaying()) scheduleCustomHide();
+    }, 0);
+  });
+
+  const seek = playerEl.querySelector("[data-ht-seek]");
+  seek?.addEventListener("input", () => {
+    customSeeking = true;
+    previewCustomSeek(seek);
+  });
+  seek?.addEventListener("change", () => {
+    customSeeking = false;
+    previewCustomSeek(seek);
+    try {
+      playlistPlayer?.seekTo?.(Number(seek.value) || 0, true);
+    } catch {
+      // The player may not be ready yet.
+    }
+  });
+  seek?.addEventListener("blur", () => { customSeeking = false; });
+
+  const volume = playerEl.querySelector("[data-ht-volume]");
+  volume?.addEventListener("input", () => {
+    customVolume = Math.min(100, Math.max(0, Number(volume.value) || 0));
+    storeSet("ht_player_volume", customVolume);
+    try {
+      playlistPlayer?.setVolume?.(customVolume);
+      if (customVolume > 0 && playlistPlayer?.isMuted?.()) playlistPlayer.unMute?.();
+    } catch {
+      // The player may not be ready yet.
+    }
+    setRangeProgress(volume, customVolume);
+    syncCustomPlayerUi();
+    showCustomControls();
+  });
+
+  stopCustomControls();
+  customUiPoll = setInterval(syncCustomPlayerUi, 250);
+  syncCustomPlayerUi();
+}
+
+function onCustomPlayerKeydown(event) {
+  if (!customPlayerActive() || event.defaultPrevented) return;
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  if (document.querySelector("#confirmDialog")?.open) return;
+  const target = event.target;
+  if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(target?.tagName || "") || target?.isContentEditable) return;
+  if (target?.closest?.(".ht-controls, .ht-center, [role='dialog']")) return;
+  if (!activeCustomPlayerEl() || !playlistPlayer) return;
+  const key = event.key;
+  if ((key === " " && event.shiftKey) || (![" ", "k", "K", "m", "M", "f", "F", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(key))) return;
+  event.preventDefault();
+  if (key === " " || key === "k" || key === "K") customPlayerAction("toggle");
+  else if (key === "ArrowLeft") { seekBy(-5); showCustomControls(); syncCustomPlayerUi(); }
+  else if (key === "ArrowRight") { seekBy(5); showCustomControls(); syncCustomPlayerUi(); }
+  else if (key === "ArrowUp") changeCustomVolume(5);
+  else if (key === "ArrowDown") changeCustomVolume(-5);
+  else if (key === "m" || key === "M") customPlayerAction("mute");
+  else if (key === "f" || key === "F") customPlayerAction("fullscreen");
 }
 
 function clearGrabIdle() {
@@ -1475,6 +1822,7 @@ function playerVideoId() {
 
 function destroyMiniPlayer() {
   clearGrabIdle();
+  stopCustomControls();
   if (playlistPlayer) {
     saveCurrentProgress();
     stopProgressPoll();
@@ -1709,17 +2057,19 @@ async function renderWatch(id, playlistId = null, autoplay = false) {
   startYouTubePlayer(v.id, queue, playlistId, routeHash, autoplay);
 }
 
-function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false) {
+function youtubeIframeMarkup(videoId, title, queue = null, autoplay = false, forceNative = false) {
   const needsApi = true;
+  const custom = !forceNative && customPlayerActive();
   const params = new URLSearchParams({
-    controls: "1",
-    disablekb: "0",
+    controls: custom ? "0" : "1",
+    disablekb: custom ? "1" : "0",
     enablejsapi: "1",
-    fs: "1",
-    iv_load_policy: "1",
+    fs: custom ? "0" : "1",
+    iv_load_policy: custom ? "3" : "1",
     rel: "0",
     playsinline: "1",
   });
+  if (custom) params.set("modestbranding", "1");
   if (/^https?:$/.test(location.protocol)) params.set("origin", location.origin);
   if (queue && queue.length > 1) params.set("playlist", queue.slice(1).join(","));
   if (autoplay) params.set("autoplay", "1");
@@ -1756,9 +2106,29 @@ function loadYouTubeIframeApi() {
   return youtubeApiPromise;
 }
 
+function restoreNativePlayer(videoId, queue, routeHash, autoplay) {
+  if (location.hash !== routeHash) return;
+  stopCustomControls();
+  try {
+    playlistPlayer?.destroy?.();
+  } catch {
+    // A partially created API player may not be destroyable.
+  }
+  playlistPlayer = null;
+  const host = document.querySelector(".player.ht-player");
+  if (!host) return;
+  const title = host.querySelector("iframe")?.title || "";
+  host.classList.remove("ht-player", "is-paused", "is-playing", "is-buffering", "ht-hide");
+  host.querySelectorAll(".ht-controls, .ht-center").forEach((node) => node.remove());
+  const frame = host.querySelector("iframe");
+  if (frame) frame.outerHTML = youtubeIframeMarkup(videoId, title, queue, autoplay, true);
+}
+
 async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autoplay = false) {
   const playerFrame = $("#youtube-player");
   if (!playerFrame) return;
+  const custom = Boolean(playerFrame.closest?.(".player.ht-player"));
+  if (custom) setupCustomControls();
   try {
     const YT = await loadYouTubeIframeApi();
     if (location.hash !== routeHash || !playerFrame.isConnected) return;
@@ -1778,6 +2148,8 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
           else if (autoplay) event.target.playVideo();
           if (event.target.getPlayerState?.() === YT.PlayerState.PLAYING) clearGrabIdle();
           else scheduleGrabIdle();
+          applyCustomVolume();
+          syncCustomPlayerUi();
         },
         onStateChange(event) {
           if (event.data === YT.PlayerState.PLAYING) clearGrabIdle();
@@ -1799,6 +2171,7 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
               if (related?.vid) location.hash = `#/hn-watch/${encodeURIComponent(related.vid)}`;
             }
           }
+          syncCustomPlayerUi();
           if (event.data !== YT.PlayerState.PLAYING) return;
           const playingId = event.target.getVideoData()?.video_id;
           if (!miniState && playingId && playingId !== state.current && queue?.includes(playingId)) {
@@ -1808,7 +2181,8 @@ async function startYouTubePlayer(videoId, queue, playlistId, routeHash, autopla
       },
     });
   } catch {
-    // The embedded player keeps working with its native controls if the API fails.
+    // Without the API the custom bar cannot control the iframe, so bring the native controls back.
+    if (custom) restoreNativePlayer(videoId, queue, routeHash, autoplay);
   }
 }
 
@@ -3133,6 +3507,15 @@ function renderSettings() {
         <button class="btn danger" type="button" data-uninstall-app aria-label="${esc(uninstallLabel)}">${icon("trash")} <span>${esc(uninstallLabel)}</span></button>
       </div>
     </div>` : "";
+  const playbackGroup = window.electronWindow ? `<div class="settings-group">
+      <h2>${icon("play")} ${tr("settings.playback", "Playback")}</h2>
+      <label class="setting-row">
+        <span class="row-ic">${icon("play")}</span>
+        <span class="setting-text"><b>${tr("settings.customPlayer", "Custom player controls")}</b><small>${tr("settings.customPlayerHint", "Hide YouTube’s controls and use HackerTube’s own player bar.")}</small></span>
+        <input class="switch" type="checkbox" data-setting="customPlayer" ${s.customPlayer ? "checked" : ""} aria-label="${esc(tr("settings.customPlayer", "Custom player controls"))}">
+      </label>
+      <p class="settings-warning">${icon("warning")} <span>${tr("settings.customPlayerNote", "Experimental. YouTube’s native controls are hidden while this is on.")}</span></p>
+    </div>` : "";
   const appGroup = window.electronWindow ? electronAppGroup : installGroup;
   view.innerHTML = `<section class="settings">
     <div class="feed-head"><h1>${tr("pages.settings", "Settings")}</h1></div>
@@ -3144,6 +3527,7 @@ function renderSettings() {
       <h2>${icon("language")} ${tr("settings.language", "Language")}</h2>
       <div class="segmented" role="group" aria-label="${tr("settings.language", "Language")}">${localeSeg}</div>
     </div>
+    ${playbackGroup}
     ${appGroup}
     <div class="settings-group">
       <h2>${icon("eye")} ${tr("settings.browsing", "Browsing")}</h2>
@@ -3560,10 +3944,30 @@ async function shareCurrentPage() {
   }
 }
 
+async function enableCustomPlayer(input) {
+  const confirmed = await confirmAction({
+    title: tr("dialogs.customPlayerTitle", "Enable custom playback controls?"),
+    message: tr("dialogs.customPlayerMessage", "HackerTube will hide YouTube’s player controls and replace them with its own. This feature is experimental and available only in the desktop app. You can turn it off at any time in Settings."),
+    confirmLabel: tr("dialogs.customPlayerEnable", "Enable"),
+    icon: "warning",
+    danger: false,
+  });
+  if (!confirmed) return;
+  state.settings.customPlayer = true;
+  storeSet(STORE.settings, state.settings);
+  if (input) input.checked = true;
+  toast(tr("settings.customPlayerEnabled", "Custom controls enabled"));
+}
+
 function onViewChange(e) {
   const setting = e.target.closest("[data-setting]");
   if (setting) {
     const key = setting.dataset.setting;
+    if (key === "customPlayer" && setting.checked) {
+      setting.checked = false;
+      enableCustomPlayer(setting);
+      return;
+    }
     state.settings[key] = setting.type === "checkbox" ? setting.checked : Number(setting.value);
     storeSet(STORE.settings, state.settings);
     if (key === "pageSize") ui.limit = pageSize();

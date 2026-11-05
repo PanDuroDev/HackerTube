@@ -284,7 +284,12 @@
     "updateMac": "The disk image was opened. Drag HackerTube to Applications, then reopen it.",
     "updateWebReady": "A new version is ready. Select Update to reload the app.",
     "updateFailed": "Could not update. Try again or download the latest release from GitHub.",
-    "updateNote": "Updates keep your likes, history, playlists and settings."
+    "updateNote": "Updates keep your likes, history, playlists and settings.",
+    "playback": "Playback",
+    "customPlayer": "Custom player controls",
+    "customPlayerHint": "Hide YouTube’s controls and use HackerTube’s own player bar.",
+    "customPlayerNote": "Experimental. YouTube’s native controls are hidden while this is on.",
+    "customPlayerEnabled": "Custom controls enabled"
   },
   "dialogs": {
     "clearTitle": "Clear {label}?",
@@ -299,7 +304,10 @@
     "removed": "Removed",
     "cleared": "Cleared {label}",
     "playlistDeleted": "Playlist deleted",
-    "allDeleted": "All data deleted"
+    "allDeleted": "All data deleted",
+    "customPlayerTitle": "Enable custom playback controls?",
+    "customPlayerMessage": "HackerTube will hide YouTube’s player controls and replace them with its own. This feature is experimental and available only in the desktop app. You can turn it off at any time in Settings.",
+    "customPlayerEnable": "Enable"
   },
   "languages": {
     "ar": "Arabic",
@@ -360,6 +368,18 @@
     "enlarge": "Enlarge window",
     "shrink": "Shrink window",
     "closePlayer": "Close player"
+  },
+  "player": {
+    "play": "Play",
+    "pause": "Pause",
+    "back10": "Back 10 seconds",
+    "forward10": "Forward 10 seconds",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "volume": "Volume",
+    "seek": "Seek",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "collections": {
     "likedEmpty": "No liked videos yet.",

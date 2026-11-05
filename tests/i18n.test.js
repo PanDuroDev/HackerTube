@@ -24,6 +24,9 @@ test("Arabic and English dictionaries share the required keys", () => {
     "app.title", "header.language", "nav.home", "nav.hackerNews",
     "filters.button", "filters.forYou", "settings.browsing", "settings.autoplayNext", "settings.language",
     "header.update", "header.updateTo", "settings.version", "settings.checkUpdates", "settings.updateWebReady", "settings.updateFailed",
+    "settings.playback", "settings.customPlayer", "settings.customPlayerNote",
+    "dialogs.customPlayerTitle", "dialogs.customPlayerMessage", "dialogs.customPlayerEnable",
+    "player.play", "player.pause", "player.back10", "player.forward10", "player.fullscreen",
     "watch.like", "watch.share", "watch.resumeAt", "watch.comments", "watch.relatedPicks",
     "watch.continueWatching", "collections.likedEmpty", "collections.historyHint", "collections.browseVideos",
     "playlists.create", "playlists.fromCreators", "playlists.emptyHint", "playlists.playAll", "playlists.delete",
@@ -42,6 +45,9 @@ test("t() translates, interpolates, and falls back to English", () => {
   assert.equal(i18n.t("filters.button"), "الفلاتر");
   assert.equal(i18n.t("filters.forYou"), "مخصص لك");
   assert.equal(i18n.t("settings.browsing"), "التصفح");
+  assert.equal(i18n.t("settings.playback"), "التشغيل");
+  assert.equal(i18n.t("player.play"), "تشغيل");
+  assert.equal(i18n.t("dialogs.customPlayerTitle"), "تفعيل أدوات التحكم المخصصة؟");
   assert.equal(i18n.t("hn.scope"), "النطاق");
   assert.equal(i18n.t("topics.web"), "تطوير الويب");
   assert.equal(i18n.t("watch.like"), "إعجاب");
