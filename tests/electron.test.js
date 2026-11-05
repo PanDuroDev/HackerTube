@@ -186,6 +186,7 @@ test("desktop updates resume, verify and replace the installed copy cleanly", ()
   const installerUi = read("electron/installer-ui.js");
   assert.match(installerUi, /params\.get\("auto"\) === "1"/);
   assert.match(installerUi, /if \(autoInstall\) startInstall\(\);/, "an update must install without a click");
+  assert.match(installerUi, /if \(autoInstall\) \{\s*api\.close\(\);/, "the update setup must close itself when it is done");
   assert.match(read("electron/installer.js"), /query: auto \? \{ mode, auto: "1" \} : \{ mode \}/);
 });
 

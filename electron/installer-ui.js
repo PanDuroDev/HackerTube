@@ -64,6 +64,11 @@ async function startInstall() {
     installDir = result.dir || installDir;
     $("#successPath").textContent = installDir;
     setBusy(false);
+    // Started by an update: the app is already open again, so the setup gets out of the way.
+    if (autoInstall) {
+      api.close();
+      return;
+    }
     show("success");
   } catch (error) {
     showError(error?.message);
