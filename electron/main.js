@@ -729,7 +729,7 @@ ipcMain.handle("app:search-catalog", async (event, query, limit) => {
   try {
     const result = await backendRequest("search", { query: text, limit: count });
     if (!result?.ok) return { ok: false };
-    return { ok: true, indices: result.indices || [], total: result.total || 0, tookMs: result.took_ms || 0 };
+    return { ok: true, indices: result.indices || [], ids: result.ids || [], total: result.total || 0, tookMs: result.took_ms || 0 };
   } catch {
     return { ok: false };
   }

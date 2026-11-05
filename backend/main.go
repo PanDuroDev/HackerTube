@@ -33,16 +33,17 @@ type stats struct {
 }
 
 type response struct {
-	ID      int     `json:"id,omitempty"`
-	Type    string  `json:"type,omitempty"`
-	OK      bool    `json:"ok"`
-	Error   string  `json:"error,omitempty"`
-	Indices []int   `json:"indices,omitempty"`
-	Total   int     `json:"total,omitempty"`
-	TookMS  float64 `json:"took_ms,omitempty"`
-	FreedMB float64 `json:"freed_mb,omitempty"`
-	BuildMS float64 `json:"build_ms,omitempty"`
-	Stats   *stats  `json:"stats,omitempty"`
+	ID      int      `json:"id,omitempty"`
+	Type    string   `json:"type,omitempty"`
+	OK      bool     `json:"ok"`
+	Error   string   `json:"error,omitempty"`
+	Indices []int    `json:"indices,omitempty"`
+	IDs     []string `json:"ids,omitempty"`
+	Total   int      `json:"total,omitempty"`
+	TookMS  float64  `json:"took_ms,omitempty"`
+	FreedMB float64  `json:"freed_mb,omitempty"`
+	BuildMS float64  `json:"build_ms,omitempty"`
+	Stats   *stats   `json:"stats,omitempty"`
 }
 
 type backend struct {
@@ -86,6 +87,10 @@ func round(value float64) float64 {
 func (service *backend) search(query string, limit int) response {
 	started := time.Now()
 	indices := service.index.Search(query, limit)
+	ids := make([]string, len(indices))
+	for position, index := range indices {
+		ids[position] = service.index.videos[index].ID
+	}
 	elapsed := float64(time.Since(started).Microseconds()) / 1000
 	service.queries++
 	service.totalMS += elapsed
@@ -93,7 +98,7 @@ func (service *backend) search(query string, limit int) response {
 	if elapsed > service.maxMS {
 		service.maxMS = elapsed
 	}
-	return response{OK: true, Indices: indices, Total: len(indices), TookMS: round(elapsed)}
+	return response{OK: true, Indices: indices, IDs: ids, Total: len(indices), TookMS: round(elapsed)}
 }
 
 func (service *backend) trim() response {

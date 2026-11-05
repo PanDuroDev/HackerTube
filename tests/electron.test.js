@@ -370,6 +370,7 @@ test("custom playback hides the YouTube chrome inside its own frame", () => {
   assert.match(main, /app:search-backend-status/);
   assert.match(main, /app:search-backend-stats/);
   assert.match(main, /app:search-backend-trim/);
+  assert.match(main, /ids: result\.ids \|\| \[\]/);
   assert.match(main, /backend-bin/);
   assert.match(main, /before-quit", stopSearchBackend/);
   assert.match(main, /remove\(\)/);

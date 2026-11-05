@@ -12,7 +12,7 @@
     "dist": "npm run build:backend && electron-builder",
     "dist:win": "node scripts/build-backend.js --target windows --arch x64 && electron-builder --win portable",
     "dist:mac": "node scripts/build-backend.js --target mac --arch universal && electron-builder --mac",
-    "dist:linux": "node scripts/build-backend.js --target linux --arch x64 && electron-builder --linux",
+    "dist:linux": "node scripts/build-backend.js --target linux --arch x64 && electron-builder --linux --x64",
     "dir:win": "node scripts/build-backend.js --target windows --arch x64 && electron-builder --win --dir"
   },
   "devDependencies": {

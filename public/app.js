@@ -281,6 +281,13 @@ function requestBackendSearch(query) {
       }
       const indexedDocs = Number(state.backendStatus?.docs || 0);
       if (indexedDocs && indexedDocs !== state.videos.length) throw new Error("backend catalog does not match the loaded catalog");
+      if (
+        !Array.isArray(result.ids)
+        || result.ids.length !== result.indices.length
+        || result.indices.some((index, position) => state.videos[index]?.id !== result.ids[position])
+      ) {
+        throw new Error("backend catalog does not match the loaded catalog");
+      }
       const items = result.indices.map((index) => state.videos[index]).filter(Boolean);
       if (items.length !== result.indices.length) throw new Error("search result mismatch");
       state.backendSearchCache.set(query, items);

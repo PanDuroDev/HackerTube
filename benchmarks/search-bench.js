@@ -58,12 +58,15 @@ async function main() {
       for (const query of queries) {
         const started = performance.now();
         const response = await backend.request("search", { query, limit: 20000 });
+        if (!response.ok) throw new Error(`Backend search failed for "${query}": ${response.error || "unknown error"}`);
         goIpc.push(performance.now() - started);
         goInternal.push(Number(response.took_ms) || 0);
       }
     }
     stats = await backend.request("stats");
+    if (!stats?.ok) throw new Error(`Backend stats failed: ${stats?.error || "unknown error"}`);
     trimmed = await backend.request("trim");
+    if (!trimmed?.ok) throw new Error(`Backend trim failed: ${trimmed?.error || "unknown error"}`);
   } finally {
     backend.stop();
   }

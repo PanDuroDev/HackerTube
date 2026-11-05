@@ -31,7 +31,8 @@ async function main() {
     for (const query of queries) {
       const expected = index.search(query).map((result) => result.item.id);
       const response = await backend.request("search", { query, limit: 20000 });
-      const actual = response.indices.map((position) => videos[position].id);
+      if (!response.ok) throw new Error(`Backend search failed for "${query}": ${response.error || "unknown error"}`);
+      const actual = (response.indices || []).map((position) => videos[position].id);
       if (JSON.stringify(expected) !== JSON.stringify(actual)) {
         mismatches += 1;
         const first = expected.findIndex((value, position) => value !== actual[position]);
@@ -39,6 +40,7 @@ async function main() {
       }
     }
     stats = await backend.request("stats");
+    if (!stats?.ok) throw new Error(`Backend stats failed: ${stats?.error || "unknown error"}`);
   } finally {
     backend.stop();
   }
