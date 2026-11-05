@@ -35,6 +35,7 @@
       "main.js",
       "preload.js",
       "update.js",
+      "install-fs.js",
       "installer.js",
       "installer.html",
       "installer.css",

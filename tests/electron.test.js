@@ -137,7 +137,88 @@ test("the desktop app serves the bundled site locally instead of the network", (
   assert.match(app, /location\.protocol === "app:" \? SITE_URL \+ location\.hash/, "sharing must copy the public web URL, not app://");
 });
 
-test("desktop updates compare versions, validate URLs and pick platform assets", () => {  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
+test("desktop updates resume, verify and replace the installed copy cleanly", () => {
+  assert.equal(update.resumeOffset(0, 1000), 0, "no partial file means a full download");
+  assert.equal(update.resumeOffset(400, 1000), 400, "a partial file resumes at its size");
+  assert.equal(update.resumeOffset(1000, 1000), 0, "a complete file never resumes");
+  assert.equal(update.resumeOffset(1200, 1000), 0, "an oversized file starts over");
+  assert.equal(update.resumeOffset(Number.NaN, 1000), 0);
+  assert.equal(update.resumeOffset(400, 0), 0);
+  assert.equal(update.isCompleteDownload(1000, 1000), true);
+  assert.equal(update.isCompleteDownload(999, 1000), false);
+  assert.equal(update.isCompleteDownload(1000, 0), false);
+
+  const main = read("electron/main.js");
+  assert.match(main, /headers\.Range = `bytes=\$\{start\}-`/, "a partial download must ask for the missing bytes only");
+  assert.match(main, /response\.status === 206/, "an ignored range must restart the file instead of appending");
+  assert.match(main, /update\.isCompleteDownload\(have, expected\)/, "an already downloaded build must be reused");
+  assert.match(main, /pruneUpdateFiles\(file\)/, "older update copies must be cleaned up");
+  assert.match(main, /"app:update-progress"/, "download progress must reach the renderer");
+  assert.match(main, /updateInFlight/, "a second install click must not start another download");
+  assert.match(main, /Update download was incomplete/);
+  assert.match(main, /function spawnDetached/);
+  assert.match(main, /process\.env\.APPIMAGE[\s\S]*?renameSync/, "Linux should replace the running AppImage in place");
+  assert.match(main, /downloadUpdate\(info\.asset, info\.version\)/);
+
+  const installer = read("electron/installer.js");
+  assert.match(installer, /function registeredInstallDir\(\)/);
+  assert.match(installer, /dir: registeredInstallDir\(\) \|\| defaultInstallDir\(\)/, "setup must reuse the folder of the previous install");
+  assert.match(installer, /function acquireLock\(dir\)/, "concurrent setups must be blocked");
+  assert.match(installer, /const staging = `\$\{dir\}\.new-\$\{process\.pid\}`/);
+  assert.match(installer, /await swapIn\(staging, dir\)/);
+  assert.match(installer, /require\("\.\/install-fs"\)/);
+  assert.match(installer, /fs\.rmSync\(previous, \{ recursive: true, force: true \}\)/, "installing elsewhere must drop the old copy");
+
+  const pkg = JSON.parse(read("electron/package.json"));
+  assert.ok(pkg.build.files.includes("install-fs.js"), "the swap helper must be packaged");
+
+  const preload = read("electron/preload.js");
+  assert.match(preload, /onUpdateProgress: \(callback\)/);
+  assert.match(preload, /ipcRenderer\.on\("app:update-progress"/);
+
+  const app = read("public/app.js");
+  assert.match(app, /api\.onUpdateProgress\?\.\(\(data\) => \{/);
+  assert.match(app, /tr\("header\.updating", "Updating[^"]*"\)\} \$\{percent\}%/);
+});
+
+test("the staged install replaces the folder and rolls back when the swap fails", async () => {
+  const installFs = require("../electron/install-fs");
+  const os = require("node:os");
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), "ht-swap-"));
+  const target = path.join(base, "HackerTube");
+  const staging = path.join(base, "staging");
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.writeFileSync(path.join(target, "HackerTube.exe"), "old");
+  fs.writeFileSync(path.join(target, "removed-in-1.1.txt"), "stale");
+  fs.mkdirSync(staging, { recursive: true });
+  fs.writeFileSync(path.join(staging, "HackerTube.exe"), "new");
+  fs.writeFileSync(path.join(staging, "added-in-1.1.txt"), "fresh");
+
+  await installFs.swapIn(staging, target);
+  assert.equal(fs.readFileSync(path.join(target, "HackerTube.exe"), "utf8"), "new");
+  assert.ok(fs.existsSync(path.join(target, "added-in-1.1.txt")));
+  assert.equal(fs.existsSync(path.join(target, "removed-in-1.1.txt")), false, "files dropped by the new version must not survive");
+  assert.equal(fs.existsSync(staging), false, "the staging folder moves into place");
+  assert.deepEqual(fs.readdirSync(base), ["HackerTube"], "no backup folder is left behind");
+
+  const failedStaging = path.join(base, "missing-staging");
+  await assert.rejects(installFs.swapIn(failedStaging, target));
+  assert.equal(fs.readFileSync(path.join(target, "HackerTube.exe"), "utf8"), "new", "a failed swap must leave the working install intact");
+
+  fs.mkdirSync(path.join(base, "HackerTube.new-999"), { recursive: true });
+  fs.mkdirSync(path.join(base, "HackerTube.old-999"), { recursive: true });
+  fs.mkdirSync(path.join(base, "HackerTube.new-" + process.pid), { recursive: true });
+  installFs.cleanStaleDirs(target, path.join(base, "HackerTube.new-" + process.pid));
+  assert.equal(fs.existsSync(path.join(base, "HackerTube.new-999")), false);
+  assert.equal(fs.existsSync(path.join(base, "HackerTube.old-999")), false);
+  assert.ok(fs.existsSync(path.join(base, "HackerTube.new-" + process.pid)), "the active staging folder is kept");
+
+  fs.rmSync(base, { recursive: true, force: true });
+});
+
+test("desktop updates compare versions, validate URLs and pick platform assets", () => {
+  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
   assert.equal(update.isNewerVersion("1.0.1", "v1.0.1"), false);
   assert.equal(update.isNewerVersion("1.2.0", "v1.1.9"), false);
   assert.equal(update.isNewerVersion("1.0.9", "1.1.0"), true);

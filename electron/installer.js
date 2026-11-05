@@ -4,8 +4,9 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require("electron")
 const fs = require("node:fs");
 const originalFs = require("original-fs");
 const path = require("node:path");
-const { execFile, spawn } = require("node:child_process");
+const { execFile, execFileSync, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
+const { cleanStaleDirs, swapIn } = require("./install-fs");
 
 const execFileAsync = promisify(execFile);
 const ofsCopyFile = promisify(originalFs.copyFile);
@@ -41,6 +42,49 @@ function normalizeInstallDir(value) {
 function sourceDir() {
   if (process.env.HACKERTUBE_INSTALL_SOURCE) return path.resolve(process.env.HACKERTUBE_INSTALL_SOURCE);
   return path.dirname(process.execPath);
+}
+
+// Where the previous install lives, so an update replaces that copy instead of adding another.
+function registeredInstallDir() {
+  if (process.platform !== "win32") return "";
+  try {
+    const output = execFileSync("reg.exe", ["query", UNINSTALL_KEY, "/v", "InstallLocation"], {
+      windowsHide: true,
+      encoding: "utf8",
+    });
+    const match = output.match(/InstallLocation\s+REG_SZ\s+(.+)/i);
+    const dir = match ? match[1].trim() : "";
+    return dir && fs.existsSync(path.join(dir, APP_EXE)) ? dir : "";
+  } catch {
+    return "";
+  }
+}
+
+// Two setup windows copying into the same folder at once would corrupt the install.
+function acquireLock(dir) {
+  const key = Buffer.from(dir.toLowerCase()).toString("base64url").slice(-40);
+  const file = path.join(app.getPath("temp"), `hackertube-setup-${key}.lock`);
+  try {
+    if (Date.now() - fs.statSync(file).mtimeMs > 10 * 60 * 1000) fs.rmSync(file, { force: true });
+  } catch { /* no lock yet */ }
+  try {
+    fs.writeFileSync(file, String(process.pid), { flag: "wx" });
+  } catch {
+    throw new Error("Another HackerTube setup is already running.");
+  }
+  return () => {
+    try { fs.rmSync(file, { force: true }); } catch { /* ignore */ }
+  };
+}
+
+// Staging, swap and cleanup helpers live in install-fs.js so they stay unit-testable.
+
+function removeInstallerArtifacts(dir) {
+  for (const name of fs.readdirSync(dir)) {
+    if (name.toLowerCase() === "uninstall hackertube.exe" || /^unins\d+\.exe$/i.test(name) || name.toLowerCase() === "uninstallericon.ico") {
+      try { fs.rmSync(path.join(dir, name), { force: true }); } catch { /* ignore */ }
+    }
+  }
 }
 
 function trusted(event) {
@@ -198,32 +242,50 @@ async function install(options, window) {
     throw new Error("The installer payload is missing. Download the latest release and try again.");
   }
 
-  send(window, { stage: "prepare", percent: 2, label: "Preparing the installer…" });
-  await stopRunningApp(dir);
-  await delay(350);
-  await removeLegacyUninstallEntries();
-  await ofsMkdir(dir, { recursive: true });
+  const releaseLock = acquireLock(dir);
+  const previous = registeredInstallDir();
+  const staging = `${dir}.new-${process.pid}`;
 
-  send(window, { stage: "copy", percent: 6, label: "Copying application files…" });
-  await copyApplication(source, dir, window);
+  try {
+    send(window, { stage: "prepare", percent: 2, label: "Preparing the installer…" });
+    await stopRunningApp(dir);
+    if (previous && path.resolve(previous) !== dir) await stopRunningApp(previous);
+    await delay(350);
+    cleanStaleDirs(dir);
 
-  for (const name of fs.readdirSync(dir)) {
-    if (name.toLowerCase() === "uninstall hackertube.exe" || /^unins\d+\.exe$/i.test(name) || name.toLowerCase() === "uninstallericon.ico") {
-      try { fs.rmSync(path.join(dir, name), { force: true }); } catch { /* ignore */ }
+    fs.rmSync(staging, { recursive: true, force: true });
+    await ofsMkdir(staging, { recursive: true });
+
+    send(window, { stage: "copy", percent: 6, label: "Copying application files…" });
+    await copyApplication(source, staging, window);
+
+    send(window, { stage: "swap", percent: 84, label: "Replacing the previous version…" });
+    await swapIn(staging, dir);
+    removeInstallerArtifacts(dir);
+
+    await removeLegacyUninstallEntries();
+
+    send(window, { stage: "shortcuts", percent: 88, label: "Creating shortcuts…" });
+    createShortcuts(dir, Boolean(options?.desktopShortcut));
+
+    send(window, { stage: "finish", percent: 95, label: "Finishing setup…" });
+    await registerUninstall(dir);
+
+    // Only after the new copy is in place: drop the copy the registry pointed at before.
+    if (previous && path.resolve(previous) !== dir) {
+      try { fs.rmSync(previous, { recursive: true, force: true }); } catch { /* harmless leftover */ }
     }
+
+    send(window, { stage: "finish", percent: 100, label: "HackerTube is ready." });
+
+    if (options?.launch) {
+      spawn(path.join(dir, APP_EXE), [], { detached: true, stdio: "ignore" }).unref();
+    }
+    return { ok: true, dir };
+  } finally {
+    try { fs.rmSync(staging, { recursive: true, force: true }); } catch { /* already swapped */ }
+    releaseLock();
   }
-
-  send(window, { stage: "shortcuts", percent: 88, label: "Creating shortcuts…" });
-  createShortcuts(dir, Boolean(options?.desktopShortcut));
-
-  send(window, { stage: "finish", percent: 95, label: "Finishing setup…" });
-  await registerUninstall(dir);
-  send(window, { stage: "finish", percent: 100, label: "HackerTube is ready." });
-
-  if (options?.launch) {
-    spawn(path.join(dir, APP_EXE), [], { detached: true, stdio: "ignore" }).unref();
-  }
-  return { ok: true, dir };
 }
 
 async function uninstall() {
@@ -233,6 +295,7 @@ async function uninstall() {
     await execFileAsync("reg.exe", ["delete", UNINSTALL_KEY, "/f"], { windowsHide: true }).catch(() => {});
   }
   removeShortcuts(dir);
+  try { fs.rmSync(path.join(app.getPath("temp"), "hackertube-updates"), { recursive: true, force: true }); } catch { /* ignore */ }
   return { ok: true, dir };
 }
 
@@ -281,7 +344,7 @@ function registerIpc() {
   ipcMain.handle("installer:defaults", (event) => (trusted(event) ? {
     mode: installerMode || "install",
     version: app.getVersion(),
-    dir: defaultInstallDir(),
+    dir: registeredInstallDir() || defaultInstallDir(),
     portable: Boolean(process.env.PORTABLE_EXECUTABLE_FILE),
   } : null));
 

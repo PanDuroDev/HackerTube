@@ -1,8 +1,9 @@
 const { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawn } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
-const { Readable } = require("node:stream");
+const { Readable, Transform } = require("node:stream");
 const { pipeline } = require("node:stream/promises");
 const update = require("./update");
 const installer = require("./installer");
@@ -15,6 +16,7 @@ const SITE_ROOT = app.isPackaged
   : path.join(__dirname, "..", "public");
 const APP_ID = "com.pandurodev.hackertube";
 let win = null;
+let updateInFlight = false;
 
 const installerLaunch = Boolean(process.env.PORTABLE_EXECUTABLE_FILE) || process.argv.includes("--installer");
 const uninstallLaunch = process.argv.includes("--uninstall");
@@ -72,29 +74,132 @@ async function latestReleaseInfo() {
   };
 }
 
-async function downloadUpdate(asset) {
+function updateDir() {
+  return path.join(app.getPath("temp"), "hackertube-updates");
+}
+
+function updateFilePath(asset, version) {
+  const safeVersion = String(version || "latest").replace(/[^\w.-]/g, "");
+  return path.join(updateDir(), `${safeVersion}-${path.basename(asset.name)}`);
+}
+
+function fileSize(file) {
+  try {
+    return fs.statSync(file).size;
+  } catch {
+    return 0;
+  }
+}
+
+// Keep only the build we are about to use so temp never holds several 100 MB copies.
+function pruneUpdateFiles(keep) {
+  try {
+    for (const name of fs.readdirSync(updateDir())) {
+      const file = path.join(updateDir(), name);
+      if (file !== keep) fs.rmSync(file, { recursive: true, force: true });
+    }
+  } catch { /* nothing to prune */ }
+}
+
+function reportDownload(received, total) {
+  const percent = total > 0 ? Math.min(99, Math.round((received / total) * 100)) : 0;
+  win?.webContents.send("app:update-progress", { received, total, percent });
+}
+
+async function downloadUpdate(asset, version) {
   if (!update.isReleaseDownloadUrl(asset?.url)) throw new Error("Untrusted update URL");
-  const response = await net.fetch(asset.url, { headers: { "User-Agent": "HackerTube-Desktop" } });
+  fs.mkdirSync(updateDir(), { recursive: true });
+  const file = updateFilePath(asset, version);
+  pruneUpdateFiles(file);
+
+  const expected = Number(asset.size) || 0;
+  const have = fileSize(file);
+  if (update.isCompleteDownload(have, expected)) return file;
+
+  const start = update.resumeOffset(have, expected);
+  if (!start) fs.rmSync(file, { force: true });
+
+  const headers = { "User-Agent": "HackerTube-Desktop" };
+  if (start) headers.Range = `bytes=${start}-`;
+  const response = await net.fetch(asset.url, { headers });
   if (!response.ok || !response.body) throw new Error(`Update download failed: HTTP ${response.status}`);
 
-  const file = path.join(app.getPath("temp"), `hackertube-${Date.now()}-${path.basename(asset.name)}`);
-  await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(file));
+  // GitHub only honours the range when it replies 206; otherwise start the file over.
+  const resumed = start > 0 && response.status === 206;
+  if (start && !resumed) fs.rmSync(file, { force: true });
+  let received = resumed ? start : 0;
+  const total = expected || Number(response.headers.get("content-length")) + received || 0;
+  let lastTick = 0;
+
+  const counter = new Transform({
+    transform(chunk, _encoding, callback) {
+      received += chunk.length;
+      const now = Date.now();
+      if (now - lastTick > 150) {
+        lastTick = now;
+        reportDownload(received, total);
+      }
+      callback(null, chunk);
+    },
+  });
+
+  await pipeline(
+    Readable.fromWeb(response.body),
+    counter,
+    fs.createWriteStream(file, { flags: resumed ? "a" : "w" }),
+  );
+
+  const size = fileSize(file);
+  if (total && !update.isCompleteDownload(size, total)) {
+    fs.rmSync(file, { force: true });
+    throw new Error("Update download was incomplete");
+  }
+  reportDownload(size, total || size);
   return file;
 }
 
-async function launchInstaller(file) {
-  if (process.platform === "linux") {
-    // Running the new AppImage from temp would not replace the installed one.
-    fs.chmodSync(file, 0o755);
-    shell.showItemInFolder(file);
+function spawnDetached(file, args) {
+  return new Promise((resolve) => {
+    let child;
+    try {
+      child = spawn(file, args, { detached: true, stdio: "ignore", windowsHide: false });
+    } catch {
+      resolve(false);
+      return;
+    }
+    child.once("error", () => resolve(false));
+    child.once("spawn", () => {
+      child.unref();
+      resolve(true);
+    });
+  });
+}
+
+// Replace the running AppImage in place so Linux gets no manual "move the file" step.
+function replaceAppImage(file) {
+  const current = process.env.APPIMAGE;
+  if (!current || !fs.existsSync(current)) return false;
+  const staged = `${current}.new`;
+  try {
+    fs.copyFileSync(file, staged);
+    fs.chmodSync(staged, 0o755);
+    fs.renameSync(current, `${current}.old`);
+    fs.renameSync(staged, current);
+  } catch {
+    fs.rmSync(staged, { force: true });
     return false;
   }
-  const error = await shell.openPath(file);
-  if (error) {
-    shell.showItemInFolder(file);
-    return false;
-  }
+  spawnDetached(current, []);
   return true;
+}
+
+async function launchInstaller(file) {
+  if (process.platform === "linux") return replaceAppImage(file);
+  if (await spawnDetached(file, ["--installer"])) return true;
+  const error = await shell.openPath(file);
+  if (!error) return true;
+  shell.showItemInFolder(file);
+  return false;
 }
 
 function createWindow() {
@@ -167,36 +272,42 @@ ipcMain.handle("app:check-update", async (event) => {
 
 ipcMain.handle("app:install-update", async (event) => {
   if (!isTrusted(event) || !win) return { ok: false, reason: "untrusted" };
-
-  let info;
-  try {
-    info = await latestReleaseInfo();
-  } catch {
-    return { ok: false, reason: "network" };
-  }
-  if (!info.available) return info;
-  if (!update.isReleaseDownloadUrl(info.asset.url)) return { ok: false, reason: "untrusted-asset" };
-
-  const { response } = await dialog.showMessageBox(win, {
-    type: "question",
-    buttons: ["Cancel", "Install update"],
-    defaultId: 1,
-    cancelId: 0,
-    noLink: true,
-    title: "Update HackerTube",
-    message: `Install HackerTube ${info.version}?`,
-    detail: "The update downloads from GitHub. The app will close while the installer opens. Your likes, history, playlists and settings are kept.",
-  });
-  if (response !== 1) return { ok: false, canceled: true };
+  if (updateInFlight) return { ok: false, reason: "busy" };
+  updateInFlight = true;
 
   try {
-    const file = await downloadUpdate(info.asset);
-    const launched = await launchInstaller(file);
-    if (!launched) return { ok: true, version: info.version, manual: true };
-    setTimeout(() => app.quit(), 700);
-    return { ok: true, version: info.version };
-  } catch {
-    return { ok: false, reason: "download" };
+    let info;
+    try {
+      info = await latestReleaseInfo();
+    } catch {
+      return { ok: false, reason: "network" };
+    }
+    if (!info.available) return info;
+    if (!update.isReleaseDownloadUrl(info.asset.url)) return { ok: false, reason: "untrusted-asset" };
+
+    const { response } = await dialog.showMessageBox(win, {
+      type: "question",
+      buttons: ["Cancel", "Install update"],
+      defaultId: 1,
+      cancelId: 0,
+      noLink: true,
+      title: "Update HackerTube",
+      message: `Install HackerTube ${info.version}?`,
+      detail: "The update downloads from GitHub and replaces the installed copy in place, keeping your likes, history, playlists and settings. If a download was interrupted it continues where it stopped.",
+    });
+    if (response !== 1) return { ok: false, canceled: true };
+
+    try {
+      const file = await downloadUpdate(info.asset, info.version);
+      const launched = await launchInstaller(file);
+      if (!launched) return { ok: true, version: info.version, manual: true };
+      setTimeout(() => app.quit(), 700);
+      return { ok: true, version: info.version };
+    } catch {
+      return { ok: false, reason: "download" };
+    }
+  } finally {
+    updateInFlight = false;
   }
 });
 
@@ -229,6 +340,8 @@ if (standaloneInstaller) {
 
     app.whenReady().then(() => {
       app.setAppUserModelId(APP_ID);
+      // The previous AppImage is replaced in place during an update; drop the leftover.
+      if (process.env.APPIMAGE) fs.rmSync(`${process.env.APPIMAGE}.old`, { force: true });
       Menu.setApplicationMenu(Menu.buildFromTemplate([
         ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
         {
