@@ -101,6 +101,7 @@ let customVolume = 100;
 let customSeeking = false;
 let customCaptionCode = "";
 let customCaptionName = "";
+let customQualityAuto = false;
 let customPlayerReady = false;
 let customPlayerFailed = false;
 let customPanelError = "";
@@ -108,6 +109,8 @@ let customPanelSequence = 0;
 let customChapters = [];
 let customChaptersTimer = null;
 let customChaptersRequest = 0;
+let customProgressPercent = 0;
+let customBufferedPercent = 0;
 let installPrompt = null;
 let youtubeApiPromise = null;
 let catalogPromise = null;
@@ -1621,12 +1624,33 @@ function setRangeProgress(range, percent) {
   range.style.setProperty("--ht-progress", `${Math.min(100, Math.max(0, percent))}%`);
 }
 
+function updateCustomProgressFill(progress = customProgressPercent, buffered = customBufferedPercent) {
+  const host = activeCustomPlayerEl()?.querySelector("[data-ht-chapters]");
+  if (!host) return;
+  const played = Math.min(100, Math.max(0, Number(progress) || 0));
+  const loaded = Math.min(100, Math.max(played, Number(buffered) || 0));
+  host.querySelectorAll("i").forEach((segment) => {
+    const start = Number(segment.dataset.start) || 0;
+    const end = Number(segment.dataset.end) || 100;
+    const span = Math.max(0.0001, end - start);
+    const playedInSegment = Math.min(100, Math.max(0, ((played - start) / span) * 100));
+    const bufferedInSegment = Math.min(100, Math.max(playedInSegment, ((loaded - start) / span) * 100));
+    segment.style.background = `linear-gradient(to right, var(--accent) 0 ${playedInSegment}%, rgba(255, 255, 255, .4) ${playedInSegment}% ${bufferedInSegment}%, rgba(255, 255, 255, .18) ${bufferedInSegment}% 100%)`;
+  });
+}
+
 function renderCustomChapters() {
   const host = activeCustomPlayerEl()?.querySelector("[data-ht-chapters]");
   if (!host) return;
-  host.innerHTML = customChapters
-    .map((percent) => `<i style="inset-inline-start:${percent}%"></i>`)
+  const bounds = [0, ...customChapters, 100];
+  host.innerHTML = bounds
+    .slice(0, -1)
+    .map((start, index) => {
+      const end = bounds[index + 1];
+      return `<i data-start="${start}" data-end="${end}" style="left:calc(${start}% + 1px);width:max(1px, calc(${end - start}% - 2px))"></i>`;
+    })
     .join("");
+  updateCustomProgressFill();
 }
 
 function loadCustomChapters(playerHost) {
@@ -1766,7 +1790,9 @@ function syncCustomFullscreenUi() {
 function previewCustomSeek(seek) {
   const duration = Number(seek.max) || 0;
   const time = Number(seek.value) || 0;
-  setRangeProgress(seek, duration > 0 ? (time / duration) * 100 : 0);
+  const percent = duration > 0 ? (time / duration) * 100 : 0;
+  setRangeProgress(seek, percent);
+  updateCustomProgressFill(percent, customBufferedPercent);
   const timeLabel = seek.closest(".ht-player")?.querySelector("[data-ht-time]");
   if (timeLabel) timeLabel.textContent = `${fmtDuration(time)} / ${fmtDuration(duration)}`;
 }
@@ -1811,7 +1837,7 @@ function customPanelHtml(tab, player) {
       current = player.getPlaybackQuality?.() || "";
       levels = player.getAvailableQualityLevels?.() || [];
     } catch {}
-    const auto = !current || ["auto", "default", "unknown"].includes(current);
+    const auto = customQualityAuto || !current || ["auto", "default", "unknown"].includes(current);
     const options = ["default", ...levels.filter((level) => level !== "default" && level !== "auto")];
     const html = options.map((level) => {
       const selected = level === "default" ? auto : level === current;
@@ -1975,7 +2001,11 @@ function applyCustomChoice(kind, value, label = "") {
   let failed = false;
   try {
     if (kind === "speed") player.setPlaybackRate?.(Number(value) || 1);
-    else if (kind === "quality") player.setPlaybackQuality?.(value);
+    else if (kind === "quality") {
+      customQualityAuto = value === "default" || value === "auto";
+      player.setPlaybackQuality?.(value);
+      window.electronWindow?.setYouTubeQuality?.(value)?.catch?.(() => {});
+    }
     else if (kind === "captions") {
       customCaptionCode = value;
       customCaptionName = value ? (label || value) : "";
@@ -2010,7 +2040,7 @@ function applyCustomChoice(kind, value, label = "") {
       const settings = document.querySelector(".ht-settings.open");
       if (!settings || settings.querySelector(".ht-tab.is-active")?.dataset.htTab !== kind) return;
       renderCustomPanel();
-    }, kind === "speed" ? 700 : 1200);
+    }, kind === "speed" ? 700 : 1600);
   }
 }
 
@@ -2100,14 +2130,16 @@ function syncCustomPlayerUi() {
 
   const seek = playerEl.querySelector("[data-ht-seek]");
   if (seek) {
-    seek.style.setProperty("--ht-buffered", `${(buffered * 100).toFixed(2)}%`);
+    if (duration > 0) seek.max = String(duration);
+    const position = duration > 0 ? Math.min(time, duration) : time;
+    customProgressPercent = duration > 0 ? (position / duration) * 100 : 0;
+    customBufferedPercent = buffered * 100;
     if (!customSeeking) {
-      if (duration > 0) seek.max = String(duration);
-      const position = duration > 0 ? Math.min(time, duration) : time;
       seek.value = String(position);
-      setRangeProgress(seek, duration > 0 ? (position / duration) * 100 : 0);
+      setRangeProgress(seek, customProgressPercent);
       const timeLabel = playerEl.querySelector("[data-ht-time]");
       if (timeLabel) timeLabel.textContent = `${fmtDuration(position)} / ${fmtDuration(duration)}`;
+      updateCustomProgressFill(customProgressPercent, customBufferedPercent);
     }
   }
 }
@@ -2157,6 +2189,7 @@ function stopCustomControls() {
   customPanelError = "";
   customCaptionCode = "";
   customCaptionName = "";
+  customQualityAuto = false;
   customChapters = [];
   customChaptersRequest += 1;
   clearTimeout(customChaptersTimer);
@@ -2184,6 +2217,7 @@ function setupCustomControls() {
   playerEl.classList.add("is-paused");
   customCaptionCode = "";
   customCaptionName = "";
+  customQualityAuto = false;
   customPlayerReady = false;
   customPlayerFailed = false;
   customPanelError = "";

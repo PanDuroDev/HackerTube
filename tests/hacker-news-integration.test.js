@@ -702,7 +702,8 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(css, /\.ht-panel-error/);
   assert.match(css, /\.ht-btn:disabled/);
   assert.match(css, /\.ht-chapters/);
-  assert.match(css, /--ht-buffered/);
+  assert.match(css, /\.ht-chapters i/);
+  assert.match(css, /border-radius: 2px/);
   assert.match(css, /::-webkit-scrollbar-button \{ display: none/);
   assert.match(css, /::-webkit-scrollbar \{ width: 7px/);
   assert.match(css, /\.settings-warning/);
@@ -719,6 +720,8 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /requestIdleCallback\(callback/);
   assert.match(APP_SOURCE, /getYouTubeChapters/);
   assert.match(APP_SOURCE, /loadCustomChapters/);
+  assert.match(APP_SOURCE, /updateCustomProgressFill/);
+  assert.match(APP_SOURCE, /setYouTubeQuality/);
   assert.match(APP_SOURCE, /:focus-visible/);
   assert.match(APP_SOURCE, /\}, 3000\);/);
 });
