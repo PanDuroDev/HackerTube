@@ -4330,7 +4330,13 @@ function onViewClick(e) {
   if (moreButton) {
     if (moreButton.disabled) return;
     const scope = state.scope;
+    const homeOrderChanged = scope.type === "all" && ui.sort === "foryou" && state.homeStale;
     const list = feedList(scope);
+    if (homeOrderChanged) {
+      ui.limit += pageSize();
+      renderFeed(scope);
+      return;
+    }
     if (list.length > ui.limit) {
       appendFeedPage(scope, list);
       return;
@@ -4341,7 +4347,12 @@ function onViewClick(e) {
       ensureCatalog()
         .then(() => {
           if (state.scope !== scope) return;
-          if (ui.sort === "foryou" && appendFeedPage(scope, feedList(scope))) return;
+          if (ui.sort !== "foryou" || state.homeStale) {
+            ui.limit += pageSize();
+            renderFeed(scope);
+            return;
+          }
+          if (appendFeedPage(scope, feedList(scope))) return;
           ui.limit += pageSize();
           renderFeed(scope);
         })
