@@ -1,6 +1,6 @@
 {
   "name": "hackertube-desktop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Frameless Electron desktop app for HackerTube",
   "author": "PanDuroDev",
@@ -9,9 +9,10 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-    "dist:win": "electron-builder --win",
+    "dist:win": "electron-builder --win portable",
     "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux"
+    "dist:linux": "electron-builder --linux",
+    "dir:win": "electron-builder --win --dir"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -28,6 +29,11 @@
       "main.js",
       "preload.js",
       "update.js",
+      "installer.js",
+      "installer.html",
+      "installer.css",
+      "installer-ui.js",
+      "installer-preload.js",
       "build/icon.png"
     ],
     "win": {
@@ -35,27 +41,32 @@
       "artifactName": "HackerTube-win-${arch}.${ext}",
       "target": [
         {
-          "target": "nsis",
-          "arch": ["x64"]
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
         }
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
     },
     "mac": {
       "icon": "build/icon.png",
       "category": "public.app-category.education",
       "artifactName": "HackerTube-mac-${arch}.${ext}",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "linux": {
       "icon": "build/icon.png",
       "category": "Education",
       "artifactName": "HackerTube-linux-${arch}.${ext}",
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
+    },
+    "portable": {
+      "artifactName": "HackerTube-win-${arch}.${ext}",
+      "requestExecutionLevel": "user"
     }
   }
 }

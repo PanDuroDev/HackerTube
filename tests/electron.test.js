@@ -40,7 +40,7 @@ test("the Electron shell is frameless and exposes only window controls", () => {
   assert.doesNotMatch(preload, /nodeIntegration|require\("node:fs"\)/);
 
   const pkg = JSON.parse(read("electron/package.json"));
-  assert.equal(pkg.version, "1.0.1");
+  assert.equal(pkg.version, "1.0.2");
   assert.equal(pkg.main, "main.js");
   assert.ok(pkg.build?.files?.includes("update.js"));
   assert.ok(pkg.build?.appId);
@@ -113,8 +113,7 @@ test("the web app renders window controls and hides the PWA install row in Elect
   }
 });
 
-test("desktop updates compare versions, validate URLs and pick platform assets", () => {
-  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
+test("desktop updates compare versions, validate URLs and pick platform assets", () => {  assert.equal(update.isNewerVersion("1.0.0", "v1.0.1"), true);
   assert.equal(update.isNewerVersion("1.0.1", "v1.0.1"), false);
   assert.equal(update.isNewerVersion("1.2.0", "v1.1.9"), false);
   assert.equal(update.isNewerVersion("1.0.9", "1.1.0"), true);
@@ -140,4 +139,51 @@ test("desktop updates compare versions, validate URLs and pick platform assets",
   assert.equal(update.pickReleaseAsset(assets, "linux", "x64").name, "HackerTube-linux-x86_64.AppImage");
   assert.equal(update.pickReleaseAsset(assets, "linux", "arm64").name, "HackerTube-linux-arm64.AppImage");
   assert.equal(update.pickReleaseAsset(assets, "freebsd", "x64"), null);
+});
+
+test("the Windows build ships a custom Electron installer and uninstaller", () => {
+  const pkg = JSON.parse(read("electron/package.json"));
+  assert.equal(pkg.build.nsis, undefined, "the old NSIS target should be gone");
+  assert.equal(pkg.build.win.target[0].target, "portable");
+  assert.equal(pkg.build.win.artifactName, "HackerTube-win-${arch}.${ext}");
+  for (const file of ["installer.js", "installer.html", "installer.css", "installer-ui.js", "installer-preload.js"]) {
+    assert.ok(pkg.build.files.includes(file), `${file} should be packaged`);
+    assert.ok(fs.existsSync(path.join(ROOT, "electron", file)), `${file} should exist`);
+  }
+
+  const html = read("electron/installer.html");
+  for (const token of [
+    'id="installView"', 'id="progressView"', 'id="successView"', 'id="uninstallView"',
+    'id="installBtn"', 'id="uninstallBtn"', 'id="desktopShortcut"', 'id="launchApp"',
+    '#i-download', '#i-folder-2', '#i-shield', '#i-trash', '#i-window-minimize', '#i-close',
+  ]) {
+    assert.ok(html.includes(token), `installer.html should include ${token}`);
+  }
+  assert.doesNotMatch(html, /cdn\.|unpkg|fonts\.googleapis/i, "the installer must use local assets");
+
+  const ui = read("electron/installer-ui.js");
+  assert.match(ui, /window\.installer/);
+  assert.match(ui, /api\.install\(/);
+  assert.match(ui, /api\.uninstall\(/);
+  assert.match(ui, /api\.finishUninstall\(/);
+  assert.match(ui, /onProgress/);
+
+  const installer = read("electron/installer.js");
+  assert.match(installer, /require\("original-fs"\)/);
+  assert.match(installer, /function install\(options, window\)/);
+  assert.match(installer, /shell\.writeShortcutLink/);
+  assert.match(installer, /UNINSTALL_KEY = .*HackerTube/);
+  assert.match(installer, /--uninstall --silent/);
+  assert.match(installer, /Remove-Item/);
+
+  const main = read("electron/main.js");
+  assert.match(main, /PORTABLE_EXECUTABLE_FILE/);
+  assert.match(main, /process\.argv\.includes\("--uninstall"\)/);
+  assert.match(main, /installer\.openWindow\("uninstall", win\)/);
+  assert.match(main, /standaloneInstaller/);
+
+  const preload = read("electron/installer-preload.js");
+  assert.match(preload, /installer:install/);
+  assert.match(preload, /installer:uninstall/);
+  assert.match(preload, /installer:finish-uninstall/);
 });
