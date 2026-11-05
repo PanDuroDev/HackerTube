@@ -613,10 +613,22 @@ function backendBinaryPath() {
   return candidates.find((file) => fs.existsSync(file)) || "";
 }
 
+function scheduleBackendIdleStop(backend) {
+  clearTimeout(backend.idleTimer);
+  const timer = setTimeout(() => {
+    startupTimers.delete(timer);
+    if (searchBackend === backend && backend.pending.size === 0) stopSearchBackend();
+  }, 120000);
+  timer.unref?.();
+  startupTimers.add(timer);
+  backend.idleTimer = timer;
+}
+
 function stopSearchBackend() {
   const backend = searchBackend;
   searchBackend = null;
   if (!backend) return;
+  clearTimeout(backend.idleTimer);
   backend.stopped = true;
   try {
     backend.child.stdin.write(`${JSON.stringify({ id: 0, method: "shutdown" })}\n`);
@@ -650,8 +662,10 @@ function startSearchBackend() {
     pending: new Map(),
     waiters: [],
     stopped: false,
+    idleTimer: null,
   };
   searchBackend = backend;
+  scheduleBackendIdleStop(backend);
 
   child.stdin.on("error", () => {
     // The process may exit between a request check and the write; exit handling owns the error.
@@ -718,6 +732,7 @@ async function backendRequest(method, params = {}, timeout = 5000) {
   const backend = searchBackend || startSearchBackend();
   if (!backend) return null;
   await waitForBackend(backend);
+  scheduleBackendIdleStop(backend);
   const id = ++backend.nextId;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {

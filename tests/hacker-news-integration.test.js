@@ -725,6 +725,8 @@ test("custom playback assets use the MingCute sprite and require the disclaimer"
   assert.match(APP_SOURCE, /updateCustomProgressFill/);
   assert.match(APP_SOURCE, /setYouTubeQuality/);
   assert.match(APP_SOURCE, /initSearchBackend/);
+  assert.doesNotMatch(APP_SOURCE, /renderSidebar\(\);\s*initSearchBackend\(\)/);
+  assert.match(APP_SOURCE, /backendMode === "ready"/);
   assert.match(APP_SOURCE, /backendSearchItems/);
   assert.match(APP_SOURCE, /requestBackendSearch/);
   assert.match(APP_SOURCE, /backend catalog does not match/);
@@ -1250,7 +1252,7 @@ test("desktop settings expose the Go search backend and a memory action", () => 
   harness.context.window.electronWindow = {
     trimSearchBackend: async () => ({ ok: true, freedMb: 2, stats: { heap_mb: 20 } }),
   };
-  harness.api.state.backendEnabled = true;
+  harness.api.state.backendMode = "ready";
   harness.api.state.backendStatus = { ready: true, docs: 18140 };
   harness.api.renderSettings();
   assert.match(harness.view.innerHTML, /data-backend-trim/);

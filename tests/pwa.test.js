@@ -68,7 +68,7 @@ test("the app registers the service worker and exposes an install action", () =>
   const sw = read("sw.js");
   assert.match(sw, /addEventListener\("install"/);
   assert.match(sw, /addEventListener\("fetch"/);
-  assert.match(sw, /const VERSION = "v7"/);
+  assert.match(sw, /const VERSION = "v8"/);
   assert.match(sw, /search-fields\.js/);
   assert.match(sw, /data\/home\.json/);
   assert.match(sw, /data\/meta\.json/);

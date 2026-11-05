@@ -24,8 +24,10 @@ type Field struct {
 
 type Document struct {
 	Index   int
+	ID      string
 	Title   string
 	Channel string
+	Rank    float64
 	Fields  []Field
 }
 

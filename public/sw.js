@@ -1,5 +1,5 @@
 /* HackerTube service worker: app shell precache, runtime data cache, offline fallback. */
-const VERSION = "v7";
+const VERSION = "v8";
 const SHELL_CACHE = `ht-shell-${VERSION}`;
 const DATA_CACHE = `ht-data-${VERSION}`;
 const SCOPE = new URL("./", self.location.href).href;
