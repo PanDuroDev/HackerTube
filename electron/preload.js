@@ -9,6 +9,11 @@ if (window.top === window) {
     getAppVersion: () => ipcRenderer.invoke("app:version"),
     checkForUpdate: () => ipcRenderer.invoke("app:check-update"),
     installUpdate: () => ipcRenderer.invoke("app:install-update"),
+    onUpdateProgress: (callback) => {
+      const listener = (_event, data) => callback(data);
+      ipcRenderer.on("app:update-progress", listener);
+      return () => ipcRenderer.removeListener("app:update-progress", listener);
+    },
     uninstall: () => ipcRenderer.invoke("app:uninstall"),
     onMaximizedChange: (callback) => {
       const listener = (_event, maximized) => callback(Boolean(maximized));

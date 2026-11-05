@@ -2840,6 +2840,12 @@ function setupElectronWindow() {
       });
     }).catch(() => {});
   }
+  api.onUpdateProgress?.((data) => {
+    if (!updateBusy) return;
+    const percent = Math.max(0, Math.min(100, Math.round(Number(data?.percent) || 0)));
+    const text = $("#updateBtn")?.querySelector("[data-update-label]");
+    if (text) text.textContent = `${tr("header.updating", "Updating…")} ${percent}%`;
+  });
   refreshUpdateChecks(true);
 }
 

@@ -26,6 +26,19 @@ function isNewerVersion(current, latest) {
   return false;
 }
 
+function isCompleteDownload(size, expected) {
+  const total = Number(expected);
+  return Number.isFinite(total) && total > 0 && Number(size) === total;
+}
+
+// Byte offset to continue a partial download from; 0 starts over.
+function resumeOffset(size, expected) {
+  const have = Number(size);
+  const total = Number(expected);
+  if (!Number.isFinite(have) || !Number.isFinite(total)) return 0;
+  return have > 0 && have < total ? Math.floor(have) : 0;
+}
+
 function isReleaseDownloadUrl(value) {
   if (typeof value !== "string" || !value.startsWith(RELEASE_DOWNLOAD_PREFIX)) return false;
   try {
@@ -58,6 +71,8 @@ module.exports = {
   ASSET_PATTERNS,
   parseVersion,
   isNewerVersion,
+  isCompleteDownload,
+  resumeOffset,
   isReleaseDownloadUrl,
   pickReleaseAsset,
 };
