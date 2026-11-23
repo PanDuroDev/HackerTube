@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, net, protocol, session, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
@@ -15,6 +15,7 @@ const SITE_ROOT = app.isPackaged
   ? path.join(process.resourcesPath, "public")
   : path.join(__dirname, "..", "public");
 const APP_ID = "com.pandurodev.hackertube";
+const PUBLIC_SITE = "https://pandurodev.github.io/HackerTube/";
 let win = null;
 let updateInFlight = false;
 
@@ -44,6 +45,18 @@ function serveLocalSite() {
 
 function isTrusted(event) {
   return String(event.senderFrame?.url || "").startsWith(APP_URL);
+}
+
+// YouTube blocks embedded playback when the request carries no valid referer (error 153).
+// Pages served from app:// send none, so the player gets the public site's referer instead.
+function allowYouTubeEmbeds() {
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ["*://*.youtube.com/*", "*://*.youtube-nocookie.com/*", "*://*.googlevideo.com/*"] },
+    (details, callback) => {
+      details.requestHeaders.Referer = PUBLIC_SITE;
+      callback({ requestHeaders: details.requestHeaders });
+    },
+  );
 }
 
 async function latestReleaseInfo() {
@@ -356,6 +369,7 @@ if (standaloneInstaller) {
         { role: "windowMenu" },
       ]));
       serveLocalSite();
+      allowYouTubeEmbeds();
       createWindow();
       app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
