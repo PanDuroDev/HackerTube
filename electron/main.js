@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, net, protocol, session, shell } = require("electron");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
@@ -19,6 +19,7 @@ const SITE_ROOT = app.isPackaged
   ? path.join(process.resourcesPath, "public")
   : path.join(__dirname, "..", "public");
 const APP_ID = "com.pandurodev.hackertube";
+const PUBLIC_SITE = "https://pandurodev.github.io/HackerTube/";
 if (process.env.HACKERTUBE_USER_DATA) {
   app.setPath("userData", path.resolve(process.env.HACKERTUBE_USER_DATA));
 }
@@ -223,6 +224,18 @@ function scheduleLegacyStorageMigration(hadStorageAtLaunch, forcedMigration) {
 
 function isTrusted(event) {
   return String(event.senderFrame?.url || "").startsWith(APP_URL);
+}
+
+// YouTube blocks playback when the embed gets no public referer (player error 153).
+// The app is served from loopback, so requests go out with the public site's referer.
+function allowYouTubeEmbeds() {
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ["*://*.youtube.com/*", "*://*.youtube-nocookie.com/*", "*://*.googlevideo.com/*"] },
+    (details, callback) => {
+      details.requestHeaders.Referer = PUBLIC_SITE;
+      callback({ requestHeaders: details.requestHeaders });
+    },
+  );
 }
 
 async function latestReleaseInfo() {
@@ -951,6 +964,7 @@ if (standaloneInstaller) {
         markMigrationHandled({ handledAt: new Date().toISOString(), reason: "fresh-install" });
       }
       mainWindowStarted = true;
+      allowYouTubeEmbeds();
       createWindow();
       scheduleLegacyStorageMigration(hadStorageAtLaunch || forcedMigration, forcedMigration);
       app.on("activate", () => {
