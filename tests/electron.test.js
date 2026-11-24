@@ -169,6 +169,15 @@ test("the desktop app serves the bundled site locally instead of the network", (
   assert.match(app, /settings\.updateMac/);
 });
 
+test("the desktop app gives YouTube a valid referer so embeds play (error 153)", () => {
+  const main = read("electron/main.js");
+  assert.match(main, /const PUBLIC_SITE = "https:\/\/pandurodev\.github\.io\/HackerTube\/"/);
+  assert.match(main, /session\.defaultSession\.webRequest\.onBeforeSendHeaders\(/);
+  assert.match(main, /"\*:\/\/\*\.youtube\.com\/\*"/);
+  assert.match(main, /requestHeaders\.Referer = PUBLIC_SITE/);
+  assert.match(main, /allowYouTubeEmbeds\(\);\s*createWindow\(\)/, "the header rule must be installed before the window loads the site");
+});
+
 test("desktop updates resume, verify and replace the installed copy cleanly", () => {
   assert.equal(update.resumeOffset(0, 1000), 0, "no partial file means a full download");
   assert.equal(update.resumeOffset(400, 1000), 400, "a partial file resumes at its size");
